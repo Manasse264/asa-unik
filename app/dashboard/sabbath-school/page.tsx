@@ -48,7 +48,7 @@ interface SabbathLetter { id: string; name: string; originChurch: string; provin
 interface AttendanceRecord { id: string; date: string; type: 'family' | 'choir'; targetId: string; targetName: string; count: number; }
 
 export default function SabbathSchoolDashboard() {
-  const [lang, setLang] = React.useState<"en" | "fr">("en")
+  const [lang, setLang] = React.useState<"en" | "rw" | "fr">("en")
   const [activeTab, setActiveTab] = React.useState<"families" | "attendance" | "reports" | "letters">("families")
   const [families, setFamilies] = React.useState<Family[]>([])
   const [choirs, setChoirs] = React.useState<any[]>([])
@@ -92,7 +92,7 @@ export default function SabbathSchoolDashboard() {
 
 
   React.useEffect(() => {
-    const updateLang = () => setLang((localStorage.getItem("app_lang") || "en") as "en" | "fr")
+    const updateLang = () => setLang((localStorage.getItem("app_lang") || "en") as "en" | "rw" | "fr")
     updateLang()
     loadData()
 
@@ -125,7 +125,7 @@ export default function SabbathSchoolDashboard() {
     localStorage.setItem(`church_letters_${year}`, JSON.stringify(newLetters))
   }
 
-  const t = sslTranslations[lang]
+  const t = sslTranslations[lang === "rw" ? "en" : lang]
 
   const updateAttendance = (type: 'family' | 'choir', id: string, name: string, count: number) => {
     const existing = attendance.find(a => a.date === selectedDate && a.targetId === id)

@@ -24,7 +24,7 @@ const translations = {
 }
 
 export default function AnnouncementsPage() {
-  const [lang, setLang] = React.useState<"en" | "fr">("en")
+  const [lang, setLang] = React.useState<"en" | "rw" | "fr">("en")
   const [announcements, setAnnouncements] = React.useState<any[]>([])
 
   const loadAnnouncements = () => {
@@ -43,7 +43,7 @@ export default function AnnouncementsPage() {
 
   React.useEffect(() => {
     const updateLang = () => {
-      const savedLang = (localStorage.getItem("app_lang") || "en") as "en" | "fr"
+      const savedLang = (localStorage.getItem("app_lang") || "en") as "en" | "rw" | "fr"
       setLang(savedLang)
     }
     updateLang()
@@ -62,7 +62,7 @@ export default function AnnouncementsPage() {
     }
   }, [])
 
-  const t = translations[lang]
+  const t = translations[lang === "rw" ? "en" : lang]
 
   const downloadFile = (item: any) => {
     if (!item.fileData) {

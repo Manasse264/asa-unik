@@ -53,7 +53,7 @@ const translations = {
 }
 
 export default function Page() {
-  const [lang, setLang] = React.useState<"en" | "fr">("en")
+  const [lang, setLang] = React.useState<"en" | "rw" | "fr">("en")
   const [announcements, setAnnouncements] = React.useState<any[]>([])
 
   const loadAnnouncements = () => {
@@ -67,7 +67,7 @@ export default function Page() {
 
   React.useEffect(() => {
     const updateLang = () => {
-      const savedLang = (localStorage.getItem("app_lang") || "en") as "en" | "fr"
+      const savedLang = (localStorage.getItem("app_lang") || "en") as "en" | "rw" | "fr"
       setLang(savedLang)
     }
 
@@ -85,7 +85,7 @@ export default function Page() {
     }
   }, [])
 
-  const t = translations[lang]
+  const t = translations[lang === "rw" ? "en" : lang]
 
   return (
     <main className="relative flex-1 min-h-[calc(100vh-64px)] overflow-hidden">

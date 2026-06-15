@@ -154,6 +154,7 @@ const translations = {
     specifyPlaceholder: "ex. Projet Spécial",
     descPlaceholder: "Paiement mensuel...",
     noTransactions: "Aucune transaction trouvée",
+    noIncome: "Aucun revenu enregistré pour le moment.",
     noExpenses: "Aucune dépense enregistrée.",
     noProperties: "Aucune propriété enregistrée.",
     bookName: "Nom du livre",
@@ -221,7 +222,7 @@ export default function TreasurerDashboard() {
   const [books, setBooks] = React.useState<Book[]>([])
   const [gifts, setGifts] = React.useState<Gift[]>([])
   const [activeTab, setActiveTab] = React.useState('overview')
-  const [lang, setLang] = React.useState<"en" | "fr">("en")
+  const [lang, setLang] = React.useState<"en" | "rw" | "fr">("en")
   
   const [selectedMonth, setSelectedMonth] = React.useState(new Date().getMonth())
   const [selectedYear, setSelectedYear] = React.useState(new Date().getFullYear())
@@ -283,7 +284,7 @@ export default function TreasurerDashboard() {
     loadData()
 
     const updateLang = () => {
-      const savedLang = (localStorage.getItem("app_lang") || "en") as "en" | "fr"
+      const savedLang = (localStorage.getItem("app_lang") || "en") as "en" | "rw" | "fr"
       setLang(savedLang)
     }
     updateLang()
@@ -299,7 +300,7 @@ export default function TreasurerDashboard() {
     }
   }, [])
 
-  const t = translations[lang]
+  const t = translations[lang === "rw" ? "en" : lang]
 
   // --- Calculations ---
 

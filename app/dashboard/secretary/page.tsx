@@ -211,7 +211,8 @@ const DEPARTMENT_NAMES = [
 ]
 
 export default function SecretaryDashboard() {
-  const [lang, setLang] = React.useState<"en" | "fr">("en")
+  const [lang, setLang] = React.useState<"en" | "rw" | "fr">("en")
+  const t = secTranslations[lang === "rw" ? "en" : lang]
   const [activeTab, setActiveTab] = React.useState<"members" | "council" | "departments" | "choirs" | "deacons" | "deaconesses">("members")
   const [members, setMembers] = React.useState<Member[]>(initialMembers)
   const [departments, setDepartments] = React.useState<Department[]>(initialDepartments)
@@ -264,7 +265,7 @@ export default function SecretaryDashboard() {
   })
 
   React.useEffect(() => {
-    const updateLang = () => setLang((localStorage.getItem("app_lang") || "en") as "en" | "fr")
+    const updateLang = () => setLang((localStorage.getItem("app_lang") || "en") as "en" | "rw" | "fr")
     updateLang()
 
     loadData()
@@ -294,6 +295,78 @@ export default function SecretaryDashboard() {
     } catch (error) {
       console.error("Failed to load data:", error)
     }
+  }
+
+  const openAddMemberModal = () => {
+    setEditingMember(null)
+    setMemberFormData({
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      isCouncil: false,
+      isDeacon: false,
+      isDeaconess: false,
+      position: "",
+      responsibilities: ""
+    })
+    setIsMemberModalOpen(true)
+  }
+
+  const openEditMemberModal = (member: Member) => {
+    setEditingMember(member)
+    setMemberFormData({
+      firstName: member.firstName,
+      lastName: member.lastName,
+      email: member.email,
+      phone: member.phone,
+      isCouncil: member.isCouncil,
+      isDeacon: member.isDeacon || false,
+      isDeaconess: member.isDeaconess || false,
+      position: member.position || "",
+      responsibilities: member.responsibilities || ""
+    })
+    setIsMemberModalOpen(true)
+  }
+
+  const openAddDeptModal = () => {
+    setEditingDept(null)
+    setDeptFormData({
+      name: "",
+      leaderName: "",
+      activities: ""
+    })
+    setIsDeptModalOpen(true)
+  }
+
+  const openEditDeptModal = (dept: Department) => {
+    setEditingDept(dept)
+    setDeptFormData({
+      name: dept.name,
+      leaderName: dept.leaderName,
+      activities: dept.activities
+    })
+    setIsDeptModalOpen(true)
+  }
+
+  const openAddChoirModal = () => {
+    setEditingChoir(null)
+    setChoirFormData({
+      name: "",
+      leaderName: "",
+      memberIds: []
+    })
+    setIsChoirModalOpen(true)
+  }
+
+  const openEditChoirModal = (choir: Choir) => {
+    setEditingChoir(choir)
+    setChoirFormData({
+      name: choir.name,
+      leaderName: choir.leaderName,
+      memberIds: choir.memberIds || []
+    })
+    setIsChoirModalOpen(true)
   }
 
   const handleSaveMember = async () => {
@@ -428,6 +501,45 @@ export default function SecretaryDashboard() {
       console.error("Failed to remove member from choir list:", error)
     }
   }
+
+  const filteredMembers = members.filter(member => {
+    // Filter by tab type
+    if (activeTab === "members") {
+      if (member.isCouncil || member.isDeacon || member.isDeaconess) return false;
+    } else if (activeTab === "council") {
+      if (!member.isCouncil) return false;
+    } else if (activeTab === "deacons") {
+      if (!member.isDeacon) return false;
+    } else if (activeTab === "deaconesses") {
+      if (!member.isDeaconess) return false;
+    }
+    
+    // Filter by search query
+    const query = searchQuery.toLowerCase();
+    return (
+      (member.firstName || "").toLowerCase().includes(query) ||
+      (member.lastName || "").toLowerCase().includes(query) ||
+      (member.email || "").toLowerCase().includes(query) ||
+      (member.phone || "").toLowerCase().includes(query)
+    );
+  });
+
+  const filteredDepts = departments.filter(dept => {
+    const query = searchQuery.toLowerCase();
+    return (
+      (dept.name || "").toLowerCase().includes(query) ||
+      (dept.leaderName || "").toLowerCase().includes(query) ||
+      (dept.activities || "").toLowerCase().includes(query)
+    );
+  });
+
+  const filteredChoirs = choirs.filter(choir => {
+    const query = searchQuery.toLowerCase();
+    return (
+      (choir.name || "").toLowerCase().includes(query) ||
+      (choir.leaderName || "").toLowerCase().includes(query)
+    );
+  });
 
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">

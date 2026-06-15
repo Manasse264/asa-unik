@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const email = searchParams.get("email")
@@ -21,14 +21,12 @@ export default function ResetPasswordPage() {
       return
     }
 
-    // In a real app, this would call an API
-    // For this demo, we update localStorage
     const allUsers = JSON.parse(localStorage.getItem("app_users") || "[]")
-    const updatedUsers = allUsers.map((u: any) => 
+    const updatedUsers = allUsers.map((u: any) =>
       u.email.toLowerCase() === email?.toLowerCase() ? { ...u, password } : u
     )
     localStorage.setItem("app_users", JSON.stringify(updatedUsers))
-    
+
     setIsSuccess(true)
     setTimeout(() => router.push("/login"), 3000)
   }
@@ -62,5 +60,13 @@ export default function ResetPasswordPage() {
         </form>
       </div>
     </div>
+  )
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+      <ResetPasswordContent />
+    </React.Suspense>
   )
 }

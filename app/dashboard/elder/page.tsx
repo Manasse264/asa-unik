@@ -120,7 +120,13 @@ export default function ElderDashboard() {
 
   const [users, setUsers] = React.useState<UserAccount[]>([])
   const [editingUser, setEditingUser] = React.useState<UserAccount | null>(null)
-  const [userFormData, setUserFormData] = React.useState({ firstName: "", lastName: "", role: "", email: "" })
+  const [userFormData, setUserFormData] = React.useState<{
+    firstName: string;
+    lastName: string;
+    role: string;
+    email: string;
+    allowedYears?: string[];
+  }>({ firstName: "", lastName: "", role: "", email: "", allowedYears: [] })
 
   const [weekOfPrayers, setWeekOfPrayers] = React.useState<WeekOfPrayer[]>([])
   const [isAddingWOP, setIsAddingWOP] = React.useState(false)
@@ -976,7 +982,8 @@ export default function ElderDashboard() {
                       type: "Announcement",
                       date: new Date().toISOString().split('T')[0],
                       published: false,
-                      fileName: ""
+                      fileName: "",
+                      fileData: ""
                     })
                   }}>Cancel</Button>
                 </div>
