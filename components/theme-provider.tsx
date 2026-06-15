@@ -1,36 +1,56 @@
 "use client"
 
 import * as React from "react"
-import { ThemeProvider as NextThemesProvider, useTheme } from "next-themes"
 
-function ThemeProvider({
-  children,
-  ...props
-}: React.ComponentProps<typeof NextThemesProvider>) {
-  return (
-    <NextThemesProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-      {...props}
-    >
-      <ThemeHotkey />
-      {children}
-    </NextThemesProvider>
-  )
+interface ThemeContextType {
+  theme: string
+  resolvedTheme: string
+  setTheme: (theme: string) => void
 }
 
-function isTypingTarget(target: EventTarget | null) {
-  if (!(target instanceof HTMLElement)) {
-    return false
+const ThemeContext = React.createContext<ThemeContextType | undefined>(undefined)
+
+export function useTheme() {
+  const context = React.useContext(ThemeContext)
+  if (!context) {
+    throw new Error("useTheme must be used within a ThemeProvider")
+  }
+  return context
+}
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setThemeState] = React.useState("light")
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    // Initialize theme from localStorage or system preference
+    const savedTheme = localStorage.getItem("theme") || "light"
+    setThemeState(savedTheme)
+    document.documentElement.classList.toggle("dark", savedTheme === "dark")
+    setMounted(true)
+  }, [])
+
+  const setTheme = React.useCallback((newTheme: string) => {
+    setThemeState(newTheme)
+    localStorage.setItem("theme", newTheme)
+    document.documentElement.classList.toggle("dark", newTheme === "dark")
+  }, [])
+
+  const value = React.useMemo(() => ({
+    theme,
+    resolvedTheme: theme,
+    setTheme
+  }), [theme, setTheme])
+
+  if (!mounted) {
+    return <div style={{ visibility: "hidden" }}>{children}</div>
   }
 
   return (
-    target.isContentEditable ||
-    target.tagName === "INPUT" ||
-    target.tagName === "TEXTAREA" ||
-    target.tagName === "SELECT"
+    <ThemeContext.Provider value={value}>
+      <ThemeHotkey />
+      {children}
+    </ThemeContext.Provider>
   )
 }
 
@@ -47,11 +67,17 @@ function ThemeHotkey() {
         return
       }
 
-      if (event.key.toLowerCase() !== "d") {
+      if (!event.key || event.key.toLowerCase() !== "d") {
         return
       }
 
-      if (isTypingTarget(event.target)) {
+      const target = event.target as HTMLElement
+      if (
+        target.isContentEditable ||
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.tagName === "SELECT"
+      ) {
         return
       }
 
@@ -67,5 +93,3 @@ function ThemeHotkey() {
 
   return null
 }
-
-export { ThemeProvider }

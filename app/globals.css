@@ -127,3 +127,39 @@
     @apply font-sans;
     }
 }
+
+@theme {
+  --animate-marquee: marquee 120s linear infinite;
+  --animate-background-zoom: background-zoom 20s ease-in-out infinite alternate;
+  --animate-slide-fade: slide-fade 40s infinite;
+
+  @keyframes marquee {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100vw);
+    }
+  }
+
+  @keyframes background-zoom {
+    0% {
+      transform: scale(1);
+    }
+    100% {
+      transform: scale(1.1);
+    }
+  }
+
+  @keyframes slide-fade {
+    0% {
+      opacity: 0;
+    }
+    2.5%, 22.5% {
+      opacity: 1;
+    }
+    25%, 100% {
+      opacity: 0;
+    }
+  }
+}

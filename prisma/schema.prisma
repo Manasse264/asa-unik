@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  firstName    String
+  lastName     String
+  role         String
+  allowedYears String[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Member {
+  id               String   @id @default(cuid())
+  firstName        String
+  lastName         String
+  email            String?
+  phone            String?
+  address          String?
+  baptismDate      String?
+  joinDate         String?
+  isCouncil        Boolean  @default(false)
+  isDeacon         Boolean  @default(false)
+  isDeaconess      Boolean  @default(false)
+  position         String?
+  responsibilities String?
+  pastor           String?
+  churchElder      String?
+  year             String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  choirs           Choir[]
+}
+
+model Department {
+  id           String   @id @default(cuid())
+  name         String
+  leaderName   String
+  activities   String
+  year         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Choir {
+  id          String   @id @default(cuid())
+  name        String
+  leaderName  String
+  memberNames String[] // For external/unregistered members
+  year        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  members     Member[]
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  type        String   // "income" or "expense"
+  category    String
+  amount      Float
+  date        String
+  description String?
+  year        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Inventory {
+  id          String   @id @default(cuid())
+  type        String   // "book" or "gift"
+  name        String
+  count       Int?
+  issuedTo    String?
+  date        String
+  description String?
+  year        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Family {
+  id          String   @id @default(cuid())
+  name        String
+  pere        String
+  mere        String
+  memberCount Int
+  year        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Attendance {
+  id         String   @id @default(cuid())
+  date       String
+  type       String   // "family" or "choir"
+  targetId   String
+  targetName String
+  count      Int
+  year       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  type      String
+  date      String
+  published Boolean  @default(false)
+  fileName  String?
+  fileData  String?
+  year      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
