@@ -4,6 +4,8 @@ import * as React from "react"
 import { Newspaper, Calendar as CalendarIcon, Download } from "lucide-react"
 import { cn } from "@/lib/utils"
 
+import { getAnnouncements } from "@/lib/actions"
+
 const translations = {
   en: { 
     title: "News",
@@ -29,18 +31,13 @@ export default function NewsPage() {
   const [lang, setLang] = React.useState<"en" | "rw" | "fr">("en")
   const [news, setNews] = React.useState<any[]>([])
 
-  const loadNews = () => {
+  const loadNews = async () => {
     const year = localStorage.getItem('selected_year') || new Date().getFullYear().toString()
-    const saved = localStorage.getItem(`church_announcements_${year}`)
-    if (saved) {
-      const parsed = JSON.parse(saved)
-      const filtered = parsed
-        .filter((item: any) => item.published && item.type === "News")
-        .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      setNews(filtered)
-    } else {
-      setNews([])
-    }
+    const data = await getAnnouncements(year)
+    const filtered = data
+      .filter((item: any) => item.published && item.type === "News")
+      .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    setNews(filtered)
   }
 
   React.useEffect(() => {

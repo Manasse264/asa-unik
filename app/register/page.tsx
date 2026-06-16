@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
+import { registerUser, getSystemConfig } from "@/lib/actions"
+
 const regTranslations = {
   en: {
     title: "Create an account", subtitle: "Enter your details below to create your account",
@@ -52,8 +54,9 @@ export default function RegisterPage() {
     updateLang()
     
     // Check if register is blocked
-    const checkBlocked = () => {
-      setIsBlocked(localStorage.getItem("block_register") === "true")
+    const checkBlocked = async () => {
+      const config = await getSystemConfig()
+      setIsBlocked(!!config.blockRegister)
     }
     checkBlocked()
 
@@ -67,7 +70,7 @@ export default function RegisterPage() {
 
   const t = regTranslations[lang]
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (formData.password !== formData.confirmPassword) {
@@ -84,32 +87,19 @@ export default function RegisterPage() {
 
     // Get current church year for registration
     let registrationYear = new Date().getFullYear().toString()
-    const config = localStorage.getItem("system_config")
-    if (config) {
-      try {
-        const { availableYears } = JSON.parse(config)
-        if (availableYears && availableYears.length > 0) {
-          // Use the latest available year as the registration year
-          registrationYear = availableYears[availableYears.length - 1]
-        }
-      } catch (e) {
-        console.error("Error getting registration year", e)
-      }
+    const config = await getSystemConfig()
+    if (config && config.availableYears && config.availableYears.length > 0) {
+      registrationYear = config.availableYears[config.availableYears.length - 1]
     }
 
-    const newUser = {
-      id: Math.random().toString(36).substr(2, 9),
+    await registerUser({
       firstName: formData.firstName,
       lastName: formData.lastName,
       email: formData.email,
       role: roleMap[formData.role] || formData.role,
       password: formData.password, // In a real app, this would be hashed
       registrationYear: registrationYear
-    }
-
-    // Save to localStorage for Elder to manage
-    const existingUsers = JSON.parse(localStorage.getItem("app_users") || "[]")
-    localStorage.setItem("app_users", JSON.stringify([...existingUsers, newUser]))
+    })
     
     alert("Registration successful! You can now login.")
     window.location.href = "/login"

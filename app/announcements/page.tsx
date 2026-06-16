@@ -4,6 +4,8 @@ import * as React from "react"
 import { Bell, Calendar as CalendarIcon, Download } from "lucide-react"
 import { cn } from "@/lib/utils"
 
+import { getAnnouncements } from "@/lib/actions"
+
 const translations = {
   en: { 
     title: "Announcements",
@@ -27,18 +29,13 @@ export default function AnnouncementsPage() {
   const [lang, setLang] = React.useState<"en" | "rw" | "fr">("en")
   const [announcements, setAnnouncements] = React.useState<any[]>([])
 
-  const loadAnnouncements = () => {
+  const loadAnnouncements = async () => {
     const year = localStorage.getItem('selected_year') || new Date().getFullYear().toString()
-    const saved = localStorage.getItem(`church_announcements_${year}`)
-    if (saved) {
-      const parsed = JSON.parse(saved)
-      const filtered = parsed
-        .filter((item: any) => item.published && (item.type === "Announcement" || item.type === "Event"))
-        .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      setAnnouncements(filtered)
-    } else {
-      setAnnouncements([])
-    }
+    const data = await getAnnouncements(year)
+    const filtered = data
+      .filter((item: any) => item.published && (item.type === "Announcement" || item.type === "Event"))
+      .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    setAnnouncements(filtered)
   }
 
   React.useEffect(() => {

@@ -47,6 +47,13 @@ import { cn } from "@/lib/utils"
 import { jsPDF } from "jspdf"
 import autoTable from "jspdf-autotable"
 
+import { 
+  getMembers, saveMember, deleteMember,
+  getAnnouncements, saveAnnouncement, deleteAnnouncement,
+  getSystemConfig, updateSystemConfig,
+  getUsers, updateUser, deleteUser
+} from "@/lib/actions"
+
 interface Member {
   id: string
   name: string
@@ -145,52 +152,23 @@ export default function ElderDashboard() {
   const loadData = async () => {
     const year = localStorage.getItem('selected_year') || new Date().getFullYear().toString()
 
-    try {
-      const membersRes = await fetch(`/api/members?year=${year}`)
-      if (membersRes.ok) {
-        const data = await membersRes.json()
-        setMembers(data.filter((m: any) => !m.isCouncil && !m.isDeacon && !m.isDeaconess))
-        setCouncilMembers(data.filter((m: any) => m.isCouncil))
-      }
+    // Load from Database via Server Actions
+    const dbMembers = await getMembers(year)
+    setMembers(dbMembers.filter((m: any) => !m.isCouncil && !m.isDeacon && !m.isDeaconess))
+    setCouncilMembers(dbMembers.filter((m: any) => m.isCouncil))
 
-      const announcementsRes = await fetch(`/api/announcements?year=${year}`)
-      if (announcementsRes.ok) setAnnouncements(await announcementsRes.json())
-    } catch (error) {
-      console.error("Failed to load data:", error)
-    }
+    setAnnouncements(await getAnnouncements(year))
+    setUsers(await getUsers())
 
-    // Load synchronized reports (year-specific)
-    const reports = localStorage.getItem(`church_reports_${year}`)
-    setSyncedReports(reports ? JSON.parse(reports) : [])
-
-    // Global config
-    const config = localStorage.getItem("system_config")
+    const config = await getSystemConfig()
     if (config) {
-      try {
-        const parsed = JSON.parse(config)
-        setBlockLogin(!!parsed.blockLogin)
-        setBlockRegister(!!parsed.blockRegister)
-        setRestrictNewAccounts(!!parsed.restrictNewAccounts)
-        setRestrictOldAccounts(!!parsed.restrictOldAccounts)
-        if (parsed.availableYears) setAvailableYears(parsed.availableYears)
-        if (parsed.blockedYears) setBlockedYears(parsed.blockedYears)
-      } catch (e) {
-        console.error("Error loading config", e)
-      }
+      setBlockLogin(!!config.blockLogin)
+      setBlockRegister(!!config.blockRegister)
+      setRestrictNewAccounts(!!config.restrictNewAccounts)
+      setRestrictOldAccounts(!!config.restrictOldAccounts)
+      setAvailableYears(config.availableYears || ["2024-2025"])
+      setBlockedYears(config.blockedYears || [])
     }
-
-    // Load year-specific feature data
-    const savedUsers = localStorage.getItem("app_users")
-    if (savedUsers) setUsers(JSON.parse(savedUsers))
-
-    const savedWOP = localStorage.getItem(`week_of_prayers_${year}`)
-    setWeekOfPrayers(savedWOP ? JSON.parse(savedWOP) : [])
-
-    const savedPrograms = localStorage.getItem(`weekly_programs_${year}`)
-    setWeeklyPrograms(savedPrograms ? JSON.parse(savedPrograms) : [])
-
-    const savedChoirs = localStorage.getItem(`weekly_choirs_${year}`)
-    setWeeklyChoirs(savedChoirs ? JSON.parse(savedChoirs) : [])
   }
 
   React.useEffect(() => {
@@ -203,59 +181,131 @@ export default function ElderDashboard() {
     }
   }, [])
 
-  const saveMembers = (newMembers: Member[]) => {
-    const year = localStorage.getItem('selected_year') || new Date().getFullYear().toString()
-    setMembers(newMembers)
-    localStorage.setItem(`church_members_${year}`, JSON.stringify(newMembers))
+  const handleAddMember = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const year = localStorage.getItem("selected_year") || new Date().getFullYear().toString()
+    
+    await saveMember({
+      ...formData,
+      year
+    })
+    
+    setIsAddingMember(false)
+    setFormData({ name: "", email: "", address: "", telephone: "", baptismDate: "", pastor: "", churchElder: "" })
+    loadData()
   }
 
-  const saveAnnouncements = (newAnnouncements: Announcement[]) => {
-    const year = localStorage.getItem('selected_year') || new Date().getFullYear().toString()
-    setAnnouncements(newAnnouncements)
-    localStorage.setItem(`church_announcements_${year}`, JSON.stringify(newAnnouncements))
-    // Trigger an event for other pages to update
-    window.dispatchEvent(new Event("announcements-updated"))
+  const handleUpdateMember = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingMember) return
+    
+    await saveMember({
+      ...formData,
+      id: editingMember.id,
+      year: localStorage.getItem("selected_year") || new Date().getFullYear().toString()
+    })
+    
+    setEditingMember(null)
+    setFormData({ name: "", email: "", address: "", telephone: "", baptismDate: "", pastor: "", churchElder: "" })
+    loadData()
   }
 
-  const saveConfig = (login: boolean, register: boolean, years: string[], rna: boolean, roa: boolean, blocked: string[]) => {
-    setBlockLogin(login)
-    setBlockRegister(register)
-    setAvailableYears(years)
-    setRestrictNewAccounts(rna)
-    setRestrictOldAccounts(roa)
-    setBlockedYears(blocked)
-    localStorage.setItem("system_config", JSON.stringify({ 
-      blockLogin: login, 
+  const handleDeleteMember = async (id: string) => {
+    if (confirm("Are you sure you want to delete this member?")) {
+      await deleteMember(id)
+      loadData()
+    }
+  }
+
+  const handleAddAnnouncement = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const year = localStorage.getItem("selected_year") || new Date().getFullYear().toString()
+    
+    await saveAnnouncement({
+      ...announcementFormData,
+      year
+    })
+    
+    setIsAddingAnnouncement(false)
+    setAnnouncementFormData({
+      title: "",
+      content: "",
+      type: "Announcement",
+      date: new Date().toISOString().split('T')[0],
+      published: false,
+      fileName: "",
+      fileData: ""
+    })
+    loadData()
+  }
+
+  const handleUpdateAnnouncement = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingAnnouncement) return
+    
+    await saveAnnouncement({
+      ...announcementFormData,
+      id: editingAnnouncement.id,
+      year: localStorage.getItem("selected_year") || new Date().getFullYear().toString()
+    })
+    
+    setEditingAnnouncement(null)
+    setAnnouncementFormData({
+      title: "",
+      content: "",
+      type: "Announcement",
+      date: new Date().toISOString().split('T')[0],
+      published: false,
+      fileName: "",
+      fileData: ""
+    })
+    loadData()
+  }
+
+  const handleDeleteAnnouncement = async (id: string) => {
+    if (confirm("Are you sure you want to delete this announcement?")) {
+      await deleteAnnouncement(id)
+      loadData()
+    }
+  }
+
+  const togglePublish = async (id: string) => {
+    const a = announcements.find(x => x.id === id)
+    if (a) {
+      await saveAnnouncement({
+        ...a,
+        published: !a.published
+      })
+      loadData()
+    }
+  }
+
+  const saveConfig = async (login: boolean, register: boolean, years: string[], rna: boolean, roa: boolean, blocked: string[]) => {
+    await updateSystemConfig({
+      blockLogin: login,
       blockRegister: register,
       availableYears: years,
       restrictNewAccounts: rna,
       restrictOldAccounts: roa,
       blockedYears: blocked
-    }))
-    localStorage.setItem("block_login", login.toString())
-    localStorage.setItem("block_register", register.toString())
-    // Trigger event for navbar to update years
+    })
+    loadData()
     window.dispatchEvent(new Event("storage"))
   }
 
-  // --- User Accounts Logic ---
-  const saveUsers = (newUsers: UserAccount[]) => {
-    setUsers(newUsers)
-    localStorage.setItem("app_users", JSON.stringify(newUsers))
-  }
-
-  const handleUpdateUser = (e: React.FormEvent) => {
+  const handleUpdateUser = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!editingUser) return
-    const updated = users.map(u => u.id === editingUser.id ? { ...u, ...userFormData } : u)
-    saveUsers(updated)
+    await updateUser(editingUser.id, userFormData)
     setEditingUser(null)
     setUserFormData({ firstName: "", lastName: "", role: "", email: "", allowedYears: [] })
+    loadData()
   }
 
-  const deleteUser = (id: string) => {
+  const handleDeleteUserAccount = async (id: string) => {
     if (confirm("Delete this user account?")) {
-      saveUsers(users.filter(u => u.id !== id))
+      await deleteUser(id)
+      loadData()
     }
   }
 
@@ -265,6 +315,10 @@ export default function ElderDashboard() {
   }
 
   // --- Evangelism Logic ---
+  const [wopFormData, setWopFormData] = React.useState({ preacher: "", choirInvited: "", date: "" })
+  const [programFormData, setProgramFormData] = React.useState({ day: "", preacherName: "", prayer: "", coordinator: "" })
+  const [choirFormState, setChoirFormState] = React.useState({ day: "", choirName: "" })
+
   const saveWOP = (data: WeekOfPrayer[]) => {
     setWeekOfPrayers(data)
     localStorage.setItem("week_of_prayers", JSON.stringify(data))
@@ -306,11 +360,11 @@ export default function ElderDashboard() {
     e.preventDefault()
     const newChoir: WeeklyChoir = {
       id: Math.random().toString(36).substr(2, 9),
-      ...choirFormData
+      ...choirFormState
     }
     saveChoirs([...weeklyChoirs, newChoir])
     setIsAddingChoir(false)
-    setChoirFormData({ day: "", choirName: "" })
+    setChoirFormState({ day: "", choirName: "" })
   }
 
   const generateChoirPDF = () => {
@@ -350,7 +404,6 @@ export default function ElderDashboard() {
     saveConfig(blockLogin, blockRegister, updatedYears, restrictNewAccounts, restrictOldAccounts, updatedBlocked)
   }
 
-  // --- Existing Logic ---
   const [formData, setFormData] = React.useState({
     name: "",
     email: "",
@@ -370,89 +423,6 @@ export default function ElderDashboard() {
     fileName: "",
     fileData: ""
   })
-
-  const handleAddMember = (e: React.FormEvent) => {
-    e.preventDefault()
-    const selectedYear = localStorage.getItem("selected_year")
-    if (!selectedYear) {
-      alert("Please select a church year in the navbar before adding members.")
-      return
-    }
-    const newMember: Member = {
-      id: Math.random().toString(36).substr(2, 9),
-      ...formData
-    }
-    saveMembers([...members, newMember])
-    setIsAddingMember(false)
-    setFormData({ name: "", email: "", address: "", telephone: "", baptismDate: "", pastor: "", churchElder: "" })
-  }
-
-  const handleUpdateMember = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!editingMember) return
-    const updatedMembers = members.map(m => m.id === editingMember.id ? { ...editingMember, ...formData } : m)
-    saveMembers(updatedMembers)
-    setEditingMember(null)
-    setFormData({ name: "", email: "", address: "", telephone: "", baptismDate: "", pastor: "", churchElder: "" })
-  }
-
-  const deleteMember = (id: string) => {
-    if (confirm("Are you sure you want to delete this member?")) {
-      saveMembers(members.filter(m => m.id !== id))
-    }
-  }
-
-  const handleAddAnnouncement = (e: React.FormEvent) => {
-    e.preventDefault()
-    const selectedYear = localStorage.getItem("selected_year")
-    if (!selectedYear) {
-      alert("Please select a church year in the navbar before creating announcements.")
-      return
-    }
-    const newAnnouncement: Announcement = {
-      id: Math.random().toString(36).substr(2, 9),
-      ...announcementFormData
-    }
-    saveAnnouncements([...announcements, newAnnouncement])
-    setIsAddingAnnouncement(false)
-    setAnnouncementFormData({
-      title: "",
-      content: "",
-      type: "Announcement",
-      date: new Date().toISOString().split('T')[0],
-      published: false,
-      fileName: "",
-      fileData: ""
-    })
-  }
-
-  const handleUpdateAnnouncement = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!editingAnnouncement) return
-    const updated = announcements.map(a => a.id === editingAnnouncement.id ? { ...editingAnnouncement, ...announcementFormData } : a)
-    saveAnnouncements(updated)
-    setEditingAnnouncement(null)
-    setAnnouncementFormData({
-      title: "",
-      content: "",
-      type: "Announcement",
-      date: new Date().toISOString().split('T')[0],
-      published: false,
-      fileName: "",
-      fileData: ""
-    })
-  }
-
-  const deleteAnnouncement = (id: string) => {
-    if (confirm("Are you sure you want to delete this announcement?")) {
-      saveAnnouncements(announcements.filter(a => a.id !== id))
-    }
-  }
-
-  const togglePublish = (id: string) => {
-    const updated = announcements.map(a => a.id === id ? { ...a, published: !a.published } : a)
-    saveAnnouncements(updated)
-  }
 
   const startEditAnnouncement = (a: Announcement) => {
     setEditingAnnouncement(a)

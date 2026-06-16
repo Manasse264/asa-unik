@@ -38,6 +38,11 @@ import * as XLSX from 'xlsx'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
+import { 
+  getFinances, saveFinance, deleteFinance,
+  getInventory, saveInventory, deleteInventory
+} from "@/lib/actions"
+
 // --- Translations ---
 
 const translations = {
@@ -258,25 +263,10 @@ export default function TreasurerDashboard() {
     const year = localStorage.getItem('selected_year') || new Date().getFullYear().toString()
     setSelectedYear(Number(year.split('-')[0])) // For the reporting year filter
 
-    try {
-      const [financesRes, inventoryRes] = await Promise.all([
-        fetch(`/api/finances?year=${year}`),
-        fetch(`/api/inventory?year=${year}`)
-      ])
-
-      if (financesRes.ok) {
-        const data = await financesRes.json()
-        setTransactions(data)
-      }
-
-      if (inventoryRes.ok) {
-        const inventory = await inventoryRes.json()
-        setBooks(inventory.filter((item: any) => item.type === 'book'))
-        setGifts(inventory.filter((item: any) => item.type === 'gift'))
-      }
-    } catch (error) {
-      console.error("Failed to load data:", error)
-    }
+    setTransactions(await getFinances(year))
+    const inventory = await getInventory(year)
+    setBooks(inventory.filter((item: any) => item.type === 'book'))
+    setGifts(inventory.filter((item: any) => item.type === 'gift'))
   }
 
   // Load data and setup language listener
@@ -337,56 +327,34 @@ export default function TreasurerDashboard() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const selectedYearVal = localStorage.getItem("selected_year")
-    if (!selectedYearVal) {
-      alert(lang === 'fr' ? 'Veuillez sélectionner une année d\'église avant d\'enregistrer !' : 'Please select a church year before saving!')
-      return
-    }
+    const selectedYearVal = localStorage.getItem("selected_year") || new Date().getFullYear().toString()
     if (!formData.amount || isNaN(Number(formData.amount))) return
 
     const finalCategory = formData.category === 'Other' && formData.customCategory 
       ? formData.customCategory 
       : formData.category
 
-    try {
-      const res = await fetch('/api/finances', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: formData.type,
-          category: finalCategory,
-          amount: Number(formData.amount),
-          date: formData.date,
-          description: formData.description,
-          year: selectedYearVal
-        })
-      })
+    await saveFinance({
+      type: formData.type,
+      category: finalCategory,
+      amount: Number(formData.amount),
+      date: formData.date,
+      description: formData.description,
+      year: selectedYearVal
+    })
 
-      if (res.ok) {
-        setFormData(prev => ({
-          ...prev,
-          amount: '',
-          description: '',
-          customCategory: ''
-        }))
-        loadData()
-      }
-    } catch (error) {
-      console.error("Failed to save transaction:", error)
-    }
+    setFormData(prev => ({
+      ...prev,
+      amount: '',
+      description: '',
+      customCategory: ''
+    }))
+    loadData()
   }
 
   const deleteTransaction = async (id: string) => {
-    try {
-      const res = await fetch(`/api/finances/${id}`, {
-        method: 'DELETE'
-      })
-      if (res.ok) {
-        loadData()
-      }
-    } catch (error) {
-      console.error("Failed to delete transaction:", error)
-    }
+    await deleteFinance(id)
+    loadData()
   }
 
   const handleBookSubmit = async (e: React.FormEvent) => {
@@ -395,31 +363,19 @@ export default function TreasurerDashboard() {
 
     const year = localStorage.getItem('selected_year') || new Date().getFullYear().toString()
 
-    try {
-      const url = editingBookId ? `/api/inventory/${editingBookId}` : '/api/inventory'
-      const method = editingBookId ? 'PUT' : 'POST'
-      
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'book',
-          name: bookFormData.name,
-          date: bookFormData.date,
-          count: Number(bookFormData.count),
-          description: bookFormData.description,
-          year
-        })
-      })
+    await saveInventory({
+      id: editingBookId,
+      type: 'book',
+      name: bookFormData.name,
+      date: bookFormData.date,
+      count: Number(bookFormData.count),
+      description: bookFormData.description,
+      year
+    })
 
-      if (res.ok) {
-        setEditingBookId(null)
-        setBookFormData({ name: '', date: new Date().toISOString().split('T')[0], count: '', description: '' })
-        loadData()
-      }
-    } catch (error) {
-      console.error("Failed to save book:", error)
-    }
+    setEditingBookId(null)
+    setBookFormData({ name: '', date: new Date().toISOString().split('T')[0], count: '', description: '' })
+    loadData()
   }
 
   const handleGiftSubmit = async (e: React.FormEvent) => {
@@ -428,48 +384,28 @@ export default function TreasurerDashboard() {
 
     const year = localStorage.getItem('selected_year') || new Date().getFullYear().toString()
 
-    try {
-      const url = editingGiftId ? `/api/inventory/${editingGiftId}` : '/api/inventory'
-      const method = editingGiftId ? 'PUT' : 'POST'
-      
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'gift',
-          name: giftFormData.name,
-          issuedTo: giftFormData.issuedTo,
-          date: giftFormData.date,
-          year
-        })
-      })
+    await saveInventory({
+      id: editingGiftId,
+      type: 'gift',
+      name: giftFormData.name,
+      issuedTo: giftFormData.issuedTo,
+      date: giftFormData.date,
+      year
+    })
 
-      if (res.ok) {
-        setEditingGiftId(null)
-        setGiftFormData({ name: '', issuedTo: '', date: new Date().toISOString().split('T')[0] })
-        loadData()
-      }
-    } catch (error) {
-      console.error("Failed to save gift:", error)
-    }
+    setEditingGiftId(null)
+    setGiftFormData({ name: '', issuedTo: '', date: new Date().toISOString().split('T')[0] })
+    loadData()
   }
 
   const deleteBook = async (id: string) => {
-    try {
-      const res = await fetch(`/api/inventory/${id}`, { method: 'DELETE' })
-      if (res.ok) loadData()
-    } catch (error) {
-      console.error("Failed to delete book:", error)
-    }
+    await deleteInventory(id)
+    loadData()
   }
 
   const deleteGift = async (id: string) => {
-    try {
-      const res = await fetch(`/api/inventory/${id}`, { method: 'DELETE' })
-      if (res.ok) loadData()
-    } catch (error) {
-      console.error("Failed to delete gift:", error)
-    }
+    await deleteInventory(id)
+    loadData()
   }
 
   const startEditingBook = (book: Book) => {

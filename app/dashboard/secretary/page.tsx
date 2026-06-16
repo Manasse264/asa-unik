@@ -11,6 +11,12 @@ import { Label } from "@/components/ui/label"
 import { YearSelector } from "@/components/year-selector"
 import { cn } from "@/lib/utils"
 
+import { 
+  getMembers, saveMember, deleteMember,
+  getChoirs, saveChoir, deleteChoir,
+  getDepartments, saveDepartment, deleteDepartment
+} from "@/lib/actions"
+
 const secTranslations = {
   en: {
     title: "Church Secretary Dashboard",
@@ -283,18 +289,10 @@ export default function SecretaryDashboard() {
   const loadData = async () => {
     const year = localStorage.getItem('selected_year') || new Date().getFullYear().toString()
     
-    try {
-      const membersRes = await fetch(`/api/members?year=${year}`)
-      if (membersRes.ok) setMembers(await membersRes.json())
-
-      const choirsRes = await fetch(`/api/choirs?year=${year}`)
-      if (choirsRes.ok) setChoirs(await choirsRes.json())
-
-      const deptsRes = await fetch(`/api/departments?year=${year}`)
-      if (deptsRes.ok) setDepartments(await deptsRes.json())
-    } catch (error) {
-      console.error("Failed to load data:", error)
-    }
+    // Load from Database via Server Actions
+    setMembers(await getMembers(year))
+    setChoirs(await getChoirs(year))
+    setDepartments(await getDepartments(year))
   }
 
   const openAddMemberModal = () => {
@@ -370,135 +368,80 @@ export default function SecretaryDashboard() {
   }
 
   const handleSaveMember = async () => {
-    const year = localStorage.getItem("selected_year")
-    if (!year) {
-      alert(lang === 'fr' ? 'Veuillez sélectionner une année d\'église avant d\'enregistrer !' : 'Please select a church year before saving!')
-      return
-    }
-    try {
-      if (editingMember) {
-        await fetch(`/api/members/${editingMember.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(memberFormData)
-        })
-      } else {
-        await fetch('/api/members', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...memberFormData, year, joinDate: new Date().toISOString().split('T')[0] })
-        })
-      }
-      setIsMemberModalOpen(false)
-      loadData()
-    } catch (error) {
-      console.error("Failed to save member:", error)
-    }
+    const year = localStorage.getItem("selected_year") || new Date().getFullYear().toString()
+    
+    await saveMember({
+      ...memberFormData,
+      id: editingMember?.id,
+      year
+    })
+    
+    setIsMemberModalOpen(false)
+    loadData()
   }
 
   const handleSaveDept = async () => {
-    const year = localStorage.getItem("selected_year")
-    if (!year) {
-      alert(lang === 'fr' ? 'Veuillez sélectionner une année d\'église avant d\'enregistrer !' : 'Please select a church year before saving!')
-      return
-    }
-    try {
-      if (editingDept) {
-        await fetch(`/api/departments/${editingDept.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(deptFormData)
-        })
-      } else {
-        await fetch('/api/departments', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...deptFormData, year })
-        })
-      }
-      setIsDeptModalOpen(false)
-      loadData()
-    } catch (error) {
-      console.error("Failed to save department:", error)
-    }
+    const year = localStorage.getItem("selected_year") || new Date().getFullYear().toString()
+    
+    await saveDepartment({
+      ...deptFormData,
+      id: editingDept?.id,
+      year
+    })
+    
+    setIsDeptModalOpen(false)
+    loadData()
   }
 
   const handleSaveChoir = async () => {
-    const year = localStorage.getItem("selected_year")
-    if (!year) {
-      alert(lang === 'fr' ? 'Veuillez sélectionner une année d\'église avant d\'enregistrer !' : 'Please select a church year before saving!')
-      return
-    }
+    const year = localStorage.getItem("selected_year") || new Date().getFullYear().toString()
     if (!choirFormData.name || !choirFormData.leaderName) {
       alert(t.choirVal)
       return
     }
-    try {
-      if (editingChoir) {
-        await fetch(`/api/choirs/${editingChoir.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(choirFormData)
-        })
-      } else {
-        await fetch('/api/choirs', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...choirFormData, year })
-        })
-      }
-      setIsChoirModalOpen(false)
-      loadData()
-    } catch (error) {
-      console.error("Failed to save choir:", error)
-    }
+
+    await saveChoir({
+      ...choirFormData,
+      id: editingChoir?.id,
+      year
+    })
+    
+    setIsChoirModalOpen(false)
+    loadData()
   }
 
   const deleteItem = async (id: string, type: 'member' | 'dept' | 'choir') => {
     if (confirm(`${t.confirmDel} ${type}?`)) {
-      try {
-        const endpoint = type === 'member' ? 'members' : type === 'dept' ? 'departments' : 'choirs'
-        await fetch(`/api/${endpoint}/${id}`, { method: 'DELETE' })
-        loadData()
-      } catch (error) {
-        console.error(`Failed to delete ${type}:`, error)
-      }
+      if (type === 'member') await deleteMember(id)
+      else if (type === 'dept') await deleteDepartment(id)
+      else await deleteChoir(id)
+      loadData()
     }
   }
 
   const addNameToList = async () => {
     if (!activeChoirId || !newChoirMemberName.trim()) return
+    const year = localStorage.getItem("selected_year") || new Date().getFullYear().toString()
+    
     const choir = choirs.find(c => c.id === activeChoirId)
-    if (!choir) return
-    try {
-      await fetch(`/api/choirs/${activeChoirId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          memberNames: [...(choir.memberNames || []), newChoirMemberName.trim()]
-        })
+    if (choir) {
+      await saveChoir({
+        ...choir,
+        memberNames: [...(choir.memberNames || []), newChoirMemberName.trim()]
       })
       setNewChoirMemberName("")
       loadData()
-    } catch (error) {
-      console.error("Failed to add member to choir list:", error)
     }
   }
 
   const removeNameFromList = async (choirId: string, nameToRemove: string) => {
     const choir = choirs.find(c => c.id === choirId)
-    if (!choir) return
-    try {
-      await fetch(`/api/choirs/${choirId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          memberNames: (choir.memberNames || []).filter(name => name !== nameToRemove)
-        })
+    if (choir) {
+      await saveChoir({
+        ...choir,
+        memberNames: (choir.memberNames || []).filter((name: string) => name !== nameToRemove)
       })
       loadData()
-    } catch (error) {
-      console.error("Failed to remove member from choir list:", error)
     }
   }
 
