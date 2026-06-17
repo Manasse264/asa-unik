@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import bcrypt from "bcryptjs"
 
 // --- Members ---
 export async function getMembers(year: string) {
@@ -143,15 +144,99 @@ export async function updateSystemConfig(data: any) {
 
 // --- Users ---
 export async function getUsers() {
-  return await prisma.user.findMany()
+  return await prisma.user.findMany({
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      role: true,
+      registrationYear: true,
+      createdAt: true,
+      updatedAt: true
+    }
+  })
+}
+
+export async function loginUser(email: string, password: string) {
+  const input = email.toLowerCase().trim()
+  
+  // Emergency master account check (as per existing logic)
+  if (input === "elder" && password === "admin123") {
+    const config = await prisma.systemConfig.upsert({
+      where: { id: "global" },
+      update: {},
+      create: { id: "global" }
+    })
+    return {
+      success: true,
+      user: {
+        role: "Church Elder",
+        registrationYear: new Date().getFullYear().toString(),
+        allowedYears: config.availableYears || ["2024-2025"],
+        email: "emergency-elder@local"
+      }
+    }
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email: input }
+  })
+
+  if (!user) {
+    return { success: false, error: "Invalid email or password." }
+  }
+
+  // Handle both hashed and plain text (for migration period)
+  let isMatch = false
+  try {
+    isMatch = await bcrypt.compare(password, user.password)
+  } catch (e) {
+    // Fallback to plain text comparison if hashing fails (likely not a bcrypt hash)
+    isMatch = user.password === password
+  }
+
+  if (!isMatch) {
+    return { success: false, error: "Invalid email or password." }
+  }
+
+  let allowedYears: string[] = []
+  if (user.role.includes("Elder")) {
+    const config = await prisma.systemConfig.upsert({
+      where: { id: "global" },
+      update: {},
+      create: { id: "global" }
+    })
+    allowedYears = config.availableYears || ["2024-2025"]
+  }
+
+  return {
+    success: true,
+    user: {
+      role: user.role,
+      registrationYear: user.registrationYear || new Date().getFullYear().toString(),
+      email: user.email,
+      allowedYears
+    }
+  }
 }
 
 export async function registerUser(data: any) {
-  return await prisma.user.create({ data })
+  const hashedPassword = await bcrypt.hash(data.password, 10)
+  return await prisma.user.create({
+    data: {
+      ...data,
+      password: hashedPassword
+    }
+  })
 }
 
 export async function updateUser(id: string, data: any) {
-  await prisma.user.update({ where: { id }, data })
+  const updateData = { ...data }
+  if (updateData.password) {
+    updateData.password = await bcrypt.hash(updateData.password, 10)
+  }
+  await prisma.user.update({ where: { id }, data: updateData })
   revalidatePath("/dashboard/elder")
 }
 

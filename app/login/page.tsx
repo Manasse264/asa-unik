@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-import { getUsers, getSystemConfig } from "@/lib/actions"
+import { loginUser, getSystemConfig } from "@/lib/actions"
 
 const loginTranslations = {
   en: {
@@ -64,45 +64,21 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     if (isBlocked) return
-    const input = identifier.toLowerCase().trim()
     
-    // Find user in Database via Server Actions
-    const allUsers = await getUsers()
-    const user = allUsers.find((u: any) => 
-      u.email.toLowerCase() === input && u.password === password
-    )
+    const result = await loginUser(identifier, password)
 
-    if (!user) {
-      // Allow 'elder' identifier only for the hardcoded master account for emergency access
-      const isMasterElder = input === "elder" && password === "admin123"
-      
-      if (isMasterElder) {
-        localStorage.setItem("user_role", "Church Elder")
-        localStorage.setItem("user_registration_year", new Date().getFullYear().toString())
-        const config = await getSystemConfig()
-        localStorage.setItem("user_allowed_years", JSON.stringify(config.availableYears || ["2024-2025"]))
-        
-        window.dispatchEvent(new Event("auth-change"))
-        window.dispatchEvent(new Event("login-state-change"))
-        router.push("/dashboard/elder")
-        return
-      }
-
-      alert("Invalid email or password.")
+    if (!result.success || !result.user) {
+      alert(result.error || "Invalid email or password.")
       return
     }
 
+    const { user } = result
+
     // Set user session
     localStorage.setItem("user_role", user.role)
-    localStorage.setItem("user_registration_year", user.registrationYear || new Date().getFullYear().toString())
+    localStorage.setItem("user_registration_year", user.registrationYear)
     localStorage.setItem("user_email", user.email)
-    
-    if (user.role.includes("Elder")) {
-      const config = await getSystemConfig()
-      localStorage.setItem("user_allowed_years", JSON.stringify(config.availableYears || ["2024-2025"]))
-    } else {
-      localStorage.setItem("user_allowed_years", JSON.stringify([]))
-    }
+    localStorage.setItem("user_allowed_years", JSON.stringify(user.allowedYears || []))
 
     let targetPath = "/dashboard/secretary"
     const r = user.role.toLowerCase()

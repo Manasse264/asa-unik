@@ -195,25 +195,25 @@ type TransactionType = 'income' | 'expense'
 
 interface Transaction {
   id: string
-  type: TransactionType
+  type: string // Match Prisma return type
   category: string
   amount: number
   date: string
-  description: string
+  description: string | null
 }
 
 interface Book {
   id: string
   name: string
   date: string
-  count: number
-  description?: string
+  count: number | null
+  description: string | null
 }
 
 interface Gift {
   id: string
   name: string
-  issuedTo: string
+  issuedTo: string | null
   date: string
 }
 
@@ -413,14 +413,14 @@ export default function TreasurerDashboard() {
     setBookFormData({ 
       name: book.name, 
       date: book.date, 
-      count: book.count.toString(), 
+      count: book.count?.toString() || '0', 
       description: book.description || '' 
     })
   }
 
   const startEditingGift = (gift: Gift) => {
     setEditingGiftId(gift.id)
-    setGiftFormData({ name: gift.name, issuedTo: gift.issuedTo, date: gift.date })
+    setGiftFormData({ name: gift.name, issuedTo: gift.issuedTo || '', date: gift.date })
   }
 
   const exportToExcel = () => {

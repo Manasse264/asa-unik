@@ -56,13 +56,14 @@ import {
 
 interface Member {
   id: string
-  name: string
-  email: string
-  address: string
-  telephone: string
-  baptismDate: string
-  pastor: string
-  churchElder: string
+  firstName: string
+  lastName: string
+  email: string | null
+  address: string | null
+  phone: string | null
+  baptismDate: string | null
+  pastor: string | null
+  churchElder: string | null
 }
 
 interface UserAccount {
@@ -71,7 +72,7 @@ interface UserAccount {
   lastName: string
   role: string
   email: string
-  allowedYears: string[]
+  allowedYears?: string[]
 }
 
 interface WeekOfPrayer {
@@ -99,11 +100,11 @@ interface Announcement {
   id: string
   title: string
   content: string
-  type: "Announcement" | "Event" | "News"
+  type: string
   date: string
   published: boolean
-  fileName?: string
-  fileData?: string
+  fileName?: string | null
+  fileData?: string | null
 }
 
 export default function ElderDashboard() {
@@ -315,10 +316,6 @@ export default function ElderDashboard() {
   }
 
   // --- Evangelism Logic ---
-  const [wopFormData, setWopFormData] = React.useState({ preacher: "", choirInvited: "", date: "" })
-  const [programFormData, setProgramFormData] = React.useState({ day: "", preacherName: "", prayer: "", coordinator: "" })
-  const [choirFormState, setChoirFormState] = React.useState({ day: "", choirName: "" })
-
   const saveWOP = (data: WeekOfPrayer[]) => {
     setWeekOfPrayers(data)
     localStorage.setItem("week_of_prayers", JSON.stringify(data))
@@ -360,11 +357,11 @@ export default function ElderDashboard() {
     e.preventDefault()
     const newChoir: WeeklyChoir = {
       id: Math.random().toString(36).substr(2, 9),
-      ...choirFormState
+      ...choirFormData
     }
     saveChoirs([...weeklyChoirs, newChoir])
     setIsAddingChoir(false)
-    setChoirFormState({ day: "", choirName: "" })
+    setChoirFormData({ day: "", choirName: "" })
   }
 
   const generateChoirPDF = () => {
@@ -429,7 +426,7 @@ export default function ElderDashboard() {
     setAnnouncementFormData({
       title: a.title,
       content: a.content,
-      type: a.type,
+      type: a.type as any,
       date: a.date,
       published: a.published,
       fileName: a.fileName || "",
@@ -437,22 +434,22 @@ export default function ElderDashboard() {
     })
   }
 
-  const startEdit = (member: Member) => {
+  const startEdit = (member: any) => {
     setEditingMember(member)
     setFormData({
-      name: member.name,
-      email: member.email,
-      address: member.address,
-      telephone: member.telephone,
-      baptismDate: member.baptismDate,
-      pastor: member.pastor,
-      churchElder: member.churchElder
+      name: `${member.firstName} ${member.lastName}`,
+      email: member.email || "",
+      address: member.address || "",
+      telephone: member.phone || "",
+      baptismDate: member.baptismDate || "",
+      pastor: member.pastor || "",
+      churchElder: member.churchElder || ""
     })
   }
 
   const filteredMembers = members.filter(m => 
-    m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    m.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    `${m.firstName} ${m.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (m.email && m.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (m.pastor && m.pastor.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (m.churchElder && m.churchElder.toLowerCase().includes(searchQuery.toLowerCase()))
   )
@@ -828,13 +825,13 @@ export default function ElderDashboard() {
                 {filteredMembers.length > 0 ? (
                   filteredMembers.map((member) => (
                     <TableRow key={member.id}>
-                      <TableCell className="font-medium">{member.name}</TableCell>
-                      <TableCell>{member.email}</TableCell>
-                      <TableCell>{member.address}</TableCell>
-                      <TableCell>{member.telephone}</TableCell>
-                      <TableCell>{member.baptismDate}</TableCell>
-                      <TableCell>{member.pastor}</TableCell>
-                      <TableCell>{member.churchElder}</TableCell>
+                      <TableCell className="font-medium">{member.firstName} {member.lastName}</TableCell>
+                      <TableCell>{member.email || "-"}</TableCell>
+                      <TableCell>{member.address || "-"}</TableCell>
+                      <TableCell>{member.phone || "-"}</TableCell>
+                      <TableCell>{member.baptismDate || "-"}</TableCell>
+                      <TableCell>{member.pastor || "-"}</TableCell>
+                      <TableCell>{member.churchElder || "-"}</TableCell>
                       <TableCell className="text-right">
                         <Button variant="ghost" size="icon" onClick={() => startEdit(member)}>
                           <Edit className="h-4 w-4" />

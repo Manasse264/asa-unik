@@ -172,29 +172,29 @@ interface Member {
   id: string
   firstName: string
   lastName: string
-  email: string
-  phone: string
-  joinDate: string
+  email: string | null
+  phone: string | null
+  joinDate: string | null
   isCouncil: boolean
   isDeacon?: boolean
   isDeaconess?: boolean
-  position?: string
-  responsibilities?: string
+  position?: string | null
+  responsibilities?: string | null
 }
 
 interface Department {
   id: string
   name: string
   leaderName: string
-  activities: string
+  activities: string | null
 }
 
 interface Choir {
   id: string
   name: string
   leaderName: string
-  memberIds: string[]
-  memberNames?: string[] // Added for simple name lists
+  memberIds?: string[] // Optional if not in DB
+  memberNames: string[]
 }
 
 const initialMembers: Member[] = [
@@ -316,8 +316,8 @@ export default function SecretaryDashboard() {
     setMemberFormData({
       firstName: member.firstName,
       lastName: member.lastName,
-      email: member.email,
-      phone: member.phone,
+      email: member.email || "",
+      phone: member.phone || "",
       isCouncil: member.isCouncil,
       isDeacon: member.isDeacon || false,
       isDeaconess: member.isDeaconess || false,
@@ -342,7 +342,7 @@ export default function SecretaryDashboard() {
     setDeptFormData({
       name: dept.name,
       leaderName: dept.leaderName,
-      activities: dept.activities
+      activities: dept.activities || ""
     })
     setIsDeptModalOpen(true)
   }
@@ -649,7 +649,7 @@ export default function SecretaryDashboard() {
                             <td className="p-4 align-middle">
                               {choir.leaderName || <span className="text-muted-foreground italic">No leader assigned</span>}
                             </td>
-                            <td className="p-4 align-middle">{(choir.memberIds.length || 0) + (choir.memberNames?.length || 0)} members</td>
+                            <td className="p-4 align-middle">{(choir.memberIds?.length || 0) + (choir.memberNames?.length || 0)} members</td>
                             <td className="p-4 align-middle text-right space-x-2">
                               <Button variant="ghost" size="icon" onClick={() => openEditChoirModal(choir)}>
                                 <Pencil className="h-4 w-4" />
