@@ -51,18 +51,18 @@ model Choir {
 }
 
 model Department {
-  id          String   @id @default(cuid())
-  name        String
-  leaderName  String
-  activities  String?
-  year        String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(cuid())
+  name       String
+  leaderName String
+  activities String?
+  year       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model Finance {
   id          String   @id @default(cuid())
-  type        String   // 'income' | 'expense'
+  type        String
   category    String
   amount      Float
   date        String
@@ -74,7 +74,7 @@ model Finance {
 
 model Inventory {
   id          String   @id @default(cuid())
-  type        String   // 'book' | 'gift'
+  type        String
   name        String
   count       Int?
   description String?
@@ -89,7 +89,7 @@ model Announcement {
   id        String   @id @default(cuid())
   title     String
   content   String
-  type      String   // 'Announcement' | 'Event' | 'News'
+  type      String
   date      String
   published Boolean  @default(false)
   fileName  String?
@@ -111,14 +111,14 @@ model SystemConfig {
 }
 
 model Report {
-  id         String   @id @default(cuid())
-  title      String
-  period     String   // Month or Date
-  value      String   // Total amount or Attendance count
-  status     String   @default("Verified")
-  type       String   // 'Attendance' | 'Financial'
-  pdfUrl     String?
-  year       String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String   @id @default(cuid())
+  title     String
+  period    String
+  value     String
+  status    String   @default("Verified")
+  type      String
+  pdfUrl    String?
+  year      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
