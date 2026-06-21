@@ -6,6 +6,7 @@ import Image from "next/image"
 import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { LanguageSwitcher } from "@/components/language-switcher"
+import { getSystemConfig } from "@/lib/actions"
 
 import { Check, ChevronDown, Globe } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -64,6 +65,7 @@ export function Navbar() {
   const [registrationYear, setRegistrationYear] = React.useState("")
   const [restrictNew, setRestrictNew] = React.useState(false)
   const [restrictOld, setRestrictOld] = React.useState(false)
+  const [blockedYears, setBlockedYears] = React.useState<string[]>([])
   const [lang, setLang] = React.useState<"en" | "rw" | "fr">("en")
   const [showSubtabs, setShowSubtabs] = React.useState(false)
   const [availableYears, setAvailableYears] = React.useState<string[]>([])
@@ -82,18 +84,34 @@ export function Navbar() {
     }
   }, [pathname, isUpdatesSection])
 
-  const loadYearConfig = () => {
-    const config = localStorage.getItem("system_config")
-    if (config) {
+  const applyYearConfig = (config: any) => {
+    if (!config) return
+
+    const years = Array.isArray(config.availableYears) ? config.availableYears : []
+    setAvailableYears(years)
+    setRestrictNew(!!config.restrictNewAccounts)
+    setRestrictOld(!!config.restrictOldAccounts)
+    setBlockedYears(Array.isArray(config.blockedYears) ? config.blockedYears : [])
+  }
+
+  const loadYearConfig = async () => {
+    const cachedConfig = localStorage.getItem("system_config")
+    if (cachedConfig) {
       try {
-        const { availableYears: years, restrictNewAccounts, restrictOldAccounts } = JSON.parse(config)
-        if (years) setAvailableYears(years)
-        setRestrictNew(!!restrictNewAccounts)
-        setRestrictOld(!!restrictOldAccounts)
+        applyYearConfig(JSON.parse(cachedConfig))
       } catch (e) {
         console.error("Error parsing system_config", e)
       }
     }
+
+    try {
+      const config = await getSystemConfig()
+      applyYearConfig(config)
+      localStorage.setItem("system_config", JSON.stringify(config))
+    } catch (e) {
+      console.error("Error loading system_config", e)
+    }
+
     const savedYear = localStorage.getItem("selected_year")
     if (savedYear) setSelectedYear(savedYear)
     
@@ -157,22 +175,30 @@ export function Navbar() {
     if (userRole.includes("elder") || userRole.includes("umukuru")) return availableYears
     if (!registrationYear || !availableYears.length) return availableYears
 
-    let filtered = [...availableYears]
+    let filtered = availableYears.filter((year) => !blockedYears.includes(year))
     const regIndex = availableYears.indexOf(registrationYear)
-    if (regIndex === -1) return availableYears
+    if (regIndex === -1) return filtered
 
     if (restrictNew) {
       // Block access to years BEFORE registration
-      filtered = filtered.filter((_, index) => index >= regIndex)
+      filtered = filtered.filter((year) => availableYears.indexOf(year) >= regIndex)
     }
 
     if (restrictOld) {
       // Block access to years AFTER registration
-      filtered = filtered.filter((_, index) => index <= regIndex)
+      filtered = filtered.filter((year) => availableYears.indexOf(year) <= regIndex)
     }
 
     return filtered
-  }, [userRole, registrationYear, availableYears, restrictNew, restrictOld])
+  }, [userRole, registrationYear, availableYears, blockedYears, restrictNew, restrictOld])
+
+  React.useEffect(() => {
+    if (selectedYear && filteredYearsList.length > 0 && !filteredYearsList.includes(selectedYear)) {
+      setSelectedYear("")
+      localStorage.removeItem("selected_year")
+      window.dispatchEvent(new Event("year-changed"))
+    }
+  }, [filteredYearsList, selectedYear])
 
   return (
     <div className="sticky top-0 z-50 w-full">

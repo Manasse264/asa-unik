@@ -163,6 +163,7 @@ export default function ElderDashboard() {
 
     const config = await getSystemConfig()
     if (config) {
+      localStorage.setItem("system_config", JSON.stringify(config))
       setBlockLogin(!!config.blockLogin)
       setBlockRegister(!!config.blockRegister)
       setRestrictNewAccounts(!!config.restrictNewAccounts)
@@ -282,14 +283,18 @@ export default function ElderDashboard() {
   }
 
   const saveConfig = async (login: boolean, register: boolean, years: string[], rna: boolean, roa: boolean, blocked: string[]) => {
-    await updateSystemConfig({
+    const nextConfig = {
       blockLogin: login,
       blockRegister: register,
       availableYears: years,
       restrictNewAccounts: rna,
       restrictOldAccounts: roa,
       blockedYears: blocked
+    }
+    await updateSystemConfig({
+      ...nextConfig
     })
+    localStorage.setItem("system_config", JSON.stringify({ id: "global", ...nextConfig }))
     loadData()
     window.dispatchEvent(new Event("storage"))
   }

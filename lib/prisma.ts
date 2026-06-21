@@ -9,14 +9,6 @@ const prismaClientSingleton = () => {
     throw new Error("DATABASE_URL is not defined in environment variables.");
   }
   
-  if (connectionString?.startsWith("prisma+postgres://")) {
-    // If using Accelerate protocol, use accelerateUrl
-    return new PrismaClient({
-      accelerateUrl: connectionString,
-    });
-  }
-  
-  // Otherwise use direct connection with pg adapter
   const pool = new pg.Pool({ connectionString });
   const adapter = new PrismaPg(pool);
   return new PrismaClient({ adapter });

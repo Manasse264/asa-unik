@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { Calendar } from "lucide-react"
+import { getSystemConfig } from "@/lib/actions"
 
 export function YearSelector() {
   const [availableYears, setAvailableYears] = React.useState<string[]>([])
@@ -11,19 +12,31 @@ export function YearSelector() {
   const [userRegYear, setUserRegYear] = React.useState<string>("")
   const [systemConfig, setSystemConfig] = React.useState<any>(null)
 
-  const loadConfig = () => {
+  const applyConfig = (config: any) => {
+    setSystemConfig(config)
+    setAvailableYears(Array.isArray(config?.availableYears) ? config.availableYears : [])
+  }
+
+  const loadConfig = async () => {
     if (typeof window === "undefined") return
 
     const configStr = localStorage.getItem("system_config")
     if (configStr) {
       try {
-        const config = JSON.parse(configStr)
-        setSystemConfig(config)
-        if (config.availableYears) setAvailableYears(config.availableYears)
+        applyConfig(JSON.parse(configStr))
       } catch (e) {
         console.error("Error parsing system_config", e)
       }
     }
+
+    try {
+      const config = await getSystemConfig()
+      applyConfig(config)
+      localStorage.setItem("system_config", JSON.stringify(config))
+    } catch (e) {
+      console.error("Error loading system_config", e)
+    }
+
     const savedYear = localStorage.getItem("selected_year")
     if (savedYear) setSelectedYear(savedYear)
     
@@ -97,6 +110,14 @@ export function YearSelector() {
 
   const filtered = getFilteredYears()
   const label = lang === 'rw' ? 'Umwaka' : lang === 'fr' ? 'Année' : 'Year'
+
+  React.useEffect(() => {
+    if (selectedYear && filtered.length > 0 && !filtered.includes(selectedYear)) {
+      setSelectedYear("")
+      localStorage.removeItem("selected_year")
+      window.dispatchEvent(new Event("year-changed"))
+    }
+  }, [filtered, selectedYear])
 
   return (
     <div className="flex items-center gap-2 bg-card border rounded-lg px-3 py-1.5 shadow-sm mb-4 w-fit">
