@@ -33,6 +33,7 @@ model Member {
   isCouncil        Boolean  @default(false)
   isDeacon         Boolean  @default(false)
   isDeaconess      Boolean  @default(false)
+  isBaptized       Boolean  @default(false)
   position         String?
   responsibilities String?
   year             String

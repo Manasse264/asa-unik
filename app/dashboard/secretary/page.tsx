@@ -370,11 +370,12 @@ export default function SecretaryDashboard() {
   const handleSaveMember = async () => {
     const year = localStorage.getItem("selected_year") || new Date().getFullYear().toString()
     
-    await saveMember({
-      ...memberFormData,
-      id: editingMember?.id,
-      year
-    })
+ await saveMember({
+  ...memberFormData,
+  id: editingMember?.id,
+  year,
+  isBaptized: false
+})
     
     setIsMemberModalOpen(false)
     loadData()

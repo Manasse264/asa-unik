@@ -154,8 +154,17 @@ export default function ElderDashboard() {
     const year = localStorage.getItem('selected_year') || new Date().getFullYear().toString()
 
     // Load from Database via Server Actions
-    const dbMembers = await getMembers(year)
-    setMembers(dbMembers.filter((m: any) => !m.isCouncil && !m.isDeacon && !m.isDeaconess))
+const dbMembers = await getMembers(year)
+
+setMembers(
+  dbMembers.filter(
+    (m: any) =>
+      m.isBaptized === true &&
+      !m.isCouncil &&
+      !m.isDeacon &&
+      !m.isDeaconess
+  )
+)
     setCouncilMembers(dbMembers.filter((m: any) => m.isCouncil))
 
     setAnnouncements(await getAnnouncements(year))
@@ -188,9 +197,10 @@ export default function ElderDashboard() {
     const year = localStorage.getItem("selected_year") || new Date().getFullYear().toString()
     
     await saveMember({
-      ...formData,
-      year
-    })
+  ...formData,
+  year,
+  isBaptized: true
+})
     
     setIsAddingMember(false)
     setFormData({ name: "", email: "", address: "", telephone: "", baptismDate: "", pastor: "", churchElder: "" })
