@@ -421,10 +421,10 @@ const handleSaveChoir = async () => {
     setIsChoirModalOpen(false)
 
     console.log("Choir saved successfully")
-  } catch (error) {
-    console.error("Error saving choir:", error)
-    alert("Failed to save choir")
-  }
+  }catch (error: any) {
+  console.error("Error saving choir:", error)
+  alert(String(error))
+}
 }
   const deleteItem = async (id: string, type: 'member' | 'dept' | 'choir') => {
     if (confirm(`${t.confirmDel} ${type}?`)) {
