@@ -394,23 +394,38 @@ export default function SecretaryDashboard() {
     loadData()
   }
 
-  const handleSaveChoir = async () => {
-    const year = localStorage.getItem("selected_year") || new Date().getFullYear().toString()
+const handleSaveChoir = async () => {
+  try {
+    const year =
+      localStorage.getItem("selected_year") ||
+      new Date().getFullYear().toString()
+
     if (!choirFormData.name || !choirFormData.leaderName) {
       alert(t.choirVal)
       return
     }
 
+    console.log("Saving choir:", {
+      ...choirFormData,
+      id: editingChoir?.id,
+      year,
+    })
+
     await saveChoir({
       ...choirFormData,
       id: editingChoir?.id,
-      year
+      year,
     })
-    
-    setIsChoirModalOpen(false)
-    loadData()
-  }
 
+    await loadData()
+    setIsChoirModalOpen(false)
+
+    console.log("Choir saved successfully")
+  } catch (error) {
+    console.error("Error saving choir:", error)
+    alert("Failed to save choir")
+  }
+}
   const deleteItem = async (id: string, type: 'member' | 'dept' | 'choir') => {
     if (confirm(`${t.confirmDel} ${type}?`)) {
       if (type === 'member') await deleteMember(id)

@@ -32,12 +32,21 @@ export async function getChoirs(year: string) {
 }
 
 export async function saveChoir(data: any) {
+  console.log("Choir received:", data)
+
   const { id, ...rest } = data
+
   if (id && id.length > 10) {
-    await prisma.choir.update({ where: { id }, data: rest })
+    await prisma.choir.update({
+      where: { id },
+      data: rest,
+    })
   } else {
-    await prisma.choir.create({ data: rest })
+    await prisma.choir.create({
+      data: rest,
+    })
   }
+
   revalidatePath("/dashboard/secretary")
 }
 
