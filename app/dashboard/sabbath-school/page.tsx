@@ -9,6 +9,7 @@ import { YearSelector } from "@/components/year-selector"
 import { cn } from "@/lib/utils"
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
+import logo from "@/assets/logo.jpeg";
 
 const sslTranslations = {
   en: {
@@ -38,7 +39,7 @@ const sslTranslations = {
     noData: "Aucune donnée de présence enregistrée pour cette date.",
     dateLabel: "Date",
     tabLetter: "Lettres de Sabbat", addLetter: "Enregistrer Lettre",
-    origin: "Église d'Origine", province: "Province", field: "Champ", upload: "Télécharger Lettre",
+    origin: "Église d'Origine", district: "District", field: "Champ", upload: "Télécharger Lettre",
     status: "Statut", received: "Reçu", rejected: "Rejeté", files: "Fichiers"
   }
 }
@@ -192,13 +193,19 @@ export default function SabbathSchoolDashboard() {
     }
 
     const doc = new jsPDF()
+    
     const fTotal = dayAtt.filter(a => a.type === 'family').reduce((acc, curr) => acc + curr.count, 0)
     const cTotal = dayAtt.filter(a => a.type === 'choir').reduce((acc, curr) => acc + curr.count, 0)
     const total = fTotal + cTotal
+    const img = new Image();
+img.src = "/logo.jpeg";
 
+img.onload = () => {
+  const doc = new jsPDF();
+    doc.addImage(img, "JPEG", 10, 8, 20, 20);
     doc.setFontSize(20)
     doc.setTextColor(79, 70, 229)
-    doc.text("ASA-UNIK Daily Attendance Report", 105, 20, { align: "center" })
+    doc.text("ASA-UNIK Attendance Report", 105, 20, { align: "center" })
     
     doc.setFontSize(14)
     doc.setTextColor(0, 0, 0)
