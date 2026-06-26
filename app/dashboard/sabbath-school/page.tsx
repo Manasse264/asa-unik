@@ -17,7 +17,7 @@ const sslTranslations = {
     selDate: "Select Date", total: "Total", families: "Families", choirs: "Choirs",
     famName: "Family Name", pere: "Pere (Father)", mere: "Mere (Mother)", maxMem: "Max Members",
     att: "Attended", summary: "Attendance Summary", actions: "Actions",
-    save: "Save Family", cancel: "Cancel", name: "Name", type: "Type", count: "Count",
+    save: "Save", cancel: "Cancel", name: "Name", type: "Type", count: "Count",
     confirmDel: "Are you sure you want to delete this", update: "Update Family",
     sentMsg: "Daily Report has been generated and sent to the Secretary.",
     noData: "No attendance data recorded for this date.",
