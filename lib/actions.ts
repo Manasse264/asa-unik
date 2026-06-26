@@ -175,7 +175,40 @@ export async function getUsers() {
     }
   })
 }
+// --- Families ---
+export async function getFamilies(year: string) {
+  return await prisma.family.findMany({
+    where: { year },
+    orderBy: {
+      createdAt: "desc",
+    },
+  })
+}
 
+export async function saveFamily(data: any) {
+  const { id, ...rest } = data
+
+  if (id && id.length > 10) {
+    await prisma.family.update({
+      where: { id },
+      data: rest,
+    })
+  } else {
+    await prisma.family.create({
+      data: rest,
+    })
+  }
+
+  revalidatePath("/dashboard/sabbath-school")
+}
+
+export async function deleteFamily(id: string) {
+  await prisma.family.delete({
+    where: { id },
+  })
+
+  revalidatePath("/dashboard/sabbath-school")
+}
 export async function loginUser(email: string, password: string) {
   const input = email.toLowerCase().trim()
   

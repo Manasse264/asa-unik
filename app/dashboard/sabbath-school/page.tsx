@@ -10,7 +10,11 @@ import { cn } from "@/lib/utils"
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
 import logo from "@/assets/logo.jpeg";
-
+import {
+  getFamilies,
+  saveFamily,
+  deleteFamily,
+} from "@/app/actions"
 const sslTranslations = {
   en: {
     title: "Sabbath School Leader", subtitle: "Attendance Officer", addFamily: "Register Family",
@@ -65,11 +69,11 @@ export default function SabbathSchoolDashboard() {
   const [isLetterModalOpen, setIsLetterModalOpen] = React.useState(false)
   const [letterFormData, setLetterFormData] = React.useState<Partial<SabbathLetter>>({ name: "", originChurch: "", province: "", field: "", fileName: "", status: "received" })
 
-  const loadData = () => {
+const loadData = async () => {
     const year = localStorage.getItem('selected_year') || new Date().getFullYear().toString()
 
-    const savedFamilies = localStorage.getItem(`church_families_${year}`)
-    setFamilies(savedFamilies ? JSON.parse(savedFamilies) : [])
+const dbFamilies = await getFamilies(year)
+setFamilies(dbFamilies)
 
     const savedAttendance = localStorage.getItem(`church_attendance_${year}`)
     setAttendance(savedAttendance ? JSON.parse(savedAttendance) : [])
@@ -108,11 +112,7 @@ export default function SabbathSchoolDashboard() {
     }
   }, [])
 
-  const saveFamilies = (newFamilies: Family[]) => {
-    const year = localStorage.getItem('selected_year') || new Date().getFullYear().toString()
-    setFamilies(newFamilies)
-    localStorage.setItem(`church_families_${year}`, JSON.stringify(newFamilies))
-  }
+ 
 
   const saveAttendance = (newAttendance: AttendanceRecord[]) => {
     const year = localStorage.getItem('selected_year') || new Date().getFullYear().toString()
@@ -337,20 +337,44 @@ export default function SabbathSchoolDashboard() {
     alert(t.sentMsg)
   }
 
-  const handleSaveFamily = () => {
-    if (!familyFormData.name || !familyFormData.pere || !familyFormData.mere) {
-      alert("Please fill in Family Name, Pere, and Mere.")
-      return
-    }
-    if (editingFamily) setFamilies(families.map(f => f.id === editingFamily.id ? { ...f, ...familyFormData } : f))
-    else setFamilies([...families, { id: Math.random().toString(36).substr(2, 9), ...familyFormData }])
-    setIsFamilyModalOpen(false); setFamilyFormData({ name: "", pere: "", mere: "", memberCount: 2 }); setEditingFamily(null)
+const handleSaveFamily = async () => {
+  if (!familyFormData.name || !familyFormData.pere || !familyFormData.mere) {
+    alert("Please fill in Family Name, Pere, and Mere.")
+    return
   }
 
-  const deleteFamily = (id: string) => {
-    if (confirm(`${t.confirmDel} family?`)) setFamilies(families.filter(f => f.id !== id))
-  }
+  const year =
+    localStorage.getItem("selected_year") ||
+    new Date().getFullYear().toString()
 
+  await saveFamily({
+    id: editingFamily?.id,
+    name: familyFormData.name,
+    pere: familyFormData.pere,
+    mere: familyFormData.mere,
+    memberCount: familyFormData.memberCount,
+    year,
+  })
+
+  await loadData()
+
+  setIsFamilyModalOpen(false)
+  setFamilyFormData({
+    name: "",
+    pere: "",
+    mere: "",
+    memberCount: ,
+  })
+  setEditingFamily(null)
+}
+
+  const deleteFamilyHandler = async (id: string) => {
+  if (!confirm(`${t.confirmDel} family?`)) return
+
+  await deleteFamily(id)
+
+  await loadData()
+}
   const openEditFamily = (family: Family) => {
     setEditingFamily(family); setFamilyFormData({ name: family.name, pere: family.pere, mere: family.mere, memberCount: family.memberCount }); setIsFamilyModalOpen(true)
   }
@@ -395,7 +419,7 @@ export default function SabbathSchoolDashboard() {
                   <td className="p-4 font-medium">{family.name}</td><td className="p-4">{family.pere}</td><td className="p-4">{family.mere}</td><td className="p-4">{family.memberCount}</td>
                   <td className="p-4 text-right space-x-1">
                     <Button variant="ghost" size="icon" onClick={() => openEditFamily(family)}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="text-destructive" onClick={() => deleteFamily(family.id)}><Trash2 className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" className="text-destructive"onClick={() => deleteFamilyHandler(family.id)}><Trash2 className="h-4 w-4" /></Button>
                   </td>
                 </tr>
               ))}
