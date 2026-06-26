@@ -705,7 +705,7 @@ setMembers(
 
               <div className="space-y-4 p-6 border rounded-xl">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-bold">Weekly Choir Schedule</h3>
+                  <h3 className="text-lg font-bold">Weekly program for Choir</h3>
                   <div className="flex gap-2">
                     <Button size="sm" variant="outline" onClick={() => setIsAddingChoir(true)}>
                       <Plus className="h-4 w-4 mr-1" /> Add
@@ -1200,7 +1200,7 @@ setMembers(
             <div className="grid gap-6">
               <div className="p-6 border rounded-xl space-y-4">
                 <div className="space-y-1">
-                  <Label className="text-base font-bold">Academic/Church Year Settings</Label>
+                  <Label className="text-base font-bold">Church Year Settings</Label>
                   <p className="text-sm text-muted-foreground">Add or remove years available for selection across the system.</p>
                 </div>
                 
