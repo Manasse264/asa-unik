@@ -393,7 +393,7 @@ export default function SecretaryDashboard() {
     setIsDeptModalOpen(false)
     loadData()
   }
-console.log("Choir Form Data:", choirFormData)
+
 const handleSaveChoir = async () => {
   try {
     const year =
@@ -411,20 +411,26 @@ const handleSaveChoir = async () => {
       year,
     })
 
-    await saveChoir({
-      ...choirFormData,
-      id: editingChoir?.id,
-      year,
-    })
+const result = await saveChoir({
+  ...choirFormData,
+  id: editingChoir?.id,
+  year
+})
+
+console.log(result)
+
+if (!result.success) {
+  alert(result.error)
+  return
+}
 
     await loadData()
     setIsChoirModalOpen(false)
 
     console.log("Choir saved successfully")
   }catch (error: any) {
-  console.error(error)
-  alert(error?.message || JSON.stringify(error))
-}
+  console.error("Error saving choir:", error)
+  alert(String(error))
 }
 }
   const deleteItem = async (id: string, type: 'member' | 'dept' | 'choir') => {

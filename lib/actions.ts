@@ -32,24 +32,33 @@ export async function getChoirs(year: string) {
 }
 
 export async function saveChoir(data: any) {
-  console.log("Choir received:", data)
+  try {
+    console.log("Choir received:", data)
 
-  const { id, ...rest } = data
+    const { id, ...rest } = data
 
-  if (id && id.length > 10) {
-    await prisma.choir.update({
-      where: { id },
-      data: rest,
-    })
-  } else {
-    await prisma.choir.create({
-      data: rest,
-    })
+    if (id && id.length > 10) {
+      await prisma.choir.update({
+        where: { id },
+        data: rest,
+      })
+    } else {
+      await prisma.choir.create({
+        data: rest,
+      })
+    }
+
+    revalidatePath("/dashboard/secretary")
+    return { success: true }
+
+  } catch (error: any) {
+    console.error("SAVE CHOIR ERROR:", error)
+    return {
+      success: false,
+      error: error.message
+    }
   }
-
-  revalidatePath("/dashboard/secretary")
 }
-
 export async function deleteChoir(id: string) {
   await prisma.choir.delete({ where: { id } })
   revalidatePath("/dashboard/secretary")
