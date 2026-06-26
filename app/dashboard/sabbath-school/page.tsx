@@ -257,7 +257,7 @@ export default function SabbathSchoolDashboard() {
     // 1. Daily Attendance Details (Listed first)
     doc.setFontSize(20)
     doc.setTextColor(79, 70, 229)
-    doc.text("ASA-RP Ngoma College Weekly Attendance Report", 105, currentY, { align: "center" })
+    doc.text("ASA-RP Ngoma College Attendance Report", 105, currentY, { align: "center" })
     currentY += 15
 
     allDates.forEach((date, index) => {
