@@ -259,16 +259,15 @@ export default function SecretaryDashboard() {
     activities: ""
   })
 
-  // Choir Form State
-  const [choirFormData, setChoirFormData] = React.useState<{
-    name: string
-    leaderName: string
-    memberIds: string[]
-  }>({
-    name: "",
-    leaderName: "",
-    memberIds: []
-  })
+ const [choirFormData, setChoirFormData] = React.useState<{
+  name: string
+  leaderName: string
+  memberNames: string[]
+}>({
+  name: "",
+  leaderName: "",
+  memberNames: []
+})
 
   React.useEffect(() => {
     const updateLang = () => setLang((localStorage.getItem("app_lang") || "en") as "en" | "rw" | "fr")
@@ -349,21 +348,21 @@ export default function SecretaryDashboard() {
 
   const openAddChoirModal = () => {
     setEditingChoir(null)
-    setChoirFormData({
-      name: "",
-      leaderName: "",
-      memberIds: []
-    })
+   setChoirFormData({
+  name: "",
+  leaderName: "",
+  memberNames: []
+})
     setIsChoirModalOpen(true)
   }
 
   const openEditChoirModal = (choir: Choir) => {
     setEditingChoir(choir)
-    setChoirFormData({
-      name: choir.name,
-      leaderName: choir.leaderName,
-      memberIds: choir.memberIds || []
-    })
+setChoirFormData({
+  name: choir.name,
+  leaderName: choir.leaderName,
+  memberNames: choir.memberNames || []
+})
     setIsChoirModalOpen(true)
   }
 
