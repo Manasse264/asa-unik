@@ -18,6 +18,15 @@ model User {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
+model Family {
+  id          String   @id @default(cuid())
+  name        String
+  pere        String
+  mere        String
+  memberCount Int
+  year        String
+  createdAt   DateTime @default(now())
+}
 
 model Member {
   id               String   @id @default(cuid())
