@@ -193,16 +193,10 @@ export default function SabbathSchoolDashboard() {
     }
 
     const doc = new jsPDF()
-    
     const fTotal = dayAtt.filter(a => a.type === 'family').reduce((acc, curr) => acc + curr.count, 0)
     const cTotal = dayAtt.filter(a => a.type === 'choir').reduce((acc, curr) => acc + curr.count, 0)
     const total = fTotal + cTotal
-    const img = new Image();
-img.src = "/logo.jpeg";
 
-img.onload = () => {
-  const doc = new jsPDF();
-    doc.addImage(img, "JPEG", 10, 8, 20, 20);
     doc.setFontSize(20)
     doc.setTextColor(79, 70, 229)
     doc.text("ASA-UNIK Attendance Report", 105, 20, { align: "center" })
