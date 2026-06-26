@@ -210,8 +210,8 @@ const initialChoirs: Choir[] = [
 
 const DEPARTMENT_NAMES = [
   "Welfare",
-  "Temperance and Family",
-  "J.A",
+  "Health and Tamperance",
+  "J.A/AYM",
   "MIFEM",
   "Children Department"
 ]
