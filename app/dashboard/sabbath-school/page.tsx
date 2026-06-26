@@ -23,7 +23,7 @@ const sslTranslations = {
     noData: "No attendance data recorded for this date.",
     dateLabel: "Date",
     tabLetter: "Sabbath Letters", addLetter: "Register Letter",
-    origin: "Origin Church", province: "District", field: "Field", upload: "Upload Letter",
+    origin: "Origin Church", district: "District", field: "Field", upload: "Upload Letter",
     status: "Status", received: "Received", rejected: "Rejected", files: "Files"
   },
   fr: {
