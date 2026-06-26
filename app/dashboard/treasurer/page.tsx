@@ -47,7 +47,7 @@ import {
 
 const translations = {
   en: {
-    title: "Church Treasurer Dashboard",
+    title: "Treasurer Dashboard",
     overview: "Overview",
     income: "Income",
     expenses: "Expenses",
@@ -82,7 +82,7 @@ const translations = {
     pdf: "PDF",
     incomeSub: "Track Tithes, Offerings, and Donations",
     expenseSub: "Manage projects, welfare, and utilities",
-    propertySub: "Manage church books and gifts",
+    propertySub: "Manage books and gifts",
     recentSub: "Latest financial activities",
     quickSub: "Record a new entry",
     other: "Other",
@@ -108,7 +108,7 @@ const translations = {
       Tithes: "Tithes",
       Offerings: "Offerings",
       Donations: "Donations",
-      Other: "Other",
+      Other: "",
       "Church projects": "Church projects",
       Welfare: "Welfare",
       Utilities: "Utilities",
