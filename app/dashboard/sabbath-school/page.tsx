@@ -19,7 +19,7 @@ const sslTranslations = {
     title: "Sabbath School Leader", subtitle: "Attendance Officer", addFamily: "Register Family",
     genPDF: "Generate Daily Report", tabFamily: "Family Management", tabAtt: "Record Attendance", tabRep: "weekly Report",
     selDate: "Select Date", total: "Total", families: "Families", choirs: "Choirs",
-    famName: "Family Name", pere: "Pere (Father)", mere: "Mere (Mother)", Mem: "Members",
+    famName: "Family Name", pere: "Pere (Father)", mere: "Mere (Mother)", maxMem: "Members",
     att: "Attended", summary: "Attendance Summary", actions: "Actions",
     save: "Save", cancel: "Cancel", name: "Name", type: "Type", count: "Count",
     confirmDel: "Are you sure you want to delete this", update: "Update Family",
@@ -415,7 +415,7 @@ const handleSaveFamily = async () => {
                 <th className="h-12 px-4 text-left font-medium">{t.famName}</th>
                 <th className="h-12 px-4 text-left font-medium">{t.pere}</th>
                 <th className="h-12 px-4 text-left font-medium">{t.mere}</th>
-                <th className="h-12 px-4 text-left font-medium">{t.Mem}</th>
+                <th className="h-12 px-4 text-left font-medium">{t.maxMem}</th>
                 <th className="h-12 px-4 text-right font-medium">{t.actions}</th>
               </tr>
             </thead>
