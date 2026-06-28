@@ -187,41 +187,75 @@ export async function getFamilies(year: string) {
 
 export async function saveFamily(data: any) {
   try {
-    console.log("SAVE FAMILY DATA:", data);
+    console.log("SAVE FAMILY DATA:", data)
 
-    const family = await prisma.family.create({
-      data: {
-        name: data.name,
-        pere: data.pere,
-        mere: data.mere,
-        memberCount: Number(data.memberCount),
-        year: data.year,
-      },
-    });
+    const { id, ...rest } = data
 
-    console.log("CREATED:", family);
+    if (!rest.year) {
+      throw new Error("Year is required.")
+    }
 
-    revalidatePath("/dashboard/sabbath-school");
+    let family
 
-    return { success: true };
+    if (id && id.length > 10) {
+      family = await prisma.family.update({
+        where: { id },
+        data: {
+          name: rest.name,
+          pere: rest.pere,
+          mere: rest.mere,
+          memberCount: Number(rest.memberCount),
+          year: rest.year,
+        },
+      })
+    } else {
+      family = await prisma.family.create({
+        data: {
+          name: rest.name,
+          pere: rest.pere,
+          mere: rest.mere,
+          memberCount: Number(rest.memberCount),
+          year: rest.year,
+        },
+      })
+    }
+
+    console.log("FAMILY SAVED:", family)
+
+    revalidatePath("/dashboard/sabbath-school")
+
+    return {
+      success: true,
+      family,
+    }
   } catch (error: any) {
-    console.error("SAVE FAMILY ERROR:", error);
+    console.error("SAVE FAMILY ERROR:", error)
+
     return {
       success: false,
       error: error.message,
-    };
+    }
   }
 }
 
 export async function deleteFamily(id: string) {
-  await prisma.family.delete({
-    where: { id },
-  })
+  try {
+    await prisma.family.delete({
+      where: { id },
+    })
 
-  revalidatePath("/dashboard/sabbath-school")
+    revalidatePath("/dashboard/sabbath-school")
 
-  return {
-    success: true,
+    return {
+      success: true,
+    }
+  } catch (error: any) {
+    console.error("DELETE FAMILY ERROR:", error)
+
+    return {
+      success: false,
+      error: error.message,
+    }
   }
 }
 export async function loginUser(email: string, password: string) {

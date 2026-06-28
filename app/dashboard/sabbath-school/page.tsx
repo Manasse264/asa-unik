@@ -9,12 +9,11 @@ import { YearSelector } from "@/components/year-selector"
 import { cn } from "@/lib/utils"
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
-import logo from "@/assets/logo.jpeg";
 import {
   getFamilies,
   saveFamily,
   deleteFamily,
-} from "@/app/actions"
+} from "@/app/lib/actions"
 const sslTranslations = {
   en: {
     title: "Sabbath School Leader", subtitle: "Attendance Officer", addFamily: "Register Family",
