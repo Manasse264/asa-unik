@@ -9,6 +9,7 @@ import { YearSelector } from "@/components/year-selector"
 import { cn } from "@/lib/utils"
 import { getAttendance } from "@/lib/actions"
 import { saveAttendanceRecord } from "@/lib/actions"
+import { saveReport } from "@/lib/actions"
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
 import {
@@ -267,14 +268,33 @@ try {
   const openEditLetter = (letter: SabbathLetter) => {
     setEditingLetter(letter); setLetterFormData(letter); setIsLetterModalOpen(true)
   }
+const generateDailyPDF = async (date: string) => {
+  if (!selectedYear) {
+    alert(lang === 'fr'
+      ? "Veuillez sélectionner une année d'église !"
+      : "Please select a church year!"
+    )
+    return
+  }
+  const newReport = {
+    id: Math.random().toString(36).substr(2, 9),
+    title: "Sabbath Service",
+    date: date,
+    attendance: 20,
+    status: "Submitted",
+    type: "Attendance",
+  }
+
+  try {
+    await saveReport(newReport)
+  } catch (err) {
+    console.error("Failed to sync report:", err)
+  }
+
+  // continue PDF logic...
+}
 
 
-  const generateDailyPDF = (date: string) => {
-    const selectedYear = localStorage.getItem("selected_year")
-    if (!selectedYear) {
-      alert(lang === 'fr' ? 'Veuillez sélectionner une année d\'église !' : 'Please select a church year!')
-      return
-    }
     const dayAtt = attendance.filter(a => a.date === date)
     if (dayAtt.length === 0) {
       alert(t.noData)

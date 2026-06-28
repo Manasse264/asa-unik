@@ -297,6 +297,15 @@ export async function saveLetter(data: any) {
 
   return { success: true, data: result }
 }
+export async function saveReport(data: any) {
+  const { id, ...rest } = data
+
+  return prisma.report.upsert({
+    where: { id: id ?? "" },
+    update: rest,
+    create: rest,
+  })
+}
 export async function loginUser(email: string, password: string) {
   const input = email.toLowerCase().trim()
   
