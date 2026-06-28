@@ -23,3 +23,10 @@ export default function RootLayout({
     </html>
   )
 }
+export const metadata = {
+  title: "Church Elder Dashboard",
+}
+
+export default function ElderLayout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>
+}
