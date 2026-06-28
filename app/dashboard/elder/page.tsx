@@ -52,7 +52,10 @@ import {
   getAnnouncements, saveAnnouncement, deleteAnnouncement,
   getSystemConfig, updateSystemConfig,
   getUsers, updateUser, deleteUser,
-  getReports 
+  getReports,
+  getWeekOfPrayers, saveWeekOfPrayer, deleteWeekOfPrayer,
+  getWeeklyPrograms, saveWeeklyProgram, deleteWeeklyProgram,
+  getWeeklyChoirs, saveWeeklyChoir, deleteWeeklyChoir
 } from "@/lib/actions"
 
 interface Member {
@@ -124,7 +127,6 @@ export default function ElderDashboardClient() {
   const [restrictOldAccounts, setRestrictOldAccounts] = React.useState(false)
   const [availableYears, setAvailableYears] = React.useState<string[]>(["2024-2025"])
   const [blockedYears, setBlockedYears] = React.useState<string[]>([])
-  const [newYear, setNewYear] = React.useState("")
 
   const [users, setUsers] = React.useState<UserAccount[]>([])
   const [editingUser, setEditingUser] = React.useState<UserAccount | null>(null)
@@ -190,9 +192,13 @@ export default function ElderDashboardClient() {
     setAnnouncements(await getAnnouncements(year))
     setUsers(await getUsers())
 
+    // Load evangelism sections from database instead of localStorage
+    setWeekOfPrayers(await getWeekOfPrayers(year))
+    setWeeklyPrograms(await getWeeklyPrograms(year))
+    setWeeklyChoirs(await getWeeklyChoirs(year))
+
     const config = await getSystemConfig()
     if (config) {
-      localStorage.setItem("system_config", JSON.stringify(config))
       setBlockLogin(!!config.blockLogin)
       setBlockRegister(!!config.blockRegister)
       setRestrictNewAccounts(!!config.restrictNewAccounts)
@@ -204,17 +210,6 @@ export default function ElderDashboardClient() {
 
   React.useEffect(() => {
     loadData()
-    
-    // Load local storage values if they exist
-    const savedWOP = localStorage.getItem("week_of_prayers")
-    if (savedWOP) setWeekOfPrayers(JSON.parse(savedWOP))
-    
-    const savedPrograms = localStorage.getItem("weekly_programs")
-    if (savedPrograms) setWeeklyPrograms(JSON.parse(savedPrograms))
-
-    const savedChoirs = localStorage.getItem("weekly_choirs")
-    if (savedChoirs) setWeeklyChoirs(JSON.parse(savedChoirs))
-
     window.addEventListener("storage", loadData)
     window.addEventListener("year-changed", loadData)
     return () => {
@@ -227,8 +222,19 @@ export default function ElderDashboardClient() {
     e.preventDefault()
     const year = localStorage.getItem("selected_year") || new Date().getFullYear().toString()
     
+    const nameParts = formData.name.trim().split(" ")
+    const firstName = nameParts[0] || ""
+    const lastName = nameParts.slice(1).join(" ") || ""
+
     await saveMember({
-      ...formData,
+      firstName,
+      lastName,
+      email: formData.email,
+      address: formData.address,
+      phone: formData.telephone,
+      baptismDate: formData.baptismDate,
+      pastor: formData.pastor,
+      churchElder: formData.churchElder,
       year,
       isBaptized: true
     })
@@ -242,9 +248,20 @@ export default function ElderDashboardClient() {
     e.preventDefault()
     if (!editingMember) return
     
+    const nameParts = formData.name.trim().split(" ")
+    const firstName = nameParts[0] || ""
+    const lastName = nameParts.slice(1).join(" ") || ""
+
     await saveMember({
-      ...formData,
       id: editingMember.id,
+      firstName,
+      lastName,
+      email: formData.email,
+      address: formData.address,
+      phone: formData.telephone,
+      baptismDate: formData.baptismDate,
+      pastor: formData.pastor,
+      churchElder: formData.churchElder,
       year: localStorage.getItem("selected_year") || new Date().getFullYear().toString()
     })
     
@@ -323,23 +340,6 @@ export default function ElderDashboardClient() {
     }
   }
 
-  const saveConfig = async (login: boolean, register: boolean, years: string[], rna: boolean, roa: boolean, blocked: string[]) => {
-    const nextConfig = {
-      blockLogin: login,
-      blockRegister: register,
-      availableYears: years,
-      restrictNewAccounts: rna,
-      restrictOldAccounts: roa,
-      blockedYears: blocked
-    }
-    await updateSystemConfig({
-      ...nextConfig
-    })
-    localStorage.setItem("system_config", JSON.stringify({ id: "global", ...nextConfig }))
-    loadData()
-    window.dispatchEvent(new Event("storage"))
-  }
-
   const handleUpdateUser = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!editingUser) return
@@ -361,52 +361,61 @@ export default function ElderDashboardClient() {
     setGeneratedResetLink(link)
   }
 
-  const saveWOP = (data: WeekOfPrayer[]) => {
-    setWeekOfPrayers(data)
-    localStorage.setItem("week_of_prayers", JSON.stringify(data))
-  }
-
-  const handleAddWOP = (e: React.FormEvent) => {
+  const handleAddWOP = async (e: React.FormEvent) => {
     e.preventDefault()
-    const newWOP: WeekOfPrayer = {
-      id: Math.random().toString(36).substr(2, 9),
-      ...wopFormData
-    }
-    saveWOP([...weekOfPrayers, newWOP])
+    const year = localStorage.getItem("selected_year") || new Date().getFullYear().toString()
+    await saveWeekOfPrayer({
+      ...wopFormData,
+      year
+    })
     setIsAddingWOP(false)
     setWopFormData({ preacher: "", choirInvited: "", date: "" })
+    loadData()
   }
 
-  const savePrograms = (data: WeeklyProgram[]) => {
-    setWeeklyPrograms(data)
-    localStorage.setItem("weekly_programs", JSON.stringify(data))
-  }
-
-  const handleAddProgram = (e: React.FormEvent) => {
-    e.preventDefault()
-    const newProgram: WeeklyProgram = {
-      id: Math.random().toString(36).substr(2, 9),
-      ...programFormData
+  const handleDeleteWOP = async (id: string) => {
+    if (confirm("Are you sure you want to delete this context?")) {
+      await deleteWeekOfPrayer(id)
+      loadData()
     }
-    savePrograms([...weeklyPrograms, newProgram])
+  }
+
+  const handleAddProgram = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const year = localStorage.getItem("selected_year") || new Date().getFullYear().toString()
+    await saveWeeklyProgram({
+      ...programFormData,
+      year
+    })
     setIsAddingProgram(false)
     setProgramFormData({ day: "", preacherName: "", prayer: "", coordinator: "" })
+    loadData()
   }
 
-  const saveChoirs = (data: WeeklyChoir[]) => {
-    setWeeklyChoirs(data)
-    localStorage.setItem("weekly_choirs", JSON.stringify(data))
-  }
-
-  const handleAddChoir = (e: React.FormEvent) => {
-    e.preventDefault()
-    const newChoir: WeeklyChoir = {
-      id: Math.random().toString(36).substr(2, 9),
-      ...choirFormData
+  const handleDeleteProgram = async (id: string) => {
+    if (confirm("Are you sure you want to delete this weekly program?")) {
+      await deleteWeeklyProgram(id)
+      loadData()
     }
-    saveChoirs([...weeklyChoirs, newChoir])
+  }
+
+  const handleAddChoir = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const year = localStorage.getItem("selected_year") || new Date().getFullYear().toString()
+    await saveWeeklyChoir({
+      ...choirFormData,
+      year
+    })
     setIsAddingChoir(false)
     setChoirFormData({ day: "", choirName: "" })
+    loadData()
+  }
+
+  const handleDeleteChoir = async (id: string) => {
+    if (confirm("Are you sure you want to delete this choir schedule?")) {
+      await deleteWeeklyChoir(id)
+      loadData()
+    }
   }
 
   const generateChoirPDF = () => {
@@ -609,7 +618,7 @@ export default function ElderDashboardClient() {
                         <TableCell>{w.choirInvited}</TableCell>
                         <TableCell>{w.date}</TableCell>
                         <TableCell className="text-right">
-                          <Button variant="ghost" size="icon" className="text-destructive" onClick={() => saveWOP(weekOfPrayers.filter(x => x.id !== w.id))}>
+                          <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteWOP(w.id)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </TableCell>
@@ -661,7 +670,7 @@ export default function ElderDashboardClient() {
                           <TableCell>{p.day}</TableCell>
                           <TableCell>{p.preacherName}</TableCell>
                           <TableCell className="text-right">
-                            <Button variant="ghost" size="icon" className="text-destructive" onClick={() => savePrograms(weeklyPrograms.filter(x => x.id !== p.id))}>
+                            <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteProgram(p.id)}>
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </TableCell>
@@ -689,7 +698,7 @@ export default function ElderDashboardClient() {
                   <form onSubmit={handleAddChoir} className="grid gap-3 p-4 bg-muted/50 rounded-lg">
                     <div className="grid gap-1.5">
                       <Label>Day</Label>
-                      <Input placeholder="e.g. Sabbath" value={choirFormData.day} onChange={(e) => setChoirFormData({...choirFormData, day: e.target.value})} required />
+                      <Input placeholder="e.g. Sabbath" value={choirFormData.day} onChange={(e) => setQuestion => setChoirFormData({...choirFormData, day: e.target.value})} required />
                     </div>
                     <div className="grid gap-1.5">
                       <Label>Choir Name</Label>
@@ -717,7 +726,7 @@ export default function ElderDashboardClient() {
                           <TableCell>{c.day}</TableCell>
                           <TableCell>{c.choirName}</TableCell>
                           <TableCell className="text-right">
-                            <Button variant="ghost" size="icon" className="text-destructive" onClick={() => saveChoirs(weeklyChoirs.filter(x => x.id !== c.id))}>
+                            <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteChoir(c.id)}>
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </TableCell>
