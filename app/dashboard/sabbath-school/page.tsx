@@ -190,14 +190,6 @@ const updateAttendance = async (
   }
 }
 
-export async function deleteLetter(id: string) {
-  return await prisma.sabbathLetter.delete({ where: { id } })
-}
-export async function getChoirs(year: string) {
-  return await prisma.choir.findMany({ where: { year } })
-}
-
-
   const saveLetters = async (newLetters: SabbathLetter[]) => {
   setLetters(newLetters)
 
