@@ -1,23 +1,26 @@
 "use client"
 
-import * as React from "react"
+import React from "react"
 import { Plus, Search, Pencil, Trash2, Check, X, Users2, Music, Send, Download, FileText, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { YearSelector } from "@/components/year-selector"
 import { cn } from "@/lib/utils"
-import { getAttendance } from "@/lib/actions"
-import { saveAttendanceRecord } from "@/lib/actions"
-import { saveReport } from "@/lib/actions"
+import { 
+  getAttendance, 
+  saveAttendanceRecord, 
+  saveReport, 
+  getFamilies, 
+  saveFamily, 
+  deleteFamily,
+  getLetters,
+  getChoirs,
+  saveLetter
+} from "@/lib/actions"
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
 
-import {
-  getFamilies,
-  saveFamily,
-  deleteFamily,
-} from "@/lib/actions"
 const sslTranslations = {
   en: {
     title: "Sabbath School Leader", subtitle: "Attendance Officer", addFamily: "Register Family",
@@ -56,7 +59,7 @@ interface SabbathLetter { id: string; name: string; originChurch: string; distri
 interface AttendanceRecord { id: string; date: string; type: 'family' | 'choir'; targetId: string; targetName: string; count: number; }
 
 export default function SabbathSchoolDashboard() {
-  const [lang, setLang] = React.useState<"en" | "rw" | "fr">("en")
+  const [lang, setLang] = React.useState<"en" | "rw" | "fr" >("en")
   const [activeTab, setActiveTab] = React.useState<"families" | "attendance" | "reports" | "letters">("families")
   const [families, setFamilies] = React.useState<Family[]>([])
   const [choirs, setChoirs] = React.useState<any[]>([])
@@ -70,36 +73,44 @@ export default function SabbathSchoolDashboard() {
 
   const [editingLetter, setEditingLetter] = React.useState<SabbathLetter | null>(null)
   const [isLetterModalOpen, setIsLetterModalOpen] = React.useState(false)
-  const [letterFormData, setLetterFormData] = React.useState<Partial<SabbathLetter>>({ name: "", originChurch: "", district: "", field: "", fileName: "", status: "received" })
+  const [letterFormData, setLetterFormData] = React.useState<Partial<SabbathLetter>>({ name: "", originChurch: "", district: "", field: "", fileName: "", status: "received", fileData: "" })
 
-const loadData = async () => {
-  const year = getYear()
-
-  try {
-    const dbFamilies = await getFamilies(year)
-    setFamilies(dbFamilies || [])
-
-    const dbAttendance = await getAttendance(year)
-    setAttendance(dbAttendance || [])
-
-    const dbLetters = await getLetters(year)
-    setLetters(dbLetters || [])
-
-    const dbChoirs = await getChoirs(year)
-    setChoirs(
-      dbChoirs?.length
-        ? dbChoirs
-        : [
-            { id: "c1", name: "Calvary Memory" },
-            { id: "c2", name: "New heritage" },
-            { id: "c3", name: "Morning stars" },
-            { id: "c4", name: "Sauti ya huruma" },
-          ]
-    )
-  } catch (err) {
-    console.error("DB load error:", err)
+  const getYear = () => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("selected_year") || new Date().getFullYear().toString()
+    }
+    return new Date().getFullYear().toString()
   }
-}
+
+  const generateId = () => Math.random().toString(36).substr(2, 9)
+
+  const loadData = async () => {
+    const year = getYear()
+    try {
+      const dbFamilies = await getFamilies(year)
+      setFamilies(dbFamilies || [])
+
+      const dbAttendance = await getAttendance(year)
+      setAttendance(dbAttendance || [])
+
+      const dbLetters = await getLetters(year)
+      setLetters(dbLetters || [])
+
+      const dbChoirs = await getChoirs(year)
+      setChoirs(
+        dbChoirs?.length
+          ? dbChoirs
+          : [
+              { id: "c1", name: "Calvary Memory" },
+              { id: "c2", name: "New heritage" },
+              { id: "c3", name: "Morning stars" },
+              { id: "c4", name: "Sauti ya huruma" },
+            ]
+      )
+    } catch (err) {
+      console.error("DB load error:", err)
+    }
+  }
 
   React.useEffect(() => {
     const updateLang = () => setLang((localStorage.getItem("app_lang") || "en") as "en" | "rw" | "fr")
@@ -117,187 +128,82 @@ const loadData = async () => {
     }
   }, [])
 
-
-const saveAttendance = async (newAttendance: AttendanceRecord[]) => {
-  setAttendance(newAttendance)
-
-  try {
-    for (const record of newAttendance) {
-      await saveAttendanceRecord({
-        ...record,
-        year: getYear(),
-      })
+  const saveAttendance = async (newAttendance: AttendanceRecord[]) => {
+    setAttendance(newAttendance)
+    try {
+      for (const record of newAttendance) {
+        await saveAttendanceRecord({
+          ...record,
+          year: getYear(),
+        })
+      }
+    } catch (err) {
+      console.error("Failed saving attendance:", err)
     }
-  } catch (err) {
-    console.error("Failed saving attendance:", err)
   }
-}
-const updateAttendance = async (
-  type: "family" | "choir",
-  id: string,
-  name: string,
-  count: number
-) => {
-  const year = getYear()
 
-  const existing = attendance.find(
-    a =>
-      a.date === selectedDate &&
-      a.targetId === id &&
-      a.type === type
-  )
-
-  const updated: AttendanceRecord[] = existing
-    ? attendance.map(a =>
-        a.id === existing.id ? { ...a, count } : a
-      )
-    : [
-        ...attendance,
-        {
-          id: generateId(),
-          date: selectedDate,
-          type,
-          targetId: id,
-          targetName: name,
-          count,
-        },
-      ]
-
-  setAttendance(updated)
-
-  // sync DB
-  try {
-    const record = updated.find(
-      a => a.targetId === id && a.date === selectedDate && a.type === type
+  const updateAttendance = async (
+    type: "family" | "choir",
+    id: string,
+    name: string,
+    count: number
+  ) => {
+    const year = getYear()
+    const existing = attendance.find(
+      a => a.date === selectedDate && a.targetId === id && a.type === type
     )
 
-    if (record) {
-      await saveAttendanceRecord({
-        ...record,
-        year,
-      })
+    const updated: AttendanceRecord[] = existing
+      ? attendance.map(a => a.id === existing.id ? { ...a, count } : a)
+      : [
+          ...attendance,
+          {
+            id: generateId(),
+            date: selectedDate,
+            type,
+            targetId: id,
+            targetName: name,
+            count,
+          },
+        ]
+
+    setAttendance(updated)
+
+    try {
+      const record = updated.find(
+        a => a.targetId === id && a.date === selectedDate && a.type === type
+      )
+      if (record) {
+        await saveAttendanceRecord({
+          ...record,
+          year,
+        })
+      }
+    } catch (err) {
+      console.error(err)
     }
-  } catch (err) {
-    console.error(err)
   }
-}
 
   const saveLetters = async (newLetters: SabbathLetter[]) => {
-  setLetters(newLetters)
-
-  try {
-    for (const letter of newLetters) {
-      await saveLetter({
-        ...letter,
-        year: getYear(),
-      })
+    setLetters(newLetters)
+    try {
+      for (const letter of newLetters) {
+        await saveLetter({
+          ...letter,
+          year: getYear(),
+        })
+      }
+    } catch (err) {
+      console.error("Failed saving letters:", err)
     }
-  } catch (err) {
-    console.error("Failed saving letters:", err)
-  }
-}
-const pdfBlob = doc.output("datauristring")
-
-const newReport = {
-  id: generateId(),
-  title: "Sabbath Service Attendance",
-  date,
-  type: "attendance",
-  total,
-  pdfData: pdfBlob,
-  status: "submitted",
-  year: getYear(),
-}
-
-const generateDailyPDF = async (date: string) => {
-  const newReport = {
-    id: Math.random().toString(36).substr(2, 9),
-    title: "Sabbath Service",
-    date,
-    attendance: 20,
-    status: "Submitted",
-    type: "Attendance",
   }
 
-  try {
-    await saveReport(newReport)
-  } catch (err) {
-    console.error("Failed to sync report:", err)
-  }
-
-  // rest of your PDF code continues here...
-}
-  const t = sslTranslations[lang === "rw" ? "en" : lang]
-
-
-  const handleSaveLetter = () => {
-    if (!letterFormData.name || !letterFormData.originChurch) {
-      alert("Please fill in Member Name and Origin Church.")
+  const generateDailyPDF = async (date: string) => {
+    const selectedYear = getYear()
+    if (!selectedYear) {
+      alert(lang === 'fr' ? "Veuillez sélectionner une année d'église !" : "Please select a church year!")
       return
     }
-    const newLetter = {
-      id: editingLetter ? editingLetter.id : Math.random().toString(36).substr(2, 9),
-      name: letterFormData.name!,
-      originChurch: letterFormData.originChurch!,
-      district: letterFormData.district || "",
-      field: letterFormData.field || "",
-      fileName: letterFormData.fileName || "letter.pdf",
-      fileData: letterFormData.fileData,
-      status: letterFormData.status || "received"
-    } as SabbathLetter
-
-    if (editingLetter) saveLetters(letters.map(l => l.id === editingLetter.id ? newLetter : l))
-    else saveLetters([...letters, newLetter])
-    
-    setIsLetterModalOpen(false); setLetterFormData({ name: "", originChurch: "", district: "", field: "", fileName: "", fileData: "", status: "received" }); setEditingLetter(null)
-  }
-
-  const downloadFile = (letter: SabbathLetter) => {
-    if (!letter.fileData) {
-      alert("No file data found for this letter.")
-      return
-    }
-    const link = document.createElement("a")
-    link.href = letter.fileData
-    link.download = letter.fileName
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
-
-  const deleteLetter = (id: string) => {
-    if (confirm(`${t.confirmDel} letter?`)) saveLetters(letters.filter(l => l.id !== id))
-  }
-
-  const openEditLetter = (letter: SabbathLetter) => {
-    setEditingLetter(letter); setLetterFormData(letter); setIsLetterModalOpen(true)
-  }
-const generateDailyPDF = async (date: string) => {
-  if (!selectedYear) {
-    alert(lang === 'fr'
-      ? "Veuillez sélectionner une année d'église !"
-      : "Please select a church year!"
-    )
-    return
-  }
-  const newReport = {
-    id: Math.random().toString(36).substr(2, 9),
-    title: "Sabbath Service",
-    date: date,
-    attendance: 20,
-    status: "Submitted",
-    type: "Attendance",
-  }
-
-  try {
-    await saveReport(newReport)
-  } catch (err) {
-    console.error("Failed to sync report:", err)
-  }
-
-  // continue PDF logic...
-}
-
 
     const dayAtt = attendance.filter(a => a.date === date)
     if (dayAtt.length === 0) {
@@ -333,39 +239,78 @@ const generateDailyPDF = async (date: string) => {
       headStyles: { fillColor: [79, 70, 229] }
     })
 
-    doc.save(`Attendance_Report_at_${date}.pdf`)
+    const pdfBlob = doc.output("datauristring")
 
-    // Synchronize with Elder
     const newReport = {
-      id: Math.random().toString(36).substr(2, 9),
-      title: "Sabbath Service",
-      date: date,
+      id: generateId(),
+      title: "Sabbath Service Attendance",
+      date,
+      type: "attendance",
       attendance: total,
-      status: "Submitted",
-      type: "Attendance",
-      pdfUrl: "#" // Placeholder since we can't store real PDF in localStorage
+      total,
+      pdfData: pdfBlob,
+      pdfUrl: "#",
+      status: "submitted",
+      year: selectedYear,
     }
 
-const generateDailyPDF = async (date: string) => {
-  const newReport = {
-    id: Math.random().toString(36).substr(2, 9),
-    title: "Sabbath Service",
-    date: date,
-    attendance: 20,
-    status: "Submitted",
-    type: "Attendance",
+    try {
+      await saveReport(newReport)
+      doc.save(`Attendance_Report_at_${date}.pdf`)
+    } catch (err) {
+      console.error("Failed to sync report:", err)
+    }
   }
 
-  try {
-    await saveReport(newReport)
-  } catch (err) {
-    console.error("Failed to sync report:", err)
+  const t = sslTranslations[lang === "rw" ? "en" : lang]
+
+  const handleSaveLetter = () => {
+    if (!letterFormData.name || !letterFormData.originChurch) {
+      alert("Please fill in Member Name and Origin Church.")
+      return
+    }
+    const newLetter = {
+      id: editingLetter ? editingLetter.id : generateId(),
+      name: letterFormData.name!,
+      originChurch: letterFormData.originChurch!,
+      district: letterFormData.district || "",
+      field: letterFormData.field || "",
+      fileName: letterFormData.fileName || "letter.pdf",
+      fileData: letterFormData.fileData,
+      status: letterFormData.status || "received"
+    } as SabbathLetter
+
+    if (editingLetter) saveLetters(letters.map(l => l.id === editingLetter.id ? newLetter : l))
+    else saveLetters([...letters, newLetter])
+    
+    setIsLetterModalOpen(false)
+    setLetterFormData({ name: "", originChurch: "", district: "", field: "", fileName: "", fileData: "", status: "received" })
+    setEditingLetter(null)
   }
 
-  // continue PDF generation here...
-}
+  const downloadFile = (letter: SabbathLetter) => {
+    if (!letter.fileData) {
+      alert("No file data found for this letter.")
+      return
+    }
+    const link = document.createElement("a")
+    link.href = letter.fileData
+    link.download = letter.fileName
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  const deleteLetter = (id: string) => {
+    if (confirm(`${t.confirmDel} letter?`)) saveLetters(letters.filter(l => l.id !== id))
+  }
+
+  const openEditLetter = (letter: SabbathLetter) => {
+    setEditingLetter(letter); setLetterFormData(letter); setIsLetterModalOpen(true)
+  }
+
   const generatePDF = () => {
-    const selectedYear = localStorage.getItem("selected_year")
+    const selectedYear = getYear()
     if (!selectedYear) {
       alert(lang === 'fr' ? 'Veuillez sélectionner une année d\'église !' : 'Please select a church year!')
       return
@@ -379,19 +324,17 @@ const generateDailyPDF = async (date: string) => {
     const doc = new jsPDF()
     let currentY = 20
 
-    // 1. Daily Attendance Details (Listed first)
     doc.setFontSize(20)
     doc.setTextColor(79, 70, 229)
     doc.text("ASA-RP Ngoma College Attendance Report", 105, currentY, { align: "center" })
     currentY += 15
 
-    allDates.forEach((date, index) => {
+    allDates.forEach((date) => {
       const dayAtt = attendance.filter(a => a.date === date)
       const fTotal = dayAtt.filter(a => a.type === 'family').reduce((acc, curr) => acc + curr.count, 0)
       const cTotal = dayAtt.filter(a => a.type === 'choir').reduce((acc, curr) => acc + curr.count, 0)
       const total = fTotal + cTotal
 
-      // Check for page overflow
       if (currentY > 230) {
         doc.addPage()
         currentY = 20
@@ -420,7 +363,6 @@ const generateDailyPDF = async (date: string) => {
       currentY = (doc as any).lastAutoTable.finalY + 15
     })
 
-    // 2. Global Summary Page (Last Page)
     doc.addPage()
     let totalFamiliesSum = 0
     let totalChoirsSum = 0
@@ -462,51 +404,40 @@ const generateDailyPDF = async (date: string) => {
     alert(t.sentMsg)
   }
 
-const handleSaveFamily = async () => {
-  if (!familyFormData.name || !familyFormData.pere || !familyFormData.mere) {
-    alert("Please fill in Family Name, Pere, and Mere.")
-    return
+  const handleSaveFamily = async () => {
+    if (!familyFormData.name || !familyFormData.pere || !familyFormData.mere) {
+      alert("Please fill in Family Name, Pere, and Mere.")
+      return
+    }
+
+    const year = getYear()
+
+    const result = await saveFamily({
+      id: editingFamily?.id,
+      name: familyFormData.name,
+      pere: familyFormData.pere,
+      mere: familyFormData.mere,
+      memberCount: familyFormData.memberCount,
+      year,
+    })
+
+    if (!result.success) {
+      alert(result.error)
+      return
+    }
+
+    await loadData()
+    setIsFamilyModalOpen(false)
+    setFamilyFormData({ name: "", pere: "", mere: "", memberCount: 2 })
+    setEditingFamily(null)
   }
-
-  const year =
-    localStorage.getItem("selected_year") ||
-    new Date().getFullYear().toString()
-
-  const result = await saveFamily({
-    id: editingFamily?.id,
-    name: familyFormData.name,
-    pere: familyFormData.pere,
-    mere: familyFormData.mere,
-    memberCount: familyFormData.memberCount,
-    year,
-  })
-
-  if (!result.success) {
-    alert(result.error)
-    return
-  }
-
-  await loadData()
-
-  setIsFamilyModalOpen(false)
-
-  setFamilyFormData({
-    name: "",
-    pere: "",
-    mere: "",
-    memberCount: 2,
-  })
-
-  setEditingFamily(null)
-}
 
   const deleteFamilyHandler = async (id: string) => {
-  if (!confirm(`${t.confirmDel} family?`)) return
+    if (!confirm(`${t.confirmDel} family?`)) return
+    await deleteFamily(id)
+    await loadData()
+  }
 
-  await deleteFamily(id)
-
-  await loadData()
-}
   const openEditFamily = (family: Family) => {
     setEditingFamily(family); setFamilyFormData({ name: family.name, pere: family.pere, mere: family.mere, memberCount: family.memberCount }); setIsFamilyModalOpen(true)
   }
@@ -520,7 +451,7 @@ const handleSaveFamily = async () => {
         <div><h2 className="text-3xl font-bold">{t.title}</h2><p className="text-muted-foreground">{t.subtitle}</p></div>
         <div className="flex gap-2">
           {activeTab === 'families' && <Button onClick={() => { setEditingFamily(null); setFamilyFormData({ name: "", pere: "", mere: "", memberCount: 2 }); setIsFamilyModalOpen(true) }}>{t.addFamily}</Button>}
-          {activeTab === 'letters' && <Button onClick={() => { setEditingLetter(null); setLetterFormData({ name: "", originChurch: "", district: "", field: "", fileName: "", status: "received" }); setIsLetterModalOpen(true) }} className="gap-2"><Plus className="h-4 w-4" /> {t.addLetter}</Button>}
+          {activeTab === 'letters' && <Button onClick={() => { setEditingLetter(null); setLetterFormData({ name: "", originChurch: "", district: "", field: "", fileName: "", status: "received", fileData: "" }); setIsLetterModalOpen(true) }} className="gap-2"><Plus className="h-4 w-4" /> {t.addLetter}</Button>}
           {activeTab === 'attendance' && <Button variant="outline" className="border-primary text-primary" onClick={() => setActiveTab("reports")}>{t.tabRep}</Button>}
         </div>
       </div>
@@ -551,7 +482,7 @@ const handleSaveFamily = async () => {
                   <td className="p-4 font-medium">{family.name}</td><td className="p-4">{family.pere}</td><td className="p-4">{family.mere}</td><td className="p-4">{family.memberCount}</td>
                   <td className="p-4 text-right space-x-1">
                     <Button variant="ghost" size="icon" onClick={() => openEditFamily(family)}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="text-destructive"onClick={() => deleteFamilyHandler(family.id)}><Trash2 className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" className="text-destructive" onClick={() => deleteFamilyHandler(family.id)}><Trash2 className="h-4 w-4" /></Button>
                   </td>
                 </tr>
               ))}
@@ -720,7 +651,10 @@ const handleSaveFamily = async () => {
                 <div className="grid gap-2"><Label>{t.mere}</Label><Input value={familyFormData.mere} onChange={e => setFamilyFormData({...familyFormData, mere: e.target.value})} /></div>
               </div>
               <div className="grid gap-2"><Label>{t.maxMem}</Label><Input type="number" value={familyFormData.memberCount} onChange={e => setFamilyFormData({...familyFormData, memberCount: parseInt(e.target.value) || 2})} /></div>
-              <Button className="w-full" onClick={handleSaveFamily}>{editingFamily ? t.update : t.save}</Button>
+              <div className="flex gap-2 pt-2">
+                <Button variant="outline" className="flex-1" onClick={() => setIsFamilyModalOpen(false)}>{t.cancel}</Button>
+                <Button className="flex-1" onClick={handleSaveFamily}>{editingFamily ? t.update : t.save}</Button>
+              </div>
             </div>
           </div>
         </div>
@@ -739,35 +673,36 @@ const handleSaveFamily = async () => {
               </div>
               <div className="grid gap-2">
                 <Label>{t.upload}</Label>
-                <div className="flex items-center gap-2">
-                  <Input 
-                    type="file" 
-                    className="text-xs" 
-                    onChange={e => {
-                      const file = e.target.files?.[0]
-                      if (file) {
-                        const reader = new FileReader()
-                        reader.onload = (event) => {
-                          setLetterFormData({
-                            ...letterFormData, 
-                            fileName: file.name, 
-                            fileData: event.target?.result as string
-                          })
-                        }
-                        reader.readAsDataURL(file)
-                      }
-                    }} 
-                  />
-                </div>
+                <Input 
+                  type="file" 
+                  className="text-xs" 
+                  onChange={e => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setLetterFormData({...letterFormData, fileName: file.name, fileData: reader.result as string});
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }} 
+                />
               </div>
               <div className="grid gap-2">
                 <Label>{t.status}</Label>
-                <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={letterFormData.status} onChange={e => setLetterFormData({...letterFormData, status: e.target.value as any})}>
+                <select 
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  value={letterFormData.status} 
+                  onChange={e => setLetterFormData({...letterFormData, status: e.target.value as 'received' | 'rejected'})}
+                >
                   <option value="received">{t.received}</option>
                   <option value="rejected">{t.rejected}</option>
                 </select>
               </div>
-              <Button className="w-full" onClick={handleSaveLetter}>{editingLetter ? t.update : t.save}</Button>
+              <div className="flex gap-2 pt-2">
+                <Button variant="outline" className="flex-1" onClick={() => setIsLetterModalOpen(false)}>{t.cancel}</Button>
+                <Button className="flex-1" onClick={handleSaveLetter}>{editingLetter ? t.update : t.save}</Button>
+              </div>
             </div>
           </div>
         </div>
