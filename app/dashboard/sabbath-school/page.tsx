@@ -218,10 +218,23 @@ const newReport = {
   year: getYear(),
 }
 
-try {
-  await saveReport(newReport)
-} catch (err) {
-  console.error("Failed to sync report:", err)
+const generateDailyPDF = async (date: string) => {
+  const newReport = {
+    id: Math.random().toString(36).substr(2, 9),
+    title: "Sabbath Service",
+    date,
+    attendance: 20,
+    status: "Submitted",
+    type: "Attendance",
+  }
+
+  try {
+    await saveReport(newReport)
+  } catch (err) {
+    console.error("Failed to sync report:", err)
+  }
+
+  // rest of your PDF code continues here...
 }
   const t = sslTranslations[lang === "rw" ? "en" : lang]
 
