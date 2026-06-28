@@ -12,6 +12,14 @@ import { saveAttendanceRecord } from "@/lib/actions"
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
 import {
+  getAttendance,
+  saveAttendanceRecord,
+  deleteAttendance,
+  getLetters,
+  getReports,
+  saveReport,
+} from "@/lib/actions"
+import {
   getFamilies,
   saveFamily,
   deleteFamily,
@@ -116,15 +124,6 @@ const loadData = async () => {
   }, [])
 
 
-
-export async function deleteAttendance(id: string) {
-  return await prisma.attendance.delete({ where: { id } })
-}
-export async function getLetters(year: string) {
-  return await prisma.sabbathLetter.findMany({
-    where: { year },
-  })
-}
 const saveAttendance = async (newAttendance: AttendanceRecord[]) => {
   setAttendance(newAttendance)
 

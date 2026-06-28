@@ -252,20 +252,50 @@ export async function saveFamily(data: any) {
     }
   }
 }
- export async function getAttendance(year: string) {
-  return await prisma.attendance.findMany({
-    where: { year },
-  })
+import prisma from "@/lib/prisma"
+
+/* ---------------- ATTENDANCE ---------------- */
+
+export async function getAttendance(year: string) {
+  return prisma.attendance.findMany({ where: { year } })
 }
+
 export async function saveAttendanceRecord(data: any) {
   const { id, ...rest } = data
 
-  return await prisma.attendance.upsert({
+  return prisma.attendance.upsert({
     where: { id: id || "new" },
     update: rest,
     create: rest,
   })
 }
+
+export async function deleteAttendance(id: string) {
+  return prisma.attendance.delete({ where: { id } })
+}
+
+/* ---------------- LETTERS ---------------- */
+
+export async function getLetters(year: string) {
+  return prisma.sabbathLetter.findMany({ where: { year } })
+}
+
+/* ---------------- REPORTS ---------------- */
+
+export async function getReports(year: string) {
+  return prisma.report.findMany({ where: { year } })
+}
+
+export async function saveReport(data: any) {
+  const { id, ...rest } = data
+
+  return prisma.report.upsert({
+    where: { id: id || "new" },
+    update: rest,
+    create: rest,
+  })
+}
+
 export async function deleteFamily(id: string) {
   try {
     await prisma.family.delete({
