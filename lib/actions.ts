@@ -285,11 +285,6 @@ export async function saveLetter(data: any) {
   return { success: true, data: result }
 }
 
-// ---------------- REPORTS ----------------
-export async function getReports(year: string) {
-  return await prisma.report.findMany({ where: { year } })
-}
-
 export async function saveReport(data: any) {
   const { id, ...rest } = data
   return prisma.report.upsert({
@@ -299,7 +294,7 @@ export async function saveReport(data: any) {
   })
 }
 
-// --- New Evangelism Methods replacing LocalStorage ---
+// ---------------- WEEK OF PRAYER ----------------
 export async function getWeekOfPrayers(year: string) {
   return await prisma.weekOfPrayer.findMany({ where: { year } })
 }
@@ -311,50 +306,12 @@ export async function saveWeekOfPrayer(data: any) {
   } else {
     await prisma.weekOfPrayer.create({ data: rest })
   }
-  revalidatePath("/dashboard/elder")
+  revalidatePath("/dashboard/evangelism")
 }
 
 export async function deleteWeekOfPrayer(id: string) {
   await prisma.weekOfPrayer.delete({ where: { id } })
-  revalidatePath("/dashboard/elder")
-}
-
-export async function getWeeklyPrograms(year: string) {
-  return await prisma.weeklyProgram.findMany({ where: { year } })
-}
-
-export async function saveWeeklyProgram(data: any) {
-  const { id, ...rest } = data
-  if (id && id.length > 10) {
-    await prisma.weeklyProgram.update({ where: { id }, data: rest })
-  } else {
-    await prisma.weeklyProgram.create({ data: rest })
-  }
-  revalidatePath("/dashboard/elder")
-}
-
-export async function deleteWeeklyProgram(id: string) {
-  await prisma.weeklyProgram.delete({ where: { id } })
-  revalidatePath("/dashboard/elder")
-}
-
-export async function getWeeklyChoirs(year: string) {
-  return await prisma.weeklyChoir.findMany({ where: { year } })
-}
-
-export async function saveWeeklyChoir(data: any) {
-  const { id, ...rest } = data
-  if (id && id.length > 10) {
-    await prisma.weeklyChoir.update({ where: { id }, data: rest })
-  } else {
-    await prisma.weeklyChoir.create({ data: rest })
-  }
-  revalidatePath("/dashboard/elder")
-}
-
-export async function deleteWeeklyChoir(id: string) {
-  await prisma.weeklyChoir.delete({ where: { id } })
-  revalidatePath("/dashboard/elder")
+  revalidatePath("/dashboard/evangelism")
 }
 
 // ---------------- AUTHENTICATION ----------------

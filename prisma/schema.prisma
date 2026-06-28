@@ -122,7 +122,7 @@ model SystemConfig {
 }
 
 model Report {
-  id        String @id
+  id        String   @id
   title     String
   date      String
   type      String   // "attendance"
@@ -132,6 +132,7 @@ model Report {
   year      String
   createdAt DateTime @default(now())
 }
+
 model Attendance {
   id         String @id
   date       String
@@ -143,7 +144,7 @@ model Attendance {
 }
 
 model SabbathLetter {
-  id           String @id
+  id           String   @id
   name         String
   originChurch String
   district     String
@@ -152,4 +153,14 @@ model SabbathLetter {
   fileData     String?
   status       String
   year         String
+}
+
+model WeekOfPrayer {
+  id        String   @id @default(cuid())
+  title     String
+  date      String
+  content   String?
+  year      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
