@@ -124,17 +124,29 @@ export async function getAnnouncements(year: string) {
 }
 
 export async function saveAnnouncement(data: any) {
-  const { id, ...rest } = data
-  if (id && id.length > 10) {
-    await prisma.announcement.update({ where: { id }, data: rest })
-  } else {
-    await prisma.announcement.create({ data: rest })
+  // Destructure description out, and grab the rest of the fields
+  const { id, description, ...rest } = data
+
+  // Map description to content for Prisma compatibility
+  const announcementData = {
+    ...rest,
+    content: description || "", // maps 'description' to 'content'
   }
+
+  if (id) {
+    await prisma.announcement.update({ 
+      where: { id }, 
+      data: announcementData 
+    })
+  } else {
+    await prisma.announcement.create({ 
+      data: announcementData 
+    })
+  }
+  
   revalidatePath("/dashboard/elder")
   revalidatePath("/announcements")
-  revalidatePath("/news")
 }
-
 export async function deleteAnnouncement(id: string) {
   await prisma.announcement.delete({ where: { id } })
   revalidatePath("/dashboard/elder")
@@ -285,20 +297,44 @@ export async function getLetters(year: string) {
 
 export async function saveLetter(data: any) {
   const { id, ...rest } = data
+  
+  // Ensure we have a target ID, fallback to a random string if it's missing
+  const targetId = id || Math.random().toString(36).substring(2, 11)
+
   const result = await prisma.sabbathLetter.upsert({
-    where: { id: id ?? "" },
+    where: { id: targetId },
     update: rest,
-    create: rest,
+    create: {
+      id: targetId, // Mandatorily inject the explicit ID for the creation path
+      ...rest,
+    },
   })
+  
   return { success: true, data: result }
+}
+// ---------------- REPORTS ----------------
+export async function getReports(year: string) {
+  return await prisma.report.findMany({
+    where: { year },
+    orderBy: {
+      createdAt: "desc", // assumes you have a createdAt field, or remove this line
+    },
+  })
 }
 
 export async function saveReport(data: any) {
   const { id, ...rest } = data
+  
+  // Make sure we have a fallback ID if it's completely missing or empty
+  const targetId = id || Math.random().toString(36).substring(2, 11)
+
   return prisma.report.upsert({
-    where: { id: id ?? "" },
+    where: { id: targetId },
     update: rest,
-    create: rest,
+    create: {
+      id: targetId, // Mandatorily insert the explicit ID for the create path
+      ...rest,
+    },
   })
 }
 
@@ -321,7 +357,45 @@ export async function deleteWeekOfPrayer(id: string) {
   await prisma.weekOfPrayer.delete({ where: { id } })
   revalidatePath("/dashboard/evangelism")
 }
+// Add these to your actions.ts file to re-route them to the existing choir table
 
+export async function getWeeklyChoirs(year: string) {
+  return await prisma.choir.findMany({ where: { year } })
+}
+
+export async function saveWeeklyChoir(data: any) {
+  const { id, ...rest } = data
+  if (id && id.length > 10) {
+    await prisma.choir.update({ where: { id }, data: rest })
+  } else {
+    await prisma.choir.create({ data: rest })
+  }
+  revalidatePath("/dashboard/elder")
+}
+
+export async function deleteWeeklyChoir(id: string) {
+  await prisma.choir.delete({ where: { id } })
+  revalidatePath("/dashboard/elder")
+}
+// ---------------- WEEKLY PROGRAMS ----------------
+export async function getWeeklyPrograms(year: string) {
+  return await prisma.weeklyProgram.findMany({ where: { year } })
+}
+
+export async function saveWeeklyProgram(data: any) {
+  const { id, ...rest } = data
+  if (id && id.length > 10) {
+    await prisma.weeklyProgram.update({ where: { id }, data: rest })
+  } else {
+    await prisma.weeklyProgram.create({ data: rest })
+  }
+  revalidatePath("/dashboard/elder")
+}
+
+export async function deleteWeeklyProgram(id: string) {
+  await prisma.weeklyProgram.delete({ where: { id } })
+  revalidatePath("/dashboard/elder")
+}
 // ---------------- AUTHENTICATION ----------------
 export async function loginUser(email: string, password: string) {
   const input = email.toLowerCase().trim()

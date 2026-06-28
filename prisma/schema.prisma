@@ -122,15 +122,17 @@ model SystemConfig {
 }
 
 model Report {
-  id        String   @id
-  title     String
-  date      String
-  type      String   // "attendance"
-  total     Int
-  pdfData   String?  // base64 or cloud URL
-  status    String   // "submitted", "reviewed"
-  year      String
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  title      String
+  date       String
+  type       String
+  attendance Int      // <-- Make sure this line exists
+  total      Int
+  pdfData    String
+  pdfUrl     String
+  status     String
+  year       String
+  createdAt  DateTime @default(now())
 }
 
 model Attendance {
@@ -162,4 +164,14 @@ model WeekOfPrayer {
   year      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+model WeeklyProgram {
+  id           String   @id @default(cuid())
+  day          String
+  preacherName String
+  prayer       String?
+  coordinator  String?
+  year         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }

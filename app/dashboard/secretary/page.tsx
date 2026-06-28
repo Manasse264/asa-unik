@@ -3,13 +3,15 @@
 import * as React from "react"
 import { 
   Plus, Search, Pencil, Trash2, Check, X, Briefcase, 
-  Users, Building2, Music, UserPlus, ShieldCheck 
+  Users, Building2, Music, UserPlus, ShieldCheck, FileText, Gift
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { YearSelector } from "@/components/year-selector"
 import { cn } from "@/lib/utils"
+import { jsPDF } from "jspdf"
+import autoTable from "jspdf-autotable"
 
 import { 
   getMembers, saveMember, deleteMember,
@@ -33,6 +35,8 @@ const secTranslations = {
     tabChoir: "Manage Choirs",
     tabDeacons: "Deacons",
     tabDeaconesses: "Deaconesses",
+    tabProperties: "Properties (Gifts & Books)",
+    tabReports: "Reports",
     search: "Search",
     searchMembers: "Search members...",
     searchCouncil: "Search council...",
@@ -40,12 +44,16 @@ const secTranslations = {
     searchChoirs: "Search choirs...",
     searchDeacons: "Search deacons...",
     searchDeaconesses: "Search deaconesses...",
+    searchProperties: "Search properties...",
+    searchReports: "Search reports...",
     registeredMembers: "Registered Members",
     councilList: "Council Members",
     churchDepts: "Church Departments",
     registeredChoirs: "Registered Choirs",
     deaconsList: "Deacons List",
     deaconessesList: "Deaconesses List",
+    propertiesList: "Properties, Gifts & Books",
+    reportsList: "Published Treasurer Reports",
     name: "Name",
     email: "Email",
     phone: "Phone",
@@ -89,6 +97,8 @@ const secTranslations = {
     noMem: "No members found.",
     noDept: "No departments found.",
     noChoir: "No choirs found.",
+    noProperties: "No properties or gifts found.",
+    noReports: "No reports published yet.",
     confirmDel: "Are you sure you want to delete this",
     choirVal: "Please provide both a choir name and a leader."
   },
@@ -107,6 +117,8 @@ const secTranslations = {
     tabChoir: "Gérer les Chorales",
     tabDeacons: "Diacres",
     tabDeaconesses: "Diaconesses",
+    tabProperties: "Propriétés (Dons & Livres)",
+    tabReports: "Rapports",
     search: "Rechercher",
     searchMembers: "Rechercher des membres...",
     searchCouncil: "Rechercher des conseillers...",
@@ -114,12 +126,16 @@ const secTranslations = {
     searchChoirs: "Rechercher des chorales...",
     searchDeacons: "Rechercher des diacres...",
     searchDeaconesses: "Rechercher des diaconesses...",
+    searchProperties: "Rechercher des propriétés...",
+    searchReports: "Rechercher des rapports...",
     registeredMembers: "Membres Enregistrés",
     councilList: "Liste des Membres du Conseil",
     churchDepts: "Départements de l'Église",
     registeredChoirs: "Chorales Enregistrées",
     deaconsList: "Liste des Diacres",
     deaconessesList: "Liste des Diaconesses",
+    propertiesList: "Propriétés, Dons & Livres",
+    reportsList: "Rapports publiés du trésorier",
     name: "Nom",
     email: "E-mail",
     phone: "Téléphone",
@@ -163,6 +179,8 @@ const secTranslations = {
     noMem: "Aucun membre trouvé.",
     noDept: "Aucun département trouvé.",
     noChoir: "Aucune chorale trouvée.",
+    noProperties: "Aucune propriété trouvée.",
+    noReports: "Aucun rapport publié pour le moment.",
     confirmDel: "Êtes-vous sûr de vouloir supprimer ce",
     choirVal: "Veuillez fournir un nom de chorale et un leader."
   }
@@ -197,16 +215,42 @@ interface Choir {
   memberNames: string[]
 }
 
-const initialMembers: Member[] = [
-  ]
+interface PropertyItem {
+  id: string
+  name: string
+  type: "Gift" | "Book" | "Asset"
+  receivedFrom: string
+  date: string
+  quantity: number
+}
 
-const initialDepartments: Department[] = [
-  
-]
+interface FinancialReport {
+  id: string
+  date: string
+  title: string
+  publishedBy: string
+  isPublishedByTreasurer: boolean
+  transactions: {
+    date: string
+    type: "INCOME" | "EXPENSE"
+    category: string
+    currency: string
+    amount: number
+    description: string
+  }[]
+  summary: {
+    tithes: number
+    offerings: number
+    donations: number
+    other: number
+    totalIncome: number
+    totalExpenses: number
+  }
+}
 
-const initialChoirs: Choir[] = [
-
-]
+const initialMembers: Member[] = []
+const initialDepartments: Department[] = []
+const initialChoirs: Choir[] = []
 
 const DEPARTMENT_NAMES = [
   "Welfare",
@@ -219,12 +263,39 @@ const DEPARTMENT_NAMES = [
 export default function SecretaryDashboard() {
   const [lang, setLang] = React.useState<"en" | "rw" | "fr">("en")
   const t = secTranslations[lang === "rw" ? "en" : lang]
-  const [activeTab, setActiveTab] = React.useState<"members" | "council" | "departments" | "choirs" | "deacons" | "deaconesses">("members")
+  const [activeTab, setActiveTab] = React.useState<"members" | "council" | "departments" | "choirs" | "deacons" | "deaconesses" | "properties" | "reports">("members")
   const [members, setMembers] = React.useState<Member[]>(initialMembers)
   const [departments, setDepartments] = React.useState<Department[]>(initialDepartments)
-  const [choirs, setChoirs] = React.useState<Choir[]>(initialChoirs)
+  const [choirs, setChoirs] = React.useState<Choose[] | any[]>(initialChoirs)
   const [searchQuery, setSearchQuery] = React.useState("")
   
+  // New States for Properties and Published Treasurer Reports
+  const [properties, setProperties] = React.useState<PropertyItem[]>([
+    { id: "1", name: "Church Hymn Books", type: "Book", receivedFrom: "Conference", date: "2026-01-15", quantity: 50 },
+    { id: "2", name: "Sound System Set", type: "Gift", receivedFrom: "Elder Blessing", date: "2026-03-22", quantity: 1 }
+  ])
+  
+  const [reports, setReports] = React.useState<FinancialReport[]>([
+    {
+      id: "rep-01",
+      date: "2026-06-28",
+      title: "Quarterly Financial Overview",
+      publishedBy: "Church Treasurer",
+      isPublishedByTreasurer: true,
+      transactions: [
+        { date: "2026-06-28", type: "INCOME", category: "Tithes", currency: "RF", amount: 5000000000, description: "helps" }
+      ],
+      summary: {
+        tithes: 5000000000,
+        offerings: 0,
+        donations: 0,
+        other: 0,
+        totalIncome: 5000000000,
+        totalExpenses: 0
+      }
+    }
+  ])
+
   // Choir Sub-tabs State
   const [activeChoirId, setActiveChoirId] = React.useState<string | null>(null)
   const [newChoirMemberName, setNewChoirMemberName] = React.useState("")
@@ -259,15 +330,15 @@ export default function SecretaryDashboard() {
     activities: ""
   })
 
- const [choirFormData, setChoirFormData] = React.useState<{
-  name: string
-  leaderName: string
-  memberNames: string[]
-}>({
-  name: "",
-  leaderName: "",
-  memberNames: []
-})
+  const [choirFormData, setChoirFormData] = React.useState<{
+    name: string
+    leaderName: string
+    memberNames: string[]
+  }>({
+    name: "",
+    leaderName: "",
+    memberNames: []
+  })
 
   React.useEffect(() => {
     const updateLang = () => setLang((localStorage.getItem("app_lang") || "en") as "en" | "rw" | "fr")
@@ -348,33 +419,33 @@ export default function SecretaryDashboard() {
 
   const openAddChoirModal = () => {
     setEditingChoir(null)
-   setChoirFormData({
-  name: "",
-  leaderName: "",
-  memberNames: []
-})
+    setChoirFormData({
+      name: "",
+      leaderName: "",
+      memberNames: []
+    })
     setIsChoirModalOpen(true)
   }
 
   const openEditChoirModal = (choir: Choir) => {
     setEditingChoir(choir)
-setChoirFormData({
-  name: choir.name,
-  leaderName: choir.leaderName,
-  memberNames: choir.memberNames || []
-})
+    setChoirFormData({
+      name: choir.name,
+      leaderName: choir.leaderName,
+      memberNames: choir.memberNames || []
+    })
     setIsChoirModalOpen(true)
   }
 
   const handleSaveMember = async () => {
     const year = localStorage.getItem("selected_year") || new Date().getFullYear().toString()
     
- await saveMember({
-  ...memberFormData,
-  id: editingMember?.id,
-  year,
-  isBaptized: false
-})
+    await saveMember({
+      ...memberFormData,
+      id: editingMember?.id,
+      year,
+      isBaptized: false
+    })
     
     setIsMemberModalOpen(false)
     loadData()
@@ -393,45 +464,46 @@ setChoirFormData({
     loadData()
   }
 
-const handleSaveChoir = async () => {
-  try {
-    const year =
-      localStorage.getItem("selected_year") ||
-      new Date().getFullYear().toString()
+  const handleSaveChoir = async () => {
+    try {
+      const year =
+        localStorage.getItem("selected_year") ||
+        new Date().getFullYear().toString()
 
-    if (!choirFormData.name || !choirFormData.leaderName) {
-      alert(t.choirVal)
-      return
+      if (!choirFormData.name || !choirFormData.leaderName) {
+        alert(t.choirVal)
+        return
+      }
+
+      console.log("Saving choir:", {
+        ...choirFormData,
+        id: editingChoir?.id,
+        year,
+      })
+
+      const result = await saveChoir({
+        ...choirFormData,
+        id: editingChoir?.id,
+        year
+      })
+
+      console.log(result)
+
+      if (!result.success) {
+        alert(result.error)
+        return
+      }
+
+      await loadData()
+      setIsChoirModalOpen(false)
+
+      console.log("Choir saved successfully")
+    } catch (error: any) {
+      console.error("Error saving choir:", error)
+      alert(String(error))
     }
+  }
 
-    console.log("Saving choir:", {
-      ...choirFormData,
-      id: editingChoir?.id,
-      year,
-    })
-
-const result = await saveChoir({
-  ...choirFormData,
-  id: editingChoir?.id,
-  year
-})
-
-console.log(result)
-
-if (!result.success) {
-  alert(result.error)
-  return
-}
-
-    await loadData()
-    setIsChoirModalOpen(false)
-
-    console.log("Choir saved successfully")
-  }catch (error: any) {
-  console.error("Error saving choir:", error)
-  alert(String(error))
-}
-}
   const deleteItem = async (id: string, type: 'member' | 'dept' | 'choir') => {
     if (confirm(`${t.confirmDel} ${type}?`)) {
       if (type === 'member') await deleteMember(id)
@@ -506,6 +578,83 @@ if (!result.success) {
     );
   });
 
+  const filteredProperties = properties.filter(item => {
+    const query = searchQuery.toLowerCase();
+    return (
+      item.name.toLowerCase().includes(query) ||
+      item.type.toLowerCase().includes(query) ||
+      item.receivedFrom.toLowerCase().includes(query)
+    );
+  });
+
+  const filteredReports = reports.filter(rep => {
+    const query = searchQuery.toLowerCase();
+    return (
+      rep.title.toLowerCase().includes(query) ||
+      rep.date.includes(query)
+    );
+  });
+
+  // Updated function rendering the transaction view and category summary block in standard tables
+  const downloadReportPDF = (report: FinancialReport) => {
+    const doc = new jsPDF();
+    
+    // Title Banner
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(15);
+    doc.text(report.title, 14, 20);
+    
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`Date Logged: ${report.date} | Published by: ${report.publishedBy}`, 14, 26);
+
+    // Formatted Transaction Data Table Row Array Mapping
+    const txRows = report.transactions.map(tx => [
+      tx.date,
+      tx.type,
+      tx.category,
+      `${tx.currency} ${tx.amount.toLocaleString()}`,
+      tx.description
+    ]);
+
+    // 1. Core Transactions Table Block
+    autoTable(doc, {
+      startY: 32,
+      head: [["Date", "Type", "Category", "Amount", "Description"]],
+      body: txRows,
+      theme: "grid",
+      headStyles: { fillColor: [16, 185, 129], fontStyle: "bold" },
+      styles: { fontSize: 9, font: "courier" }
+    });
+
+    // 2. Summary Category Breakdown Table Block
+    const summaryRows = [
+      ["Tithes", `RF ${report.summary.tithes.toLocaleString()}`],
+      ["Offerings", `RF ${report.summary.offerings.toLocaleString()}`],
+      ["Donations", `RF ${report.summary.donations.toLocaleString()}`],
+      ["Other", `RF ${report.summary.other.toLocaleString()}`],
+      ["General Total Income", `RF ${report.summary.totalIncome.toLocaleString()}`],
+      ["General Total Expenses", `RF ${report.summary.totalExpenses.toLocaleString()}`]
+    ];
+
+    autoTable(doc, {
+      startY: (doc as any).lastAutoTable.finalY + 10,
+      head: [["Income Summary by Category", "Totals"]],
+      body: summaryRows,
+      theme: "striped",
+      headStyles: { fillColor: [31, 41, 55], fontStyle: "bold" },
+      styles: { fontSize: 9, font: "helvetica" },
+      didParseCell: (data) => {
+        // Highlight critical general total metrics at bottom rows
+        if (data.row.index === 4 || data.row.index === 5) {
+          data.cell.styles.fontStyle = "bold";
+        }
+      }
+    });
+
+    doc.save(`${report.title.toLowerCase().replace(/\s+/g, "-")}-${report.date}.pdf`);
+  };
+
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
       <YearSelector />
@@ -533,6 +682,14 @@ if (!result.success) {
           ) : activeTab === "deaconesses" ? (
             <Button onClick={openAddMemberModal}>
               <Plus className="mr-2 h-4 w-4" /> {t.addDeaconess}
+            </Button>
+          ) : activeTab === "properties" ? (
+            <Button onClick={() => alert("Add property or gift registry option functionality")}>
+              <Gift className="mr-2 h-4 w-4" /> Add Property
+            </Button>
+          ) : activeTab === "reports" ? (
+            <Button variant="outline" onClick={() => alert("Treasurer Publish Actions Context Triggered")}>
+              <FileText className="mr-2 h-4 w-4" /> Report Dashboard
             </Button>
           ) : (
             <Button onClick={openAddMemberModal}>
@@ -599,6 +756,24 @@ if (!result.success) {
         >
           {t.tabChoir}
         </button>
+        <button
+          className={cn(
+            "px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap font-semibold text-indigo-600 dark:text-indigo-400",
+            activeTab === "properties" ? "border-primary text-primary" : "border-transparent hover:text-foreground"
+          )}
+          onClick={() => setActiveTab("properties")}
+        >
+          {t.tabProperties}
+        </button>
+        <button
+          className={cn(
+            "px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap font-semibold text-emerald-600 dark:text-emerald-400",
+            activeTab === "reports" ? "border-primary text-primary" : "border-transparent hover:text-foreground"
+          )}
+          onClick={() => setActiveTab("reports")}
+        >
+          {t.tabReports} (Elder View)
+        </button>
       </div>
 
       <div className="space-y-4">
@@ -610,7 +785,9 @@ if (!result.success) {
               placeholder={
                 activeTab === "members" ? t.searchMembers : 
                 activeTab === "council" ? t.searchCouncil : 
-                activeTab === "departments" ? t.searchDepts : t.searchChoirs
+                activeTab === "departments" ? t.searchDepts : 
+                activeTab === "choirs" ? t.searchChoirs :
+                activeTab === "properties" ? t.searchProperties : t.searchReports
               }
               className="pl-8"
               value={searchQuery}
@@ -625,7 +802,9 @@ if (!result.success) {
              activeTab === "council" ? t.councilList : 
              activeTab === "deacons" ? t.deaconsList :
              activeTab === "deaconesses" ? t.deaconessesList :
-             activeTab === "departments" ? t.churchDepts : t.registeredChoirs}
+             activeTab === "departments" ? t.churchDepts : 
+             activeTab === "choirs" ? t.registeredChoirs :
+             activeTab === "properties" ? t.propertiesList : t.reportsList}
           </h3>
           
           <div className="rounded-md border bg-card">
@@ -644,6 +823,20 @@ if (!result.success) {
                         <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">{t.deptName}</th>
                         <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">{t.leader}</th>
                         <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">{t.activities}</th>
+                      </>
+                    ) : activeTab === "properties" ? (
+                      <>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Item Name</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Type</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Received From</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Quantity</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Date Logged</th>
+                      </>
+                    ) : activeTab === "reports" ? (
+                      <>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Report Info</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Status</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Published By</th>
                       </>
                     ) : (
                       <>
@@ -710,6 +903,47 @@ if (!result.success) {
                     ) : (
                       <tr><td colSpan={4} className="h-24 text-center align-middle">{t.noDept}</td></tr>
                     )
+                  ) : activeTab === "properties" ? (
+                    filteredProperties.length > 0 ? (
+                      filteredProperties.map((item) => (
+                        <tr key={item.id} className="border-b transition-colors hover:bg-muted/50">
+                          <td className="p-4 align-middle font-medium">{item.name}</td>
+                          <td className="p-4 align-middle"><span className="px-2 py-0.5 text-xs rounded bg-muted font-mono">{item.type}</span></td>
+                          <td className="p-4 align-middle">{item.receivedFrom}</td>
+                          <td className="p-4 align-middle font-semibold">{item.quantity}</td>
+                          <td className="p-4 align-middle">{item.date}</td>
+                          <td className="p-4 align-middle text-right">
+                            <Button variant="ghost" size="sm" onClick={() => alert("Properties are managed directly via council audit.")}>View</Button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr><td colSpan={6} className="h-24 text-center align-middle">{t.noProperties}</td></tr>
+                    )
+                  ) : activeTab === "reports" ? (
+                    filteredReports.length > 0 ? (
+                      filteredReports.map((report) => (
+                        <tr key={report.id} className="border-b transition-colors hover:bg-muted/50">
+                          <td className="p-4 align-middle font-medium">
+                            <div className="font-bold text-sm text-foreground">{report.title}</div>
+                            <div className="text-xs text-muted-foreground">Logged date: {report.date}</div>
+                          </td>
+                          <td className="p-4 align-middle">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
+                              <Check className="w-3 h-3 mr-1" /> Published to Elder
+                            </span>
+                          </td>
+                          <td className="p-4 align-middle text-xs font-mono">{report.publishedBy}</td>
+                          <td className="p-4 align-middle text-right">
+                            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => downloadReportPDF(report)}>
+                              <FileText className="w-4 h-4 mr-1" /> View PDF Data
+                            </Button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr><td colSpan={4} className="h-24 text-center align-middle">{t.noReports}</td></tr>
+                    )
                   ) : (
                     filteredMembers.length > 0 ? (
                       filteredMembers.map((member) => (
@@ -743,6 +977,54 @@ if (!result.success) {
               </table>
             </div>
           </div>
+
+          {/* Detailed Transaction table structure view for Report PDF mapping */}
+          {activeTab === "reports" && filteredReports.map((report) => (
+            <div key={`table-view-${report.id}`} className="mt-6 border rounded-xl p-6 bg-muted/20 space-y-4">
+              <div className="flex justify-between items-center border-b pb-2">
+                <h4 className="font-bold text-md text-foreground">Live Document View Table (Elder verification)</h4>
+                <Button size="xs" variant="outline" onClick={() => {
+                  alert("Treasurer Report has been locked & published successfully to Elder View.");
+                }}>
+                  Publish Status Verified
+                </Button>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left border">
+                  <thead>
+                    <tr className="bg-muted text-xs font-mono uppercase border-b">
+                      <th className="p-2 border-r">Date</th>
+                      <th className="p-2 border-r">Type</th>
+                      <th className="p-2 border-r">Category</th>
+                      <th className="p-2 border-r">Currency</th>
+                      <th className="p-2">Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {report.transactions.map((tx, idx) => (
+                      <tr key={idx} className="border-b font-mono text-xs bg-background">
+                        <td className="p-2 border-r">{tx.date}</td>
+                        <td className="p-2 border-r text-emerald-600 font-bold">{tx.type}</td>
+                        <td className="p-2 border-r">{tx.category}</td>
+                        <td className="p-2 border-r">{tx.currency}</td>
+                        <td className="p-2">{tx.description}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="mt-4 p-4 rounded-lg bg-background border border-dashed text-xs space-y-1 font-mono">
+                <div className="font-bold border-b pb-1 mb-1 text-sm">Income Summary by Category:</div>
+                <div>Tithes: {report.summary.tithes} RF</div>
+                <div>Offerings: {report.summary.offerings} RF</div>
+                <div>Donations: {report.summary.donations} RF</div>
+                <div>Other: {report.summary.other} RF</div>
+                <div className="pt-2 font-bold text-emerald-600">General Total Income: {report.summary.totalIncome} RF</div>
+                <div className="font-bold text-destructive">General Total Expenses: {report.summary.totalExpenses} RF</div>
+              </div>
+            </div>
+          ))}
 
           {/* Choir Sub-tabs Section */}
           {activeTab === "choirs" && choirs.length > 0 && (

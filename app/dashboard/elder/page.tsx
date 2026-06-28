@@ -23,11 +23,17 @@ import {
   UserPlus,
   Church,
   Download,
-  Key
+  Key,
+  Ban,
+  Eye
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { 
+  getWeeklyPrograms, saveWeeklyProgram, deleteWeeklyProgram,
+  getChoirs, saveChoir, deleteChoir 
+} from "@/lib/actions"
 import {
   Table,
   TableBody,
@@ -54,7 +60,6 @@ import {
   getUsers, updateUser, deleteUser,
   getReports,
   getWeekOfPrayers, saveWeekOfPrayer, deleteWeekOfPrayer,
-  getWeeklyPrograms, saveWeeklyProgram, deleteWeeklyProgram,
   getWeeklyChoirs, saveWeeklyChoir, deleteWeeklyChoir
 } from "@/lib/actions"
 
@@ -103,7 +108,7 @@ interface WeeklyChoir {
 interface Announcement {
   id: string
   title: string
-  content: string
+  description: string
   type: string
   date: string
   published: boolean
@@ -164,7 +169,7 @@ export default function ElderDashboardClient() {
 
   const [announcementFormData, setAnnouncementFormData] = React.useState({
     title: "",
-    content: "",
+    description: "",
     type: "Announcement" as "Announcement" | "Event" | "News",
     date: new Date().toISOString().split('T')[0],
     published: false,
@@ -189,9 +194,15 @@ export default function ElderDashboardClient() {
       )
     )
     setCouncilMembers(dbMembers.filter((m: any) => m.isCouncil))
-    setAnnouncements(await getAnnouncements(year))
+    
+    const dbAnnouncements = await getAnnouncements(year)
+    const mappedAnnouncements = dbAnnouncements.map((a: any) => ({
+      ...a,
+      description: a.description || a.content || ""
+    }))
+    setAnnouncements(mappedAnnouncements)
+    
     setUsers(await getUsers())
-
     setWeekOfPrayers(await getWeekOfPrayers(year))
     setWeeklyPrograms(await getWeeklyPrograms(year))
     setWeeklyChoirs(await getWeeklyChoirs(year))
@@ -281,14 +292,20 @@ export default function ElderDashboardClient() {
     const year = localStorage.getItem("selected_year") || new Date().getFullYear().toString()
     
     await saveAnnouncement({
-      ...announcementFormData,
+      title: announcementFormData.title,
+      description: announcementFormData.description,
+      type: announcementFormData.type,
+      date: announcementFormData.date,
+      published: announcementFormData.published,
+      fileName: announcementFormData.fileName,
+      fileData: announcementFormData.fileData,
       year
     })
     
     setIsAddingAnnouncement(false)
     setAnnouncementFormData({
       title: "",
-      content: "",
+      description: "",
       type: "Announcement",
       date: new Date().toISOString().split('T')[0],
       published: false,
@@ -303,15 +320,21 @@ export default function ElderDashboardClient() {
     if (!editingAnnouncement) return
     
     await saveAnnouncement({
-      ...announcementFormData,
       id: editingAnnouncement.id,
+      title: announcementFormData.title,
+      description: announcementFormData.description,
+      type: announcementFormData.type,
+      date: announcementFormData.date,
+      published: announcementFormData.published,
+      fileName: announcementFormData.fileName,
+      fileData: announcementFormData.fileData,
       year: localStorage.getItem("selected_year") || new Date().getFullYear().toString()
     })
     
     setEditingAnnouncement(null)
     setAnnouncementFormData({
       title: "",
-      content: "",
+      description: "",
       type: "Announcement",
       date: new Date().toISOString().split('T')[0],
       published: false,
@@ -439,6 +462,11 @@ export default function ElderDashboardClient() {
     (m.churchElder && m.churchElder.toLowerCase().includes(searchQuery.toLowerCase()))
   )
 
+  const filteredCouncilMembers = councilMembers.filter(m => 
+    `${m.firstName} ${m.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (m.email && m.email.toLowerCase().includes(searchQuery.toLowerCase()))
+  )
+
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
       <YearSelector />
@@ -449,10 +477,12 @@ export default function ElderDashboardClient() {
       <Tabs defaultValue="members" className="space-y-4">
         <TabsList>
           <TabsTrigger value="members">Baptized Members</TabsTrigger>
+          <TabsTrigger value="council">Church Council</TabsTrigger>
           <TabsTrigger value="users">User Accounts</TabsTrigger>
           <TabsTrigger value="evangelism">Evangelism Dept</TabsTrigger>
           <TabsTrigger value="announcements">Announcements</TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
+          <TabsTrigger value="system">System Config</TabsTrigger>
         </TabsList>
 
         <TabsContent value="reports" className="space-y-4">
@@ -477,6 +507,167 @@ export default function ElderDashboardClient() {
                 </Button>
               </div>
             ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="announcements" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-bold">Manage Church Announcements</h3>
+            <Button onClick={() => setIsAddingAnnouncement(true)}>
+              <Plus className="mr-2 h-4 w-4" /> Add Announcement
+            </Button>
+          </div>
+
+          {(isAddingAnnouncement || editingAnnouncement) && (
+            <div className="p-6 border rounded-xl bg-muted/30 space-y-4">
+              <h3 className="text-lg font-bold">{editingAnnouncement ? "Edit Announcement" : "Create New Announcement"}</h3>
+              <form onSubmit={editingAnnouncement ? handleUpdateAnnouncement : handleAddAnnouncement} className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="grid gap-2">
+                    <Label>Title</Label>
+                    <Input 
+                      value={announcementFormData.title} 
+                      onChange={(e) => setAnnouncementFormData({...announcementFormData, title: e.target.value})} 
+                      required 
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Type</Label>
+                    <select 
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                      value={announcementFormData.type}
+                      onChange={(e) => setAnnouncementFormData({...announcementFormData, type: e.target.value as any})}
+                    >
+                      <option value="Announcement">Announcement</option>
+                      <option value="Event">Event</option>
+                      <option value="News">News</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label>Description</Label>
+                  <textarea 
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    value={announcementFormData.description} 
+                    onChange={(e) => setAnnouncementFormData({...announcementFormData, description: e.target.value})} 
+                    required 
+                  />
+                </div>
+
+                <div className="grid gap-2 border p-4 rounded-lg bg-background">
+                  <Label className="flex items-center gap-2">
+                    <Upload className="h-4 w-4 text-muted-foreground" /> Attachment (PDF, Image, Document)
+                  </Label>
+                  <Input 
+                    type="file" 
+                    accept=".pdf,image/*,.doc,.docx"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        const reader = new FileReader()
+                        reader.onloadend = () => {
+                          setAnnouncementFormData({
+                            ...announcementFormData,
+                            fileName: file.name,
+                            fileData: reader.result as string
+                          })
+                        }
+                        reader.readAsDataURL(file)
+                      }
+                    }} 
+                  />
+                  {announcementFormData.fileName && (
+                    <p className="text-xs text-green-600 font-medium mt-1">
+                      Selected: {announcementFormData.fileName}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex gap-2">
+                  <Button type="submit">Save Announcement</Button>
+                  <Button variant="outline" type="button" onClick={() => { 
+                    setIsAddingAnnouncement(false); 
+                    setEditingAnnouncement(null); 
+                    setAnnouncementFormData({
+                      title: "", description: "", type: "Announcement", 
+                      date: new Date().toISOString().split('T')[0], 
+                      published: false, fileName: "", fileData: ""
+                    });
+                  }}>Cancel</Button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Attachment</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {announcements.map((a) => (
+                  <TableRow key={a.id}>
+                    <TableCell className="font-medium">{a.title}</TableCell>
+                    <TableCell>{a.type}</TableCell>
+                    <TableCell>
+                      {a.fileData ? (
+                        <Button 
+                          variant="link" 
+                          size="sm" 
+                          className="h-auto p-0 flex items-center gap-1 text-primary"
+                          onClick={() => {
+                            const link = document.createElement("a")
+                            link.href = a.fileData!
+                            link.download = a.fileName || "attachment"
+                            link.click()
+                          }}
+                        >
+                          <FileText className="h-4 w-4" /> Download File
+                        </Button>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">None</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => togglePublish(a.id)}
+                        className={a.published ? "text-green-600" : "text-muted-foreground"}
+                      >
+                        {a.published ? "Published" : "Draft"}
+                      </Button>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="icon" onClick={() => { 
+                        setEditingAnnouncement(a); 
+                        setAnnouncementFormData({
+                          title: a.title,
+                          description: a.description || "",
+                          type: a.type as any,
+                          date: a.date,
+                          published: a.published,
+                          fileName: a.fileName || "",
+                          fileData: a.fileData || ""
+                        }); 
+                      }}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteAnnouncement(a.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         </TabsContent>
 
@@ -811,6 +1002,238 @@ export default function ElderDashboardClient() {
                 ))}
               </TableBody>
             </Table>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="council" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="relative w-72">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search council members..." 
+                className="pl-8" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredCouncilMembers.map((m) => (
+                  <TableRow key={m.id}>
+                    <TableCell>{m.firstName} {m.lastName}</TableCell>
+                    <TableCell>{m.email}</TableCell>
+                    <TableCell>{m.phone}</TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="icon" onClick={() => { setEditingMember(m); setFormData({ name: `${m.firstName} ${m.lastName}`, email: m.email || "", address: m.address || "", telephone: m.phone || "", baptismDate: m.baptismDate || "", pastor: m.pastor || "", churchElder: m.churchElder || "" }); }}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteMember(m.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="system" className="space-y-6">
+          <div className="border p-6 rounded-xl bg-background shadow-sm space-y-6">
+            <div>
+              <h3 className="text-xl font-bold flex items-center gap-2">
+                <Settings className="h-5 w-5" /> Global Security & System Access
+              </h3>
+              <p className="text-sm text-muted-foreground">Control registration, login gates, and historical system data visibility.</p>
+            </div>
+            
+            <hr />
+
+            {/* --- CHURCH YEAR MANAGEMENT ENGINE WITH BLOCK & DELETE ACTIONS --- */}
+            <div className="p-4 border rounded-lg bg-muted/10 space-y-4">
+              <div>
+                <Label className="text-base font-semibold">Manage Church Configurations</Label>
+                <p className="text-xs text-muted-foreground">Initialize, toggle visibility gates, or remove timeline modules completely.</p>
+              </div>
+              
+              <div className="flex gap-2 max-w-md">
+                <Input 
+                  id="new-church-year-input"
+                  placeholder="e.g. 2026-2027" 
+                  className="bg-background"
+                />
+                <Button 
+                  onClick={async () => {
+                    const inputEl = document.getElementById("new-church-year-input") as HTMLInputElement
+                    const newYear = inputEl?.value?.trim()
+                    
+                    if (!newYear) return alert("Please enter a valid configuration title!")
+                    if (availableYears.includes(newYear)) return alert("This calendar timeline already exists!")
+                    
+                    const updatedYears = [...availableYears, newYear]
+                    setAvailableYears(updatedYears)
+                    await updateSystemConfig({ availableYears: updatedYears })
+                    
+                    alert(`Year configuration setup completed for ${newYear}!`)
+                    inputEl.value = ""
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-1" /> Create Year
+                </Button>
+              </div>
+
+              {/* Advanced Interactive Timeline Tokens */}
+              <div className="flex flex-col gap-2 pt-2 border-t border-dashed mt-2">
+                <Label className="text-xs font-semibold text-muted-foreground">Active Operational Timelines:</Label>
+                <div className="flex flex-wrap gap-3">
+                  {availableYears.map((yr) => {
+                    const isBlocked = blockedYears.includes(yr);
+                    return (
+                      <div 
+                        key={yr} 
+                        className={cn(
+                          "inline-flex items-center gap-2 text-xs font-semibold pl-3 pr-1.5 py-1 rounded-full border bg-background shadow-sm transition-all",
+                          isBlocked && "opacity-60 bg-muted/60"
+                        )}
+                      >
+                        <span className={cn("h-1.5 w-1.5 rounded-full", isBlocked ? "bg-amber-500 animate-pulse" : "bg-green-500")} />
+                        <span>{yr} {isBlocked && <span className="text-[10px] text-amber-600 font-bold">(BLOCKED)</span>}</span>
+                        
+                        <div className="flex items-center gap-0.5 ml-1 border-l pl-1">
+                          {/* Block / Access Toggle Button */}
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-5 w-5 rounded-full p-0 text-muted-foreground hover:text-foreground"
+                            title={isBlocked ? "Allow Access to Year" : "Block Access to Year"}
+                            onClick={async () => {
+                              let updatedBlocked: string[]
+                              if (isBlocked) {
+                                updatedBlocked = blockedYears.filter(y => y !== yr)
+                              } else {
+                                updatedBlocked = [...blockedYears, yr]
+                              }
+                              setBlockedYears(updatedBlocked)
+                              await updateSystemConfig({ blockedYears: updatedBlocked })
+                            }}
+                          >
+                            {isBlocked ? <Eye className="h-3 w-3 text-green-600" /> : <Ban className="h-3 w-3 text-amber-600" />}
+                          </Button>
+
+                          {/* Delete Config Button */}
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-5 w-5 rounded-full p-0 text-muted-foreground hover:text-destructive"
+                            title="Delete Configuration"
+                            onClick={async () => {
+                              if (confirm(`Are you completely sure you want to delete the configuration for ${yr}? This action clears its entry parameters.`)) {
+                                const updatedYears = availableYears.filter(y => y !== yr)
+                                const updatedBlocked = blockedYears.filter(y => y !== yr)
+                                
+                                setAvailableYears(updatedYears)
+                                setBlockedYears(updatedBlocked)
+                                
+                                await updateSystemConfig({ 
+                                  availableYears: updatedYears,
+                                  blockedYears: updatedBlocked
+                                })
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* --- SECURITY PERMISSION CONTROLS GRID --- */}
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/20">
+                <div className="space-y-0.5">
+                  <Label className="text-base font-semibold">Block Application Logins</Label>
+                  <p className="text-xs text-muted-foreground">Prevents regular church users from signing into their profiles.</p>
+                </div>
+                <Button 
+                  variant={blockLogin ? "destructive" : "outline"}
+                  onClick={async () => {
+                    const newValue = !blockLogin
+                    setBlockLogin(newValue)
+                    await updateSystemConfig({ blockLogin: newValue })
+                  }}
+                >
+                  {blockLogin ? <Lock className="h-4 w-4 mr-1" /> : <Unlock className="h-4 w-4 mr-1" />}
+                  {blockLogin ? "Locked" : "Open"}
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/20">
+                <div className="space-y-0.5">
+                  <Label className="text-base font-semibold">Block New Registrations</Label>
+                  <p className="text-xs text-muted-foreground">Disables the sign-up endpoint for new user creation.</p>
+                </div>
+                <Button 
+                  variant={blockRegister ? "destructive" : "outline"}
+                  onClick={async () => {
+                    const newValue = !blockRegister
+                    setBlockRegister(newValue)
+                    await updateSystemConfig({ blockRegister: newValue })
+                  }}
+                >
+                  {blockRegister ? <XCircle className="h-4 w-4 mr-1" /> : <CheckCircle2 className="h-4 w-4 mr-1" />}
+                  {blockRegister ? "Disabled" : "Active"}
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/20">
+                <div className="space-y-0.5">
+                  <Label className="text-base font-semibold">Restrict New Accounts</Label>
+                  <p className="text-xs text-muted-foreground">Forces newly registered accounts to require manual clearance.</p>
+                </div>
+                <Button 
+                  variant={restrictNewAccounts ? "secondary" : "outline"}
+                  onClick={async () => {
+                    const newValue = !restrictNewAccounts
+                    setRestrictNewAccounts(newValue)
+                    await updateSystemConfig({ restrictNewAccounts: newValue })
+                  }}
+                >
+                  {restrictNewAccounts ? "Restricted" : "Unrestricted"}
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/20">
+                <div className="space-y-0.5">
+                  <Label className="text-base font-semibold">Archive Historical Years</Label>
+                  <p className="text-xs text-muted-foreground">Restricts modification permissions across previous configurations.</p>
+                </div>
+                <Button 
+                  variant={restrictOldAccounts ? "secondary" : "outline"}
+                  onClick={async () => {
+                    const newValue = !restrictOldAccounts
+                    setRestrictOldAccounts(newValue)
+                    await updateSystemConfig({ restrictOldAccounts: newValue })
+                  }}
+                >
+                  {restrictOldAccounts ? "Archived" : "Modifiable"}
+                </Button>
+              </div>
+            </div>
           </div>
         </TabsContent>
       </Tabs>
