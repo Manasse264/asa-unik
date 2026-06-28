@@ -56,7 +56,7 @@ const sslTranslations = {
 
 interface Family { id: string; name: string; pere: string; mere: string; memberCount: number; }
 interface SabbathLetter { id: string; name: string; originChurch: string; district: string; field: string; fileName: string; fileData?: string; status: 'received' | 'rejected'; }
-interface AttendanceRecord { id: string; date: string; type: 'family' | 'choir'; targetId: string; targetName: string; count: number; }
+interface AttendanceRecord { id: string; date: string; type: 'family' | 'choir'; targetId: string; targetName: string; count: number; year?: string; }
 
 export default function SabbathSchoolDashboard() {
   const [lang, setLang] = React.useState<"en" | "rw" | "fr" >("en")
@@ -91,7 +91,7 @@ export default function SabbathSchoolDashboard() {
       setFamilies(dbFamilies || [])
 
       const dbAttendance = await getAttendance(year)
-      setAttendance(dbAttendance || [])
+      setAttendance((dbAttendance as AttendanceRecord[]) || [])
 
       const dbLetters = await getLetters(year)
       setLetters(dbLetters || [])
