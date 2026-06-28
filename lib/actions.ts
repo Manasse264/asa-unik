@@ -64,13 +64,6 @@ export async function deleteChoir(id: string) {
   revalidatePath("/dashboard/secretary")
 }
 
-
-export async function getReports(year: string) {
-  return await prisma.report.findMany({
-    where: { year },
-    orderBy: { createdAt: "desc" },
-  })
-}
 // --- Departments ---
 export async function getDepartments(year: string) {
   return await prisma.department.findMany({ where: { year } })
