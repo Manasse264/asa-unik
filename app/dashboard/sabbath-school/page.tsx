@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { YearSelector } from "@/components/year-selector"
 import { cn } from "@/lib/utils"
+import { getAttendance } from "@/lib/actions"
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
 import {
