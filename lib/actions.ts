@@ -238,47 +238,7 @@ export async function saveFamily(data: any) {
   }
 }
 
-/* ---------------- ATTENDANCE ---------------- */
 
-export async function getAttendance(year: string) {
-  return prisma.attendance.findMany({ where: { year } })
-}
-
-export async function saveAttendanceRecord(data: any) {
-  const { id, ...rest } = data
-
-  return prisma.attendance.upsert({
-    where: { id: id || "new" },
-    update: rest,
-    create: rest,
-  })
-}
-
-export async function deleteAttendance(id: string) {
-  return prisma.attendance.delete({ where: { id } })
-}
-
-/* ---------------- LETTERS ---------------- */
-
-export async function getLetters(year: string) {
-  return prisma.sabbathLetter.findMany({ where: { year } })
-}
-
-/* ---------------- REPORTS ---------------- */
-
-export async function getReports(year: string) {
-  return prisma.report.findMany({ where: { year } })
-}
-
-export async function saveReport(data: any) {
-  const { id, ...rest } = data
-
-  return prisma.report.upsert({
-    where: { id: id || "new" },
-    update: rest,
-    create: rest,
-  })
-}
 
 export async function deleteFamily(id: string) {
   try {
@@ -299,6 +259,43 @@ export async function deleteFamily(id: string) {
       error: error.message,
     }
   }
+}
+// ---------------- ATTENDANCE ----------------
+export async function getAttendance(year: string) {
+  return prisma.attendance.findMany({ where: { year } })
+}
+
+export async function saveAttendanceRecord(data: any) {
+  const { id, ...rest } = data
+
+  const result = await prisma.attendance.upsert({
+    where: { id: id ?? "" },
+    update: rest,
+    create: rest,
+  })
+
+  return { success: true, data: result }
+}
+
+export async function deleteAttendance(id: string) {
+  return prisma.attendance.delete({ where: { id } })
+}
+
+// ---------------- LETTERS ----------------
+export async function getLetters(year: string) {
+  return prisma.sabbathLetter.findMany({ where: { year } })
+}
+
+export async function saveLetter(data: any) {
+  const { id, ...rest } = data
+
+  const result = await prisma.sabbathLetter.upsert({
+    where: { id: id ?? "" },
+    update: rest,
+    create: rest,
+  })
+
+  return { success: true, data: result }
 }
 export async function loginUser(email: string, password: string) {
   const input = email.toLowerCase().trim()
