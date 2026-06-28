@@ -152,7 +152,35 @@ export default function ElderDashboard() {
 
   const loadData = async () => {
     const year = localStorage.getItem('selected_year') || new Date().getFullYear().toString()
+const [reports, setReports] = useState([])
 
+const loadReports = async () => {
+  const year = getYear()
+  const data = await getReports(year)
+  setReports(data || [])
+}
+
+useEffect(() => {
+  loadReports()
+}, [])
+{reports.map((r) => (
+  <div key={r.id} className="border p-3 rounded">
+    <h3 className="font-bold">{r.title}</h3>
+    <p>Date: {r.date}</p>
+    <p>Total Attendance: {r.total}</p>
+
+    <button
+      onClick={() => {
+        const link = document.createElement("a")
+        link.href = r.pdfData
+        link.download = `${r.title}.pdf`
+        link.click()
+      }}
+    >
+      Download PDF
+    </button>
+  </div>
+))}
     // Load from Database via Server Actions
 const dbMembers = await getMembers(year)
 

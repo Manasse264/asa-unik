@@ -69,31 +69,33 @@ export default function SabbathSchoolDashboard() {
   const [letterFormData, setLetterFormData] = React.useState<Partial<SabbathLetter>>({ name: "", originChurch: "", district: "", field: "", fileName: "", status: "received" })
 
 const loadData = async () => {
-    const year = localStorage.getItem('selected_year') || new Date().getFullYear().toString()
+  const year = getYear()
 
-const dbFamilies = await getFamilies(year)
-setFamilies(dbFamilies)
+  try {
+    const dbFamilies = await getFamilies(year)
+    setFamilies(dbFamilies || [])
 
-    const savedAttendance = localStorage.getItem(`church_attendance_${year}`)
-    setAttendance(savedAttendance ? JSON.parse(savedAttendance) : [])
+    const dbAttendance = await getAttendance(year)
+    setAttendance(dbAttendance || [])
 
-    const savedLetters = localStorage.getItem(`church_letters_${year}`)
-    setLetters(savedLetters ? JSON.parse(savedLetters) : [])
+    const dbLetters = await getLetters(year)
+    setLetters(dbLetters || [])
 
-    const savedChoirs = localStorage.getItem(`church_registered_choirs_${year}`)
-    if (savedChoirs) {
-      setChoirs(JSON.parse(savedChoirs))
-    } else {
-      // Fallback/Mock if no choirs registered by secretary yet
-      setChoirs([
-        { id: "c1", name: "Calvary Memory " },
-        { id: "c2", name: "New heritage" },
-        { id: "c3", name: "Morning stars" },
-        { id: "c4", name: "Sauti ya huruma" },
-      ])
-    }
+    const dbChoirs = await getChoirs(year)
+    setChoirs(
+      dbChoirs?.length
+        ? dbChoirs
+        : [
+            { id: "c1", name: "Calvary Memory" },
+            { id: "c2", name: "New heritage" },
+            { id: "c3", name: "Morning stars" },
+            { id: "c4", name: "Sauti ya huruma" },
+          ]
+    )
+  } catch (err) {
+    console.error("DB load error:", err)
   }
-
+}
 
   React.useEffect(() => {
     const updateLang = () => setLang((localStorage.getItem("app_lang") || "en") as "en" | "rw" | "fr")
@@ -111,29 +113,145 @@ setFamilies(dbFamilies)
     }
   }, [])
 
- 
+ export async function getAttendance(year: string) {
+  return await prisma.attendance.findMany({
+    where: { year },
+  })
+}
 
-  const saveAttendance = (newAttendance: AttendanceRecord[]) => {
-    const year = localStorage.getItem('selected_year') || new Date().getFullYear().toString()
-    setAttendance(newAttendance)
-    localStorage.setItem(`church_attendance_${year}`, JSON.stringify(newAttendance))
+export async function saveAttendanceRecord(data: any) {
+  const { id, ...rest } = data
+
+  return await prisma.attendance.upsert({
+    where: { id: id || "new" },
+    update: rest,
+    create: rest,
+  })
+}
+
+export async function deleteAttendance(id: string) {
+  return await prisma.attendance.delete({ where: { id } })
+}
+export async function getLetters(year: string) {
+  return await prisma.sabbathLetter.findMany({
+    where: { year },
+  })
+}
+const saveAttendance = async (newAttendance: AttendanceRecord[]) => {
+  setAttendance(newAttendance)
+
+  try {
+    for (const record of newAttendance) {
+      await saveAttendanceRecord({
+        ...record,
+        year: getYear(),
+      })
+    }
+  } catch (err) {
+    console.error("Failed saving attendance:", err)
   }
+}
+const updateAttendance = async (
+  type: "family" | "choir",
+  id: string,
+  name: string,
+  count: number
+) => {
+  const year = getYear()
 
-  const saveLetters = (newLetters: SabbathLetter[]) => {
-    const year = localStorage.getItem('selected_year') || new Date().getFullYear().toString()
-    setLetters(newLetters)
-    localStorage.setItem(`church_letters_${year}`, JSON.stringify(newLetters))
+  const existing = attendance.find(
+    a =>
+      a.date === selectedDate &&
+      a.targetId === id &&
+      a.type === type
+  )
+
+  const updated: AttendanceRecord[] = existing
+    ? attendance.map(a =>
+        a.id === existing.id ? { ...a, count } : a
+      )
+    : [
+        ...attendance,
+        {
+          id: generateId(),
+          date: selectedDate,
+          type,
+          targetId: id,
+          targetName: name,
+          count,
+        },
+      ]
+
+  setAttendance(updated)
+
+  // sync DB
+  try {
+    const record = updated.find(
+      a => a.targetId === id && a.date === selectedDate && a.type === type
+    )
+
+    if (record) {
+      await saveAttendanceRecord({
+        ...record,
+        year,
+      })
+    }
+  } catch (err) {
+    console.error(err)
   }
+}
+export async function saveLetter(data: any) {
+  const { id, ...rest } = data
 
+  return await prisma.sabbathLetter.upsert({
+    where: { id: id || "new" },
+    update: rest,
+    create: rest,
+  })
+}
+
+export async function deleteLetter(id: string) {
+  return await prisma.sabbathLetter.delete({ where: { id } })
+}
+export async function getChoirs(year: string) {
+  return await prisma.choir.findMany({ where: { year } })
+}
+
+
+  const saveLetters = async (newLetters: SabbathLetter[]) => {
+  setLetters(newLetters)
+
+  try {
+    for (const letter of newLetters) {
+      await saveLetter({
+        ...letter,
+        year: getYear(),
+      })
+    }
+  } catch (err) {
+    console.error("Failed saving letters:", err)
+  }
+}
+const pdfBlob = doc.output("datauristring")
+
+const newReport = {
+  id: generateId(),
+  title: "Sabbath Service Attendance",
+  date,
+  type: "attendance",
+  total,
+  pdfData: pdfBlob,
+  status: "submitted",
+  year: getYear(),
+}
+
+try {
+  await saveReport(newReport)
+} catch (err) {
+  console.error("Failed to sync report:", err)
+}
   const t = sslTranslations[lang === "rw" ? "en" : lang]
 
-  const updateAttendance = (type: 'family' | 'choir', id: string, name: string, count: number) => {
-    const existing = attendance.find(a => a.date === selectedDate && a.targetId === id)
-    let newAtt = []
-    if (existing) newAtt = attendance.map(a => a === existing ? { ...a, count } : a)
-    else newAtt = [...attendance, { id: Math.random().toString(36).substr(2, 9), date: selectedDate, type, targetId: id, targetName: name, count }]
-    saveAttendance(newAtt)
-  }
 
   const handleSaveLetter = () => {
     if (!letterFormData.name || !letterFormData.originChurch) {
@@ -231,12 +349,7 @@ setFamilies(dbFamilies)
       type: "Attendance",
       pdfUrl: "#" // Placeholder since we can't store real PDF in localStorage
     }
-    const existingReports = JSON.parse(localStorage.getItem("church_reports") || "[]")
-    localStorage.setItem("church_reports", JSON.stringify([newReport, ...existingReports]))
-    window.dispatchEvent(new Event("storage"))
 
-    alert(t.sentMsg)
-  }
 
   const generatePDF = () => {
     const selectedYear = localStorage.getItem("selected_year")

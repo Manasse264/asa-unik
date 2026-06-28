@@ -122,14 +122,34 @@ model SystemConfig {
 }
 
 model Report {
-  id        String   @id @default(cuid())
+  id        String @id
   title     String
-  period    String
-  value     String
-  status    String   @default("Verified")
-  type      String
-  pdfUrl    String?
+  date      String
+  type      String   // "attendance"
+  total     Int
+  pdfData   String?  // base64 or cloud URL
+  status    String   // "submitted", "reviewed"
   year      String
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+}
+model Attendance {
+  id         String @id
+  date       String
+  type       String
+  targetId   String
+  targetName String
+  count      Int
+  year       String
+}
+
+model SabbathLetter {
+  id           String @id
+  name         String
+  originChurch String
+  district     String
+  field        String
+  fileName     String
+  fileData     String?
+  status       String
+  year         String
 }
