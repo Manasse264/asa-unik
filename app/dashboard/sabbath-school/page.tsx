@@ -342,7 +342,24 @@ const generateDailyPDF = async (date: string) => {
       pdfUrl: "#" // Placeholder since we can't store real PDF in localStorage
     }
 
+const generateDailyPDF = async (date: string) => {
+  const newReport = {
+    id: Math.random().toString(36).substr(2, 9),
+    title: "Sabbath Service",
+    date: date,
+    attendance: 20,
+    status: "Submitted",
+    type: "Attendance",
+  }
 
+  try {
+    await saveReport(newReport)
+  } catch (err) {
+    console.error("Failed to sync report:", err)
+  }
+
+  // continue PDF generation here...
+}
   const generatePDF = () => {
     const selectedYear = localStorage.getItem("selected_year")
     if (!selectedYear) {
