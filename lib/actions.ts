@@ -34,7 +34,6 @@ export async function getChoirs(year: string) {
 export async function saveChoir(data: any) {
   try {
     console.log("Choir received:", data)
-
     const { id, ...rest } = data
 
     if (id && id.length > 10) {
@@ -50,7 +49,6 @@ export async function saveChoir(data: any) {
 
     revalidatePath("/dashboard/secretary")
     return { success: true }
-
   } catch (error: any) {
     console.error("SAVE CHOIR ERROR:", error)
     return {
@@ -59,6 +57,7 @@ export async function saveChoir(data: any) {
     }
   }
 }
+
 export async function deleteChoir(id: string) {
   await prisma.choir.delete({ where: { id } })
   revalidatePath("/dashboard/secretary")
@@ -175,6 +174,7 @@ export async function getUsers() {
     }
   })
 }
+
 // --- Families ---
 export async function getFamilies(year: string) {
   return await prisma.family.findMany({
@@ -188,7 +188,6 @@ export async function getFamilies(year: string) {
 export async function saveFamily(data: any) {
   try {
     console.log("SAVE FAMILY DATA:", data)
-
     const { id, ...rest } = data
 
     if (!rest.year) {
@@ -221,7 +220,6 @@ export async function saveFamily(data: any) {
     }
 
     console.log("FAMILY SAVED:", family)
-
     revalidatePath("/dashboard/sabbath-school")
 
     return {
@@ -230,36 +228,29 @@ export async function saveFamily(data: any) {
     }
   } catch (error: any) {
     console.error("SAVE FAMILY ERROR:", error)
-
     return {
       success: false,
       error: error.message,
     }
   }
 }
-
-
 
 export async function deleteFamily(id: string) {
   try {
     await prisma.family.delete({
       where: { id },
     })
-
     revalidatePath("/dashboard/sabbath-school")
-
-    return {
-      success: true,
-    }
+    return { success: true }
   } catch (error: any) {
     console.error("DELETE FAMILY ERROR:", error)
-
     return {
       success: false,
       error: error.message,
     }
   }
 }
+
 // ---------------- ATTENDANCE ----------------
 export async function getAttendance(year: string) {
   return prisma.attendance.findMany({ where: { year } })
@@ -267,13 +258,11 @@ export async function getAttendance(year: string) {
 
 export async function saveAttendanceRecord(data: any) {
   const { id, ...rest } = data
-
   const result = await prisma.attendance.upsert({
     where: { id: id ?? "" },
     update: rest,
     create: rest,
   })
-
   return { success: true, data: result }
 }
 
@@ -288,28 +277,27 @@ export async function getLetters(year: string) {
 
 export async function saveLetter(data: any) {
   const { id, ...rest } = data
-
   const result = await prisma.sabbathLetter.upsert({
     where: { id: id ?? "" },
     update: rest,
     create: rest,
   })
-
   return { success: true, data: result }
 }
+
 export async function saveReport(data: any) {
   const { id, ...rest } = data
-
   return prisma.report.upsert({
     where: { id: id ?? "" },
     update: rest,
     create: rest,
   })
 }
+
+// ---------------- AUTHENTICATION ----------------
 export async function loginUser(email: string, password: string) {
   const input = email.toLowerCase().trim()
   
-  // Emergency master account check (as per existing logic)
   if (input === "elder" && password === "admin123") {
     const config = await prisma.systemConfig.upsert({
       where: { id: "global" },
@@ -335,12 +323,10 @@ export async function loginUser(email: string, password: string) {
     return { success: false, error: "Invalid email or password." }
   }
 
-  // Handle both hashed and plain text (for migration period)
   let isMatch = false
   try {
     isMatch = await bcrypt.compare(password, user.password)
   } catch (e) {
-    // Fallback to plain text comparison if hashing fails (likely not a bcrypt hash)
     isMatch = user.password === password
   }
 

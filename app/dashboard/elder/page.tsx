@@ -52,7 +52,7 @@ import {
   getAnnouncements, saveAnnouncement, deleteAnnouncement,
   getSystemConfig, updateSystemConfig,
   getUsers, updateUser, deleteUser,
-  getReports // Added to actions import
+  getReports 
 } from "@/lib/actions"
 
 interface Member {
@@ -108,12 +108,10 @@ interface Announcement {
   fileData?: string | null
 }
 
-export default function ElderDashboard() {
-  // Correctly initialized states at the top level
+export default function ElderDashboardClient() {
   const [members, setMembers] = React.useState<Member[]>([])
   const [councilMembers, setCouncilMembers] = React.useState<any[]>([])
   const [reports, setReports] = React.useState<any[]>([])
-  const [syncedReports, setSyncedReports] = React.useState<any[]>([])
   const [announcements, setAnnouncements] = React.useState<Announcement[]>([])
   const [searchQuery, setSearchQuery] = React.useState("")
   const [isAddingMember, setIsAddingMember] = React.useState(false)
@@ -127,7 +125,6 @@ export default function ElderDashboard() {
   const [availableYears, setAvailableYears] = React.useState<string[]>(["2024-2025"])
   const [blockedYears, setBlockedYears] = React.useState<string[]>([])
   const [newYear, setNewYear] = React.useState("")
-  const [selectedReport, setSelectedReport] = React.useState<any>(null)
 
   const [users, setUsers] = React.useState<UserAccount[]>([])
   const [editingUser, setEditingUser] = React.useState<UserAccount | null>(null)
@@ -176,13 +173,10 @@ export default function ElderDashboard() {
   const loadData = async () => {
     const year = localStorage.getItem('selected_year') || new Date().getFullYear().toString()
 
-    // Fetch reports cleanly alongside your other actions
     const reportsData = await getReports(year)
     setReports(reportsData || [])
 
-    // Load from Database via Server Actions
     const dbMembers = await getMembers(year)
-
     setMembers(
       dbMembers.filter(
         (m: any) =>
@@ -193,7 +187,6 @@ export default function ElderDashboard() {
       )
     )
     setCouncilMembers(dbMembers.filter((m: any) => m.isCouncil))
-
     setAnnouncements(await getAnnouncements(year))
     setUsers(await getUsers())
 
@@ -211,6 +204,17 @@ export default function ElderDashboard() {
 
   React.useEffect(() => {
     loadData()
+    
+    // Load local storage values if they exist
+    const savedWOP = localStorage.getItem("week_of_prayers")
+    if (savedWOP) setWeekOfPrayers(JSON.parse(savedWOP))
+    
+    const savedPrograms = localStorage.getItem("weekly_programs")
+    if (savedPrograms) setWeeklyPrograms(JSON.parse(savedPrograms))
+
+    const savedChoirs = localStorage.getItem("weekly_choirs")
+    if (savedChoirs) setWeeklyChoirs(JSON.parse(savedChoirs))
+
     window.addEventListener("storage", loadData)
     window.addEventListener("year-changed", loadData)
     return () => {
@@ -420,54 +424,6 @@ export default function ElderDashboard() {
     doc.save("weekly_choir_schedule.pdf")
   }
 
-  const toggleBlockYear = (year: string) => {
-    const isBlocked = blockedYears.includes(year)
-    const updatedBlocked = isBlocked 
-      ? blockedYears.filter(y => y !== year)
-      : [...blockedYears, year]
-    saveConfig(blockLogin, blockRegister, availableYears, restrictNewAccounts, restrictOldAccounts, updatedBlocked)
-  }
-
-  const handleAddYear = () => {
-    if (newYear && !availableYears.includes(newYear)) {
-      const updatedYears = [...availableYears, newYear]
-      saveConfig(blockLogin, blockRegister, updatedYears, restrictNewAccounts, restrictOldAccounts, blockedYears)
-      setNewYear("")
-    }
-  }
-
-  const handleRemoveYear = (year: string) => {
-    const updatedYears = availableYears.filter(y => y !== year)
-    const updatedBlocked = blockedYears.filter(y => y !== year)
-    saveConfig(blockLogin, blockRegister, updatedYears, restrictNewAccounts, restrictOldAccounts, updatedBlocked)
-  }
-
-  const startEditAnnouncement = (a: Announcement) => {
-    setEditingAnnouncement(a)
-    setAnnouncementFormData({
-      title: a.title,
-      content: a.content,
-      type: a.type as any,
-      date: a.date,
-      published: a.published,
-      fileName: a.fileName || "",
-      fileData: a.fileData || ""
-    })
-  }
-
-  const startEdit = (member: any) => {
-    setEditingMember(member)
-    setFormData({
-      name: `${member.firstName} ${member.lastName}`,
-      email: member.email || "",
-      address: member.address || "",
-      telephone: member.phone || "",
-      baptismDate: member.baptismDate || "",
-      pastor: member.pastor || "",
-      churchElder: member.churchElder || ""
-    })
-  }
-
   const filteredMembers = members.filter(m => 
     `${m.firstName} ${m.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (m.email && m.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
@@ -488,9 +444,7 @@ export default function ElderDashboard() {
           <TabsTrigger value="users">User Accounts</TabsTrigger>
           <TabsTrigger value="evangelism">Evangelism Dept</TabsTrigger>
           <TabsTrigger value="announcements">Announcements</TabsTrigger>
-          <TabsTrigger value="council">Council</TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
-          <TabsTrigger value="config">System</TabsTrigger>
         </TabsList>
 
         <TabsContent value="reports" className="space-y-4">
@@ -538,7 +492,6 @@ export default function ElderDashboard() {
                   alert("Link copied to clipboard!")
                 }}>Copy</Button>
               </div>
-              <p className="text-xs text-muted-foreground">Give this link to the user to reset their password.</p>
             </div>
           )}
 
@@ -557,16 +510,15 @@ export default function ElderDashboard() {
                   </div>
                   <div className="grid gap-2">
                     <Label>Role</Label>
-                    <Input value={userFormData.role} onChange={(e) => setUserFormData({...userFormData, role: e.target.value})} placeholder="e.g. Secretary, Treasurer" required />
+                    <Input value={userFormData.role} onChange={(e) => setUserFormData({...userFormData, role: e.target.value})} required />
                   </div>
                   <div className="grid gap-2">
                     <Label>Email</Label>
                     <Input type="email" value={userFormData.email} onChange={(e) => setUserFormData({...userFormData, email: e.target.value})} required />
                   </div>
                 </div>
-
                 <div className="flex items-center gap-2">
-                  <Button type="submit" className="px-8">Save Account</Button>
+                  <Button type="submit">Save Account</Button>
                   <Button variant="outline" type="button" onClick={() => { setEditingUser(null); setUserFormData({ firstName: "", lastName: "", role: "", email: "" }); }}>Cancel</Button>
                 </div>
               </form>
@@ -584,28 +536,24 @@ export default function ElderDashboard() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.length > 0 ? (
-                  users.map((u) => (
-                    <TableRow key={u.id}>
-                      <TableCell className="font-medium">{u.firstName} {u.lastName}</TableCell>
-                      <TableCell>{u.role}</TableCell>
-                      <TableCell>{u.email}</TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" title="Generate Reset Link" onClick={() => generateResetLink(u.email)}>
-                          <Key className="h-4 w-4 text-primary" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => { setEditingUser(u); setUserFormData(u); }}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteUserAccount(u.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow><TableCell colSpan={4} className="text-center py-4">No user accounts found.</TableCell></TableRow>
-                )}
+                {users.map((u) => (
+                  <TableRow key={u.id}>
+                    <TableCell className="font-medium">{u.firstName} {u.lastName}</TableCell>
+                    <TableCell>{u.role}</TableCell>
+                    <TableCell>{u.email}</TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="icon" onClick={() => generateResetLink(u.email)}>
+                        <Key className="h-4 w-4 text-primary" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => { setEditingUser(u); setUserFormData(u); }}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteUserAccount(u.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </div>
@@ -627,7 +575,7 @@ export default function ElderDashboard() {
                 <form onSubmit={handleAddWOP} className="grid gap-4 md:grid-cols-4 p-4 bg-muted/50 rounded-lg">
                   <div className="grid gap-1.5">
                     <Label>Preacher</Label>
-                    <Input size={30} value={wopFormData.preacher} onChange={(e) => setWopFormData({...wopFormData, preacher: e.target.value})} required />
+                    <Input value={wopFormData.preacher} onChange={(e) => setWopFormData({...wopFormData, preacher: e.target.value})} required />
                   </div>
                   <div className="grid gap-1.5">
                     <Label>Choir Invited</Label>
@@ -691,14 +639,6 @@ export default function ElderDashboard() {
                       <Label>Preacher Name</Label>
                       <Input value={programFormData.preacherName} onChange={(e) => setProgramFormData({...programFormData, preacherName: e.target.value})} required />
                     </div>
-                    <div className="grid gap-1.5">
-                      <Label>Prayer</Label>
-                      <Input value={programFormData.prayer} onChange={(e) => setProgramFormData({...programFormData, prayer: e.target.value})} required />
-                    </div>
-                    <div className="grid gap-1.5">
-                      <Label>Coordinator</Label>
-                      <Input value={programFormData.coordinator} onChange={(e) => setProgramFormData({...programFormData, coordinator: e.target.value})} required />
-                    </div>
                     <div className="flex gap-2">
                       <Button type="submit" className="flex-1">Save</Button>
                       <Button variant="ghost" onClick={() => setIsAddingProgram(false)}>Cancel</Button>
@@ -734,7 +674,7 @@ export default function ElderDashboard() {
 
               <div className="space-y-4 p-6 border rounded-xl">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-bold">Weekly program for Choir</h3>
+                  <h3 className="text-lg font-bold">Weekly Program for Choir</h3>
                   <div className="flex gap-2">
                     <Button size="sm" variant="outline" onClick={() => setIsAddingChoir(true)}>
                       <Plus className="h-4 w-4 mr-1" /> Add
@@ -827,17 +767,43 @@ export default function ElderDashboard() {
                   <Label htmlFor="telephone">Telephone</Label>
                   <Input id="telephone" value={formData.telephone} onChange={(e) => setFormData({...formData, telephone: e.target.value})} required />
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="baptismDate">Baptism Date</Label>
-                  <Input id="baptismDate" type="date" value={formData.baptismDate} onChange={(e) => setFormData({...formData, baptismDate: e.target.value})} required />
-                </div>
-                <div className="flex items-end gap-2 mt-2">
+                <div className="flex items-end gap-2">
                   <Button type="submit">{editingMember ? "Update" : "Save"}</Button>
-                  <Button variant="ghost" onClick={() => { setIsAddingMember(false); setEditingMember(null); }}>Cancel</Button>
+                  <Button variant="outline" type="button" onClick={() => { setIsAddingMember(false); setEditingMember(null); }}>Cancel</Button>
                 </div>
               </form>
             </div>
           )}
+
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredMembers.map((m) => (
+                  <TableRow key={m.id}>
+                    <TableCell>{m.firstName} {m.lastName}</TableCell>
+                    <TableCell>{m.email}</TableCell>
+                    <TableCell>{m.phone}</TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="icon" onClick={() => { setEditingMember(m); setFormData({ name: `${m.firstName} ${m.lastName}`, email: m.email || "", address: m.address || "", telephone: m.phone || "", baptismDate: m.baptismDate || "", pastor: m.pastor || "", churchElder: m.churchElder || "" }); }}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteMember(m.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
