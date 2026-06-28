@@ -13,7 +13,7 @@ import {
   getFamilies,
   saveFamily,
   deleteFamily,
-} from "@/app/lib/actions"
+} from "@/lib/actions"
 const sslTranslations = {
   en: {
     title: "Sabbath School Leader", subtitle: "Attendance Officer", addFamily: "Register Family",
