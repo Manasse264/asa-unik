@@ -55,7 +55,7 @@ const sslTranslations = {
 }
 
 interface Family { id: string; name: string; pere: string; mere: string; memberCount: number; }
-interface SabbathLetter { id: string; name: string; originChurch: string; district: string; field: string; fileName: string; fileData?: string; status: 'received' | 'rejected'; }
+interface SabbathLetter { id: string; name: string; originChurch: string; district: string; field: string; fileName: string; fileData?: string | null; status: 'received' | 'rejected'; }
 interface AttendanceRecord { id: string; date: string; type: 'family' | 'choir'; targetId: string; targetName: string; count: number; year?: string; }
 
 export default function SabbathSchoolDashboard() {
@@ -94,7 +94,7 @@ export default function SabbathSchoolDashboard() {
       setAttendance((dbAttendance as AttendanceRecord[]) || [])
 
       const dbLetters = await getLetters(year)
-      setLetters(dbLetters || [])
+      setLetters((dbLetters as SabbathLetter[]) || [])
 
       const dbChoirs = await getChoirs(year)
       setChoirs(
@@ -276,7 +276,7 @@ export default function SabbathSchoolDashboard() {
       district: letterFormData.district || "",
       field: letterFormData.field || "",
       fileName: letterFormData.fileName || "letter.pdf",
-      fileData: letterFormData.fileData,
+      fileData: letterFormData.fileData || null,
       status: letterFormData.status || "received"
     } as SabbathLetter
 
