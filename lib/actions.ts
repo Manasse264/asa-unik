@@ -187,55 +187,29 @@ export async function getFamilies(year: string) {
 
 export async function saveFamily(data: any) {
   try {
-    console.log("SAVE FAMILY RECEIVED:", data)
+    console.log("SAVE FAMILY DATA:", data);
 
-    const { id, ...rest } = data
+    const family = await prisma.family.create({
+      data: {
+        name: data.name,
+        pere: data.pere,
+        mere: data.mere,
+        memberCount: Number(data.memberCount),
+        year: data.year,
+      },
+    });
 
-    // Ensure required fields exist
-    if (!rest.name || !rest.pere || !rest.mere) {
-      throw new Error("Family Name, Pere and Mere are required.")
-    }
+    console.log("CREATED:", family);
 
-    // Ensure year exists
-    if (!rest.year) {
-      rest.year = new Date().getFullYear().toString()
-    }
+    revalidatePath("/dashboard/sabbath-school");
 
-    if (id && id.length > 10) {
-      await prisma.family.update({
-        where: { id },
-        data: {
-          name: rest.name,
-          pere: rest.pere,
-          mere: rest.mere,
-          memberCount: Number(rest.memberCount),
-          year: rest.year,
-        },
-      })
-    } else {
-      await prisma.family.create({
-        data: {
-          name: rest.name,
-          pere: rest.pere,
-          mere: rest.mere,
-          memberCount: Number(rest.memberCount),
-          year: rest.year,
-        },
-      })
-    }
-
-    revalidatePath("/dashboard/sabbath-school")
-
-    return {
-      success: true,
-    }
+    return { success: true };
   } catch (error: any) {
-    console.error("SAVE FAMILY ERROR:", error)
-
+    console.error("SAVE FAMILY ERROR:", error);
     return {
       success: false,
       error: error.message,
-    }
+    };
   }
 }
 
