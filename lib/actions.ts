@@ -113,11 +113,6 @@ export async function saveInventory(data: any) {
   revalidatePath("/dashboard/treasurer")
 }
 
-export async function deleteInventory(id: string) {
-  await prisma.inventory.delete({ where: { id } })
-  revalidatePath("/dashboard/treasurer")
-}
-
 // --- Announcements ---
 export async function getAnnouncements(year: string) {
   return await prisma.announcement.findMany({ where: { year } })
@@ -283,6 +278,11 @@ export async function saveLetter(data: any) {
     create: rest,
   })
   return { success: true, data: result }
+}
+
+// ---------------- REPORTS ----------------
+export async function getReports(year: string) {
+  return prisma.report.findMany({ where: { year } })
 }
 
 export async function saveReport(data: any) {

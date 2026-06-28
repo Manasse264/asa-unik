@@ -1,7 +1,11 @@
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
-import { cn } from "@/lib/utils";
-import { Navbar } from "@/components/navbar";
+import { cn } from "@/lib/utils"
+import { Navbar } from "@/components/navbar"
+
+export const metadata = {
+  title: "Church Elder Dashboard",
+}
 
 export default function RootLayout({
   children,
@@ -22,11 +26,4 @@ export default function RootLayout({
       </body>
     </html>
   )
-}
-export const metadata = {
-  title: "Church Elder Dashboard",
-}
-
-export default function ElderLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
 }
