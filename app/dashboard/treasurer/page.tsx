@@ -22,7 +22,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select } from "@/components/ui/select"
 import { 
   Table, 
   TableBody, 
@@ -175,7 +174,6 @@ const translations = {
     month: "Mois",
     generateReport: "Générer le rapport mensuel",
     categories: {
-
       Tithes: "Dîmes",
       Offerings: "Offrandes",
       Donations: "Dons",
@@ -189,13 +187,11 @@ const translations = {
   }
 }
 
-// --- Types ---
-
 type TransactionType = 'income' | 'expense'
 
 interface Transaction {
   id: string
-  type: string // Match Prisma return type
+  type: string
   category: string
   amount: number
   date: string
@@ -233,7 +229,6 @@ export default function TreasurerDashboard() {
   const [selectedYear, setSelectedYear] = React.useState(new Date().getFullYear())
   const [selectedReportCategory, setSelectedReportCategory] = React.useState<string>("All")
 
-  // Form States
   const [formData, setFormData] = React.useState({
     type: 'income' as TransactionType,
     category: INCOME_CATEGORIES[0],
@@ -261,7 +256,7 @@ export default function TreasurerDashboard() {
 
   const loadData = async () => {
     const year = localStorage.getItem('selected_year') || new Date().getFullYear().toString()
-    setSelectedYear(Number(year.split('-')[0])) // For the reporting year filter
+    setSelectedYear(Number(year.split('-')[0]))
 
     setTransactions(await getFinances(year))
     const inventory = await getInventory(year)
@@ -269,7 +264,6 @@ export default function TreasurerDashboard() {
     setGifts(inventory.filter((item: any) => item.type === 'gift'))
   }
 
-  // Load data and setup language listener
   React.useEffect(() => {
     loadData()
 
@@ -292,8 +286,6 @@ export default function TreasurerDashboard() {
 
   const t = translations[lang === "rw" ? "en" : lang]
 
-  // --- Calculations ---
-
   const totalIncome = transactions
     .filter(t => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0)
@@ -308,19 +300,15 @@ export default function TreasurerDashboard() {
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 5)
 
-  // --- Handlers ---
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
       [name]: value,
-      // Reset category and customCategory if type changes
       ...(name === 'type' ? { 
         category: value === 'income' ? INCOME_CATEGORIES[0] : EXPENSE_CATEGORIES[0],
         customCategory: ''
       } : {}),
-      // Reset customCategory if a standard category is selected
       ...(name === 'category' && value !== 'Other' ? { customCategory: '' } : {})
     }))
   }
@@ -434,11 +422,9 @@ export default function TreasurerDashboard() {
     const doc = new jsPDF()
     const pageWidth = doc.internal.pageSize.getWidth()
     
-    // Top Date
     doc.setFontSize(10)
     doc.text(`${t.date}: ${new Date().toLocaleDateString()}`, pageWidth - 14, 10, { align: 'right' })
 
-    // Centered Titles
     doc.setFontSize(22)
     doc.setFont("helvetica", "bold")
     doc.text("Church Treasurer", pageWidth / 2, 25, { align: 'center' })
@@ -462,11 +448,9 @@ export default function TreasurerDashboard() {
       headStyles: { fillColor: [75, 85, 99] }
     })
 
-    // Get position after table
     const finalY = (doc as any).lastAutoTable.finalY || 40
     let currentY = finalY + 15
 
-    // Income Summary Section (After Table)
     doc.setFont("helvetica", "bold")
     doc.text("Income Summary by Category:", 14, currentY)
     doc.setFont("helvetica", "normal")
@@ -486,7 +470,6 @@ export default function TreasurerDashboard() {
       doc.text(`${catLabel}: ${formatRF(catTotal)}`, 20, currentY)
       currentY += 7
 
-      // Specify "Other" items if they exist
       if (cat === 'Other' && catTransactions.length > 0) {
         doc.setFontSize(10)
         catTransactions.forEach(tr => {
@@ -510,7 +493,7 @@ export default function TreasurerDashboard() {
   const generateMonthlyReport = () => {
     const selectedYearVal = localStorage.getItem("selected_year")
     if (!selectedYearVal) {
-      alert(lang === 'rw' ? 'Nyamuneka hitamo umwaka w\'itorero!' : (lang === 'fr' ? 'Veuillez sélectionner une année d\'église !' : 'Please select a church year!'))
+      alert(lang === 'rw' ? "Nyamuneka hitamo umwaka w'itorero!" : (lang === 'fr' ? "Veuillez sélectionner une année d'église !" : "Please select a church year!"))
       return
     }
     const monthStr = `${selectedYear}-${(selectedMonth + 1).toString().padStart(2, '0')}`
@@ -528,11 +511,9 @@ export default function TreasurerDashboard() {
     const doc = new jsPDF()
     const pageWidth = doc.internal.pageSize.getWidth()
     
-    // Top Date
     doc.setFontSize(10)
     doc.text(`${t.date}: ${new Date().toLocaleDateString()}`, pageWidth - 14, 10, { align: 'right' })
 
-    // Centered Titles
     doc.setFontSize(22)
     doc.setFont("helvetica", "bold")
     doc.text("Church Treasurer", pageWidth / 2, 25, { align: 'center' })
@@ -557,7 +538,6 @@ export default function TreasurerDashboard() {
       headStyles: { fillColor: [75, 85, 99] }
     })
 
-    // Get position after table
     const finalY = (doc as any).lastAutoTable.finalY || 40
     let currentY = finalY + 15
 
@@ -586,7 +566,6 @@ export default function TreasurerDashboard() {
     const fileName = `Church_Report_${t.months[selectedMonth]}_${selectedYear}${selectedReportCategory !== "All" ? "_" + selectedReportCategory : ""}.pdf`
     doc.save(fileName)
 
-    // Synchronize with Elder
     const newReport = {
       id: Math.random().toString(36).substr(2, 9),
       title: "Monthly Tithe & Offerings",
@@ -600,8 +579,6 @@ export default function TreasurerDashboard() {
     localStorage.setItem("church_reports", JSON.stringify([newReport, ...existingReports]))
     window.dispatchEvent(new Event("storage"))
   }
-
-  // --- Render Helpers ---
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-RW', { style: 'currency', currency: 'RWF', maximumFractionDigits: 0 }).format(amount)
@@ -719,18 +696,28 @@ export default function TreasurerDashboard() {
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
                     <Label>{t.type}</Label>
-                    <Select name="type" value={formData.type} onChange={handleInputChange}>
+                    <select 
+                      name="type" 
+                      value={formData.type} 
+                      onChange={handleInputChange}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
                       <option value="income">{t.income}</option>
                       <option value="expense">{t.expenses}</option>
-                    </Select>
+                    </select>
                   </div>
                   <div className="space-y-2">
                     <Label>{t.category}</Label>
-                    <Select name="category" value={formData.category} onChange={handleInputChange}>
+                    <select 
+                      name="category" 
+                      value={formData.category} 
+                      onChange={handleInputChange}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
                       {(formData.type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES).map(cat => (
                         <option key={cat} value={cat}>{t.categories[cat as keyof typeof t.categories] || cat}</option>
                       ))}
-                    </Select>
+                    </select>
                   </div>
                   {formData.category === 'Other' && (
                     <div className="space-y-2">
@@ -1086,14 +1073,15 @@ export default function TreasurerDashboard() {
             <CardContent className="flex flex-wrap items-end gap-4">
               <div className="space-y-2">
                 <Label>{t.month}</Label>
-                <Select 
+                <select 
                   value={selectedMonth.toString()} 
                   onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {t.months.map((month, index) => (
                     <option key={month} value={index}>{month}</option>
                   ))}
-                </Select>
+                </select>
               </div>
               <div className="space-y-2">
                 <Label>{t.year}</Label>
@@ -1106,15 +1094,16 @@ export default function TreasurerDashboard() {
               </div>
               <div className="space-y-2">
                 <Label>{t.category}</Label>
-                <Select 
+                <select 
                   value={selectedReportCategory} 
                   onChange={(e) => setSelectedReportCategory(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <option value="All">{lang === 'rw' ? 'Byose' : (lang === 'fr' ? 'Tout' : 'All Categories')}</option>
                   {Array.from(new Set([...INCOME_CATEGORIES, ...EXPENSE_CATEGORIES])).map(cat => (
                     <option key={cat} value={cat}>{t.categories[cat as keyof typeof t.categories] || cat}</option>
                   ))}
-                </Select>
+                </select>
               </div>
               <Button onClick={generateMonthlyReport}>
                 <Download className="mr-2 h-4 w-4" />
@@ -1203,7 +1192,6 @@ export default function TreasurerDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="h-[200px] flex items-end justify-between px-4 pt-4 border-b">
-                   {/* Simple CSS-based bar chart */}
                    {[5,4,3,2,1,0].map(i => {
                       const d = new Date()
                       d.setMonth(d.getMonth() - i)
@@ -1218,7 +1206,7 @@ export default function TreasurerDashboard() {
                         .filter(tr => tr.type === 'expense' && tr.date.startsWith(monthStr))
                         .reduce((sum, tr) => sum + tr.amount, 0)
 
-                      const maxVal = Math.max(totalIncome, totalExpenses, 1) // Avoid div by 0
+                      const maxVal = Math.max(totalIncome, totalExpenses, 1)
                       const incHeight = (monthIncome / maxVal) * 100
                       const expHeight = (monthExpense / maxVal) * 100
 

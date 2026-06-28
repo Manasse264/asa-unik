@@ -27,3 +27,8 @@ export default function RootLayout({
     </html>
   )
 }
+
+// Fixed: Changed from 'export default' to a standard named export
+export function ElderLayout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>
+}

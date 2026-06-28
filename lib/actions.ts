@@ -11,7 +11,7 @@ export async function getMembers(year: string) {
 
 export async function saveMember(data: any) {
   const { id, ...rest } = data
-  if (id && id.length > 10) { // cuid check
+  if (id && id.length > 10) { 
     await prisma.member.update({ where: { id }, data: rest })
   } else {
     await prisma.member.create({ data: rest })
@@ -110,6 +110,11 @@ export async function saveInventory(data: any) {
   } else {
     await prisma.inventory.create({ data: rest })
   }
+  revalidatePath("/dashboard/treasurer")
+}
+
+export async function deleteInventory(id: string) {
+  await prisma.inventory.delete({ where: { id } })
   revalidatePath("/dashboard/treasurer")
 }
 
@@ -278,11 +283,6 @@ export async function saveLetter(data: any) {
     create: rest,
   })
   return { success: true, data: result }
-}
-
-// ---------------- REPORTS ----------------
-export async function getReports(year: string) {
-  return prisma.report.findMany({ where: { year } })
 }
 
 export async function saveReport(data: any) {
