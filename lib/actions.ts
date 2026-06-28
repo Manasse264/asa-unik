@@ -244,7 +244,6 @@ export async function saveFamily(data: any) {
     }
   }
 }
-import prisma from "@/lib/prisma"
 
 /* ---------------- ATTENDANCE ---------------- */
 
