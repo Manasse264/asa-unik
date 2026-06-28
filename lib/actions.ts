@@ -252,7 +252,11 @@ export async function saveFamily(data: any) {
     }
   }
 }
-
+ export async function getAttendance(year: string) {
+  return await prisma.attendance.findMany({
+    where: { year },
+  })
+}
 export async function deleteFamily(id: string) {
   try {
     await prisma.family.delete({

@@ -113,11 +113,6 @@ const loadData = async () => {
     }
   }, [])
 
- export async function getAttendance(year: string) {
-  return await prisma.attendance.findMany({
-    where: { year },
-  })
-}
 
 export async function saveAttendanceRecord(data: any) {
   const { id, ...rest } = data
