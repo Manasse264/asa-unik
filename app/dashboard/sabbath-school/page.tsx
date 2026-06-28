@@ -48,7 +48,7 @@ const sslTranslations = {
 }
 
 interface Family { id: string; name: string; pere: string; mere: string; memberCount: number; }
-interface SabbathLetter { id: string; name: string; originChurch: string; province: string; field: string; fileName: string; fileData?: string; status: 'received' | 'rejected'; }
+interface SabbathLetter { id: string; name: string; originChurch: string; district: string; field: string; fileName: string; fileData?: string; status: 'received' | 'rejected'; }
 interface AttendanceRecord { id: string; date: string; type: 'family' | 'choir'; targetId: string; targetName: string; count: number; }
 
 export default function SabbathSchoolDashboard() {
@@ -66,7 +66,7 @@ export default function SabbathSchoolDashboard() {
 
   const [editingLetter, setEditingLetter] = React.useState<SabbathLetter | null>(null)
   const [isLetterModalOpen, setIsLetterModalOpen] = React.useState(false)
-  const [letterFormData, setLetterFormData] = React.useState<Partial<SabbathLetter>>({ name: "", originChurch: "", province: "", field: "", fileName: "", status: "received" })
+  const [letterFormData, setLetterFormData] = React.useState<Partial<SabbathLetter>>({ name: "", originChurch: "", district: "", field: "", fileName: "", status: "received" })
 
 const loadData = async () => {
     const year = localStorage.getItem('selected_year') || new Date().getFullYear().toString()
@@ -144,7 +144,7 @@ setFamilies(dbFamilies)
       id: editingLetter ? editingLetter.id : Math.random().toString(36).substr(2, 9),
       name: letterFormData.name!,
       originChurch: letterFormData.originChurch!,
-      province: letterFormData.province || "",
+      district: letterFormData.district || "",
       field: letterFormData.field || "",
       fileName: letterFormData.fileName || "letter.pdf",
       fileData: letterFormData.fileData,
@@ -154,7 +154,7 @@ setFamilies(dbFamilies)
     if (editingLetter) saveLetters(letters.map(l => l.id === editingLetter.id ? newLetter : l))
     else saveLetters([...letters, newLetter])
     
-    setIsLetterModalOpen(false); setLetterFormData({ name: "", originChurch: "", province: "", field: "", fileName: "", fileData: "", status: "received" }); setEditingLetter(null)
+    setIsLetterModalOpen(false); setLetterFormData({ name: "", originChurch: "", district: "", field: "", fileName: "", fileData: "", status: "received" }); setEditingLetter(null)
   }
 
   const downloadFile = (letter: SabbathLetter) => {
@@ -394,7 +394,7 @@ const handleSaveFamily = async () => {
         <div><h2 className="text-3xl font-bold">{t.title}</h2><p className="text-muted-foreground">{t.subtitle}</p></div>
         <div className="flex gap-2">
           {activeTab === 'families' && <Button onClick={() => { setEditingFamily(null); setFamilyFormData({ name: "", pere: "", mere: "", memberCount: 2 }); setIsFamilyModalOpen(true) }}>{t.addFamily}</Button>}
-          {activeTab === 'letters' && <Button onClick={() => { setEditingLetter(null); setLetterFormData({ name: "", originChurch: "", province: "", field: "", fileName: "", status: "received" }); setIsLetterModalOpen(true) }} className="gap-2"><Plus className="h-4 w-4" /> {t.addLetter}</Button>}
+          {activeTab === 'letters' && <Button onClick={() => { setEditingLetter(null); setLetterFormData({ name: "", originChurch: "", district: "", field: "", fileName: "", status: "received" }); setIsLetterModalOpen(true) }} className="gap-2"><Plus className="h-4 w-4" /> {t.addLetter}</Button>}
           {activeTab === 'attendance' && <Button variant="outline" className="border-primary text-primary" onClick={() => setActiveTab("reports")}>{t.tabRep}</Button>}
         </div>
       </div>
@@ -608,7 +608,7 @@ const handleSaveFamily = async () => {
               <div className="grid gap-2"><Label>{t.name}</Label><Input value={letterFormData.name} onChange={e => setLetterFormData({...letterFormData, name: e.target.value})} /></div>
               <div className="grid gap-2"><Label>{t.origin}</Label><Input value={letterFormData.originChurch} onChange={e => setLetterFormData({...letterFormData, originChurch: e.target.value})} /></div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2"><Label>{t.province}</Label><Input value={letterFormData.province} onChange={e => setLetterFormData({...letterFormData, province: e.target.value})} /></div>
+                <div className="grid gap-2"><Label>{t.province}</Label><Input value={letterFormData.province} onChange={e => setLetterFormData({...letterFormData, district: e.target.value})} /></div>
                 <div className="grid gap-2"><Label>{t.field}</Label><Input value={letterFormData.field} onChange={e => setLetterFormData({...letterFormData, field: e.target.value})} /></div>
               </div>
               <div className="grid gap-2">
