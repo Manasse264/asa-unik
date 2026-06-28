@@ -257,6 +257,15 @@ export async function saveFamily(data: any) {
     where: { year },
   })
 }
+export async function saveAttendanceRecord(data: any) {
+  const { id, ...rest } = data
+
+  return await prisma.attendance.upsert({
+    where: { id: id || "new" },
+    update: rest,
+    create: rest,
+  })
+}
 export async function deleteFamily(id: string) {
   try {
     await prisma.family.delete({

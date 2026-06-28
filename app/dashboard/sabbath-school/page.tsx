@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { YearSelector } from "@/components/year-selector"
 import { cn } from "@/lib/utils"
 import { getAttendance } from "@/lib/actions"
+import { saveAttendanceRecord } from "@/lib/actions"
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
 import {
@@ -115,15 +116,6 @@ const loadData = async () => {
   }, [])
 
 
-export async function saveAttendanceRecord(data: any) {
-  const { id, ...rest } = data
-
-  return await prisma.attendance.upsert({
-    where: { id: id || "new" },
-    update: rest,
-    create: rest,
-  })
-}
 
 export async function deleteAttendance(id: string) {
   return await prisma.attendance.delete({ where: { id } })
