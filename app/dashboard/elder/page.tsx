@@ -51,7 +51,8 @@ import {
   getMembers, saveMember, deleteMember,
   getAnnouncements, saveAnnouncement, deleteAnnouncement,
   getSystemConfig, updateSystemConfig,
-  getUsers, updateUser, deleteUser
+  getUsers, updateUser, deleteUser,
+  getReports // Added to actions import
 } from "@/lib/actions"
 
 interface Member {
@@ -108,8 +109,10 @@ interface Announcement {
 }
 
 export default function ElderDashboard() {
+  // Correctly initialized states at the top level
   const [members, setMembers] = React.useState<Member[]>([])
   const [councilMembers, setCouncilMembers] = React.useState<any[]>([])
+  const [reports, setReports] = React.useState<any[]>([])
   const [syncedReports, setSyncedReports] = React.useState<any[]>([])
   const [announcements, setAnnouncements] = React.useState<Announcement[]>([])
   const [searchQuery, setSearchQuery] = React.useState("")
@@ -150,49 +153,45 @@ export default function ElderDashboard() {
 
   const [generatedResetLink, setGeneratedResetLink] = React.useState<string | null>(null)
 
+  const [formData, setFormData] = React.useState({
+    name: "",
+    email: "",
+    address: "",
+    telephone: "",
+    baptismDate: "",
+    pastor: "",
+    churchElder: ""
+  })
+
+  const [announcementFormData, setAnnouncementFormData] = React.useState({
+    title: "",
+    content: "",
+    type: "Announcement" as "Announcement" | "Event" | "News",
+    date: new Date().toISOString().split('T')[0],
+    published: false,
+    fileName: "",
+    fileData: ""
+  })
+
   const loadData = async () => {
     const year = localStorage.getItem('selected_year') || new Date().getFullYear().toString()
-const [reports, setReports] = useState([])
 
-const loadReports = async () => {
-  const year = getYear()
-  const data = await getReports(year)
-  setReports(data || [])
-}
+    // Fetch reports cleanly alongside your other actions
+    const reportsData = await getReports(year)
+    setReports(reportsData || [])
 
-useEffect(() => {
-  loadReports()
-}, [])
-{reports.map((r) => (
-  <div key={r.id} className="border p-3 rounded">
-    <h3 className="font-bold">{r.title}</h3>
-    <p>Date: {r.date}</p>
-    <p>Total Attendance: {r.total}</p>
-
-    <button
-      onClick={() => {
-        const link = document.createElement("a")
-        link.href = r.pdfData
-        link.download = `${r.title}.pdf`
-        link.click()
-      }}
-    >
-      Download PDF
-    </button>
-  </div>
-))}
     // Load from Database via Server Actions
-const dbMembers = await getMembers(year)
+    const dbMembers = await getMembers(year)
 
-setMembers(
-  dbMembers.filter(
-    (m: any) =>
-      m.isBaptized === true &&
-      !m.isCouncil &&
-      !m.isDeacon &&
-      !m.isDeaconess
-  )
-)
+    setMembers(
+      dbMembers.filter(
+        (m: any) =>
+          m.isBaptized === true &&
+          !m.isCouncil &&
+          !m.isDeacon &&
+          !m.isDeaconess
+      )
+    )
     setCouncilMembers(dbMembers.filter((m: any) => m.isCouncil))
 
     setAnnouncements(await getAnnouncements(year))
@@ -225,10 +224,10 @@ setMembers(
     const year = localStorage.getItem("selected_year") || new Date().getFullYear().toString()
     
     await saveMember({
-  ...formData,
-  year,
-  isBaptized: true
-})
+      ...formData,
+      year,
+      isBaptized: true
+    })
     
     setIsAddingMember(false)
     setFormData({ name: "", email: "", address: "", telephone: "", baptismDate: "", pastor: "", churchElder: "" })
@@ -358,7 +357,6 @@ setMembers(
     setGeneratedResetLink(link)
   }
 
-  // --- Evangelism Logic ---
   const saveWOP = (data: WeekOfPrayer[]) => {
     setWeekOfPrayers(data)
     localStorage.setItem("week_of_prayers", JSON.stringify(data))
@@ -444,26 +442,6 @@ setMembers(
     saveConfig(blockLogin, blockRegister, updatedYears, restrictNewAccounts, restrictOldAccounts, updatedBlocked)
   }
 
-  const [formData, setFormData] = React.useState({
-    name: "",
-    email: "",
-    address: "",
-    telephone: "",
-    baptismDate: "",
-    pastor: "",
-    churchElder: ""
-  })
-
-  const [announcementFormData, setAnnouncementFormData] = React.useState({
-    title: "",
-    content: "",
-    type: "Announcement" as "Announcement" | "Event" | "News",
-    date: new Date().toISOString().split('T')[0],
-    published: false,
-    fileName: "",
-    fileData: ""
-  })
-
   const startEditAnnouncement = (a: Announcement) => {
     setEditingAnnouncement(a)
     setAnnouncementFormData({
@@ -514,6 +492,31 @@ setMembers(
           <TabsTrigger value="reports">Reports</TabsTrigger>
           <TabsTrigger value="config">System</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="reports" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {reports.map((r) => (
+              <div key={r.id} className="border p-4 rounded-xl space-y-2 bg-background shadow-sm">
+                <h3 className="font-bold text-lg">{r.title}</h3>
+                <p className="text-sm text-muted-foreground">Date: {r.date}</p>
+                <p className="text-sm font-medium">Total Attendance: {r.total}</p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="w-full mt-2"
+                  onClick={() => {
+                    const link = document.createElement("a")
+                    link.href = r.pdfData
+                    link.download = `${r.title}.pdf`
+                    link.click()
+                  }}
+                >
+                  <Download className="h-4 w-4 mr-1" /> Download PDF
+                </Button>
+              </div>
+            ))}
+          </div>
+        </TabsContent>
 
         <TabsContent value="users" className="space-y-4">
           <div className="flex items-center justify-between">
@@ -594,7 +597,7 @@ setMembers(
                         <Button variant="ghost" size="icon" onClick={() => { setEditingUser(u); setUserFormData(u); }}>
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => deleteUser(u.id)}>
+                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteUserAccount(u.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </TableCell>
@@ -610,7 +613,6 @@ setMembers(
 
         <TabsContent value="evangelism" className="space-y-6">
           <div className="grid gap-6">
-            {/* Week of Prayers */}
             <div className="space-y-4 p-6 border rounded-xl">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-bold flex items-center gap-2">
@@ -670,7 +672,6 @@ setMembers(
               </div>
             </div>
 
-            {/* Weekly Schedules */}
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-4 p-6 border rounded-xl">
                 <div className="flex items-center justify-between">
@@ -830,530 +831,13 @@ setMembers(
                   <Label htmlFor="baptismDate">Baptism Date</Label>
                   <Input id="baptismDate" type="date" value={formData.baptismDate} onChange={(e) => setFormData({...formData, baptismDate: e.target.value})} required />
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="pastor">Pastor</Label>
-                  <Input id="pastor" value={formData.pastor} onChange={(e) => setFormData({...formData, pastor: e.target.value})} required />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="churchElder">Church Elder</Label>
-                  <Input id="churchElder" value={formData.churchElder} onChange={(e) => setFormData({...formData, churchElder: e.target.value})} required />
-                </div>
-                <div className="flex items-end gap-2">
-                  <Button type="submit">{editingMember ? "Update" : "Save"} Member</Button>
-                  <Button variant="outline" type="button" onClick={() => {
-                    setIsAddingMember(false)
-                    setEditingMember(null)
-                    setFormData({ name: "", email: "", address: "", telephone: "", baptismDate: "", pastor: "", churchElder: "" })
-                  }}>Cancel</Button>
+                <div className="flex items-end gap-2 mt-2">
+                  <Button type="submit">{editingMember ? "Update" : "Save"}</Button>
+                  <Button variant="ghost" onClick={() => { setIsAddingMember(false); setEditingMember(null); }}>Cancel</Button>
                 </div>
               </form>
             </div>
           )}
-
-          <div className="rounded-md border overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Names</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Address</TableHead>
-                  <TableHead>Telephone</TableHead>
-                  <TableHead>Baptism Date</TableHead>
-                  <TableHead>Pastor</TableHead>
-                  <TableHead>Church Elder</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredMembers.length > 0 ? (
-                  filteredMembers.map((member) => (
-                    <TableRow key={member.id}>
-                      <TableCell className="font-medium">{member.firstName} {member.lastName}</TableCell>
-                      <TableCell>{member.email || "-"}</TableCell>
-                      <TableCell>{member.address || "-"}</TableCell>
-                      <TableCell>{member.phone || "-"}</TableCell>
-                      <TableCell>{member.baptismDate || "-"}</TableCell>
-                      <TableCell>{member.pastor || "-"}</TableCell>
-                      <TableCell>{member.churchElder || "-"}</TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" onClick={() => startEdit(member)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => deleteMember(member.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={8} className="h-24 text-center">
-                      No members found.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="announcements" className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-semibold">Manage Announcements & Events</h3>
-            <Button onClick={() => setIsAddingAnnouncement(true)}>
-              <Plus className="mr-2 h-4 w-4" /> Create New
-            </Button>
-          </div>
-
-          {(isAddingAnnouncement || editingAnnouncement) && (
-            <div className="p-6 border rounded-xl bg-muted/30 space-y-4">
-              <h3 className="text-lg font-bold">{editingAnnouncement ? "Edit" : "Create"} Announcement/Event</h3>
-              <form onSubmit={editingAnnouncement ? handleUpdateAnnouncement : handleAddAnnouncement} className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="grid gap-2">
-                    <Label htmlFor="atitle">Title</Label>
-                    <Input 
-                      id="atitle" 
-                      value={announcementFormData.title} 
-                      onChange={(e) => setAnnouncementFormData({...announcementFormData, title: e.target.value})} 
-                      required 
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="type">Type</Label>
-                    <select 
-                      id="type"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      value={announcementFormData.type}
-                      onChange={(e) => setAnnouncementFormData({...announcementFormData, type: e.target.value as any})}
-                    >
-                      <option value="Announcement">Announcement</option>
-                      <option value="News">News</option>
-                      <option value="Event">Event</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="content">Content/Description</Label>
-                  <textarea 
-                    id="content"
-                    className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    value={announcementFormData.content}
-                    onChange={(e) => setAnnouncementFormData({...announcementFormData, content: e.target.value})}
-                    required
-                  />
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="grid gap-2">
-                    <Label htmlFor="adate">Date</Label>
-                    <Input 
-                      id="adate" 
-                      type="date"
-                      value={announcementFormData.date} 
-                      onChange={(e) => setAnnouncementFormData({...announcementFormData, date: e.target.value})} 
-                      required 
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="file">Attach File (PDF/Image)</Label>
-                    <div className="flex gap-2">
-                      <Input 
-                        id="file" 
-                        type="file"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0]
-                          if (file) {
-                            const reader = new FileReader()
-                            reader.onload = (event) => {
-                              setAnnouncementFormData({
-                                ...announcementFormData, 
-                                fileName: file.name,
-                                fileData: event.target?.result as string
-                              })
-                            }
-                            reader.readAsDataURL(file)
-                          }
-                        }}
-                      />
-                      {announcementFormData.fileName && (
-                        <p className="text-xs text-muted-foreground self-center">Selected: {announcementFormData.fileName}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button type="submit">{editingAnnouncement ? "Update" : "Publish"}</Button>
-                  <Button variant="outline" type="button" onClick={() => {
-                    setIsAddingAnnouncement(false)
-                    setEditingAnnouncement(null)
-                    setAnnouncementFormData({
-                      title: "",
-                      content: "",
-                      type: "Announcement",
-                      date: new Date().toISOString().split('T')[0],
-                      published: false,
-                      fileName: "",
-                      fileData: ""
-                    })
-                  }}>Cancel</Button>
-                </div>
-              </form>
-            </div>
-          )}
-
-          <div className="rounded-md border overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>File</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {announcements.length > 0 ? (
-                  announcements.map((a) => (
-                    <TableRow key={a.id}>
-                      <TableCell>
-                        <span className={cn(
-                          "px-2 py-1 rounded-full text-[10px] font-bold uppercase",
-                          a.type === "Event" ? "bg-purple-100 text-purple-700" : 
-                          a.type === "News" ? "bg-emerald-100 text-emerald-700" : 
-                          "bg-blue-100 text-blue-700"
-                        )}>
-                          {a.type}
-                        </span>
-                      </TableCell>
-                      <TableCell className="font-medium">{a.title}</TableCell>
-                      <TableCell>{a.date}</TableCell>
-                      <TableCell>
-                        {a.fileName ? (
-                          <div className="flex items-center text-xs text-muted-foreground">
-                            <FileText className="mr-1 h-3 w-3" /> {a.fileName}
-                          </div>
-                        ) : "-"}
-                      </TableCell>
-                      <TableCell>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className={cn(
-                            "h-7 px-2",
-                            a.published ? "text-green-600 hover:text-green-700" : "text-amber-600 hover:text-amber-700"
-                          )}
-                          onClick={() => togglePublish(a.id)}
-                        >
-                          {a.published ? (
-                            <><CheckCircle2 className="mr-1 h-3 w-3" /> Published</>
-                          ) : (
-                            <><Globe className="mr-1 h-3 w-3" /> Draft</>
-                          )}
-                        </Button>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" onClick={() => startEditAnnouncement(a)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => deleteAnnouncement(a.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                      No announcements or events yet. Click "Create New" to get started.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="council" className="space-y-4">
-          <div className="space-y-4">
-            <h3 className="text-xl font-bold flex items-center">
-              <Users className="mr-2 h-5 w-5" /> Church Council Members
-            </h3>
-            <p className="text-sm text-muted-foreground">Official leadership and department heads.</p>
-            <div className="rounded-md border overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Names</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Telephone</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {councilMembers.length > 0 ? (
-                    councilMembers.map((member, i) => (
-                      <TableRow key={member.id || i}>
-                        <TableCell className="font-medium">{member.firstName} {member.lastName}</TableCell>
-                        <TableCell>{member.position}</TableCell>
-                        <TableCell>{member.email}</TableCell>
-                        <TableCell>{member.phone}</TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={4} className="h-24 text-center">
-                        No council members found. They should be added by the Church Secretary.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="reports" className="space-y-4">
-          {selectedReport && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
-              <div className="w-full max-w-lg bg-background rounded-xl shadow-2xl overflow-hidden border">
-                <div className="p-6 border-b flex items-center justify-between">
-                  <h3 className="text-xl font-bold">Report Details</h3>
-                  <Button variant="ghost" size="icon" onClick={() => setSelectedReport(null)}>
-                    <XCircle className="h-5 w-5" />
-                  </Button>
-                </div>
-                <div className="p-6 space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground uppercase">Title</Label>
-                      <p className="font-medium">{selectedReport.title}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground uppercase">Date/Period</Label>
-                      <p className="font-medium">{selectedReport.date || selectedReport.month}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground uppercase">Type</Label>
-                      <p className="font-medium">{selectedReport.type}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground uppercase">Status</Label>
-                      <p className="font-medium text-green-600">{selectedReport.status}</p>
-                    </div>
-                  </div>
-                  <div className="pt-4 border-t">
-                    <Label className="text-xs text-muted-foreground uppercase">Summary Information</Label>
-                    <p className="mt-2 text-sm leading-relaxed">
-                      {selectedReport.type === "Attendance" 
-                        ? `A total of ${selectedReport.attendance} members attended the service. The program included Bible study, prayer groups, and a special testimonial session. No incidents were reported.` 
-                        : `The total collection of ${selectedReport.total} includes Tithes, Local Offerings, and Thanksgiving. All funds have been counted, recorded, and deposited into the church account.`}
-                    </p>
-                  </div>
-                  {selectedReport.pdfUrl && (
-                    <div className="p-3 bg-muted rounded-lg flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-5 w-5 text-primary" />
-                        <span className="text-sm font-medium">{selectedReport.type}_Report_{selectedReport.date || selectedReport.month}.pdf</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">PDF READY</span>
-                        <Button size="sm" onClick={() => alert("PDF Download started... (Demo Only)")}>
-                          View PDF
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                  <div className="flex justify-end pt-4">
-                    <Button onClick={() => setSelectedReport(null)}>Close</Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-4">
-              <h3 className="text-lg font-bold flex items-center">
-                <Calendar className="mr-2 h-5 w-5" /> Attendance Reports
-              </h3>
-              <div className="space-y-4">
-                {syncedReports.filter(r => r.type === "Attendance").length > 0 ? (
-                  syncedReports.filter(r => r.type === "Attendance").map((report, i) => (
-                    <div key={report.id || i} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
-                      <div>
-                        <p className="font-medium">{report.title} - {report.date}</p>
-                        <p className="text-sm text-muted-foreground">Attendance: {report.attendance}</p>
-                      </div>
-                      <Button variant="outline" size="sm" onClick={() => setSelectedReport(report)}>View Details</Button>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-4 text-muted-foreground text-sm border rounded-lg border-dashed">No attendance reports yet.</div>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-lg font-bold flex items-center">
-                <TrendingUp className="mr-2 h-5 w-5" /> Financial Reports
-              </h3>
-              <div className="space-y-4">
-                {syncedReports.filter(r => r.type === "Financial").length > 0 ? (
-                  syncedReports.filter(r => r.type === "Financial").map((report, i) => (
-                    <div key={report.id || i} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
-                      <div>
-                        <p className="font-medium">{report.title} - {report.month}</p>
-                        <p className="text-sm text-muted-foreground">Total: {report.total}</p>
-                      </div>
-                      <Button variant="outline" size="sm" onClick={() => setSelectedReport(report)}>View Details</Button>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-4 text-muted-foreground text-sm border rounded-lg border-dashed">No financial reports yet.</div>
-                )}
-              </div>
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="config" className="space-y-4">
-          <div className="space-y-4">
-            <h3 className="text-xl font-bold flex items-center">
-              <Settings className="mr-2 h-5 w-5" /> System Configuration
-            </h3>
-            <p className="text-sm text-muted-foreground">Manage global access and system-wide settings.</p>
-            
-            <div className="grid gap-6">
-              <div className="p-6 border rounded-xl space-y-4">
-                <div className="space-y-1">
-                  <Label className="text-base font-bold">Church Year Settings</Label>
-                  <p className="text-sm text-muted-foreground">Add or remove years available for selection across the system.</p>
-                </div>
-                
-                <div className="flex gap-2">
-                  <Input 
-                    placeholder="Ex: 2025-2026" 
-                    value={newYear}
-                    onChange={(e) => setNewYear(e.target.value)}
-                    className="max-w-[200px]"
-                  />
-                  <Button onClick={handleAddYear}>
-                    <Plus className="mr-2 h-4 w-4" /> Add Year
-                  </Button>
-                </div>
-
-                <div className="flex flex-wrap gap-2 pt-2">
-                  {availableYears.map((year) => (
-                    <div key={year} className={cn(
-                      "flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors",
-                      blockedYears.includes(year) ? "bg-destructive/10 text-destructive border border-destructive/20" : "bg-muted text-muted-foreground"
-                    )}>
-                      {year}
-                      <div className="flex items-center gap-1 ml-1 border-l pl-2 border-current/20">
-                        <button 
-                          onClick={() => toggleBlockYear(year)}
-                          className="hover:text-primary transition-colors"
-                          title={blockedYears.includes(year) ? "Unblock year" : "Block year"}
-                        >
-                          {blockedYears.includes(year) ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}
-                        </button>
-                        <button 
-                          onClick={() => handleRemoveYear(year)}
-                          className="hover:text-destructive transition-colors"
-                          title="Remove year"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                  {availableYears.length === 0 && (
-                    <p className="text-sm text-muted-foreground italic">No years established yet.</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between p-6 border rounded-xl hover:bg-muted/10 transition-colors">
-                <div className="space-y-0.5">
-                  <Label className="text-base font-bold">Login Access</Label>
-                  <p className="text-sm text-muted-foreground">
-                    {blockLogin ? "Login is currently disabled for all users." : "Login is currently active."}
-                  </p>
-                </div>
-                <Button 
-                  variant={blockLogin ? "destructive" : "default"}
-                  onClick={() => saveConfig(!blockLogin, blockRegister, availableYears, restrictNewAccounts, restrictOldAccounts, blockedYears)}
-                  className="w-32"
-                >
-                  {blockLogin ? (
-                    <><Lock className="mr-2 h-4 w-4" /> Blocked</>
-                  ) : (
-                    <><Unlock className="mr-2 h-4 w-4" /> Active</>
-                  )}
-                </Button>
-              </div>
-
-              <div className="flex items-center justify-between p-6 border rounded-xl hover:bg-muted/10 transition-colors">
-                <div className="space-y-0.5">
-                  <Label className="text-base font-bold">Registration Access</Label>
-                  <p className="text-sm text-muted-foreground">
-                    {blockRegister ? "New member registration is disabled." : "Registration is active."}
-                  </p>
-                </div>
-                <Button 
-                  variant={blockRegister ? "destructive" : "default"}
-                  onClick={() => saveConfig(blockLogin, !blockRegister, availableYears, restrictNewAccounts, restrictOldAccounts, blockedYears)}
-                  className="w-32"
-                >
-                  {blockRegister ? (
-                    <><Lock className="mr-2 h-4 w-4" /> Blocked</>
-                  ) : (
-                    <><Unlock className="mr-2 h-4 w-4" /> Active</>
-                  )}
-                </Button>
-              </div>
-
-              <div className="flex items-center justify-between p-6 border rounded-xl hover:bg-muted/10 transition-colors bg-amber-50/30">
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="h-4 w-4 text-amber-600" />
-                    <Label className="text-base font-bold">Previous Year Access</Label>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Block newly registered accounts from accessing years before their registration.
-                  </p>
-                </div>
-                <Button 
-                  variant={restrictNewAccounts ? "destructive" : "outline"}
-                  onClick={() => saveConfig(blockLogin, blockRegister, availableYears, !restrictNewAccounts, restrictOldAccounts, blockedYears)}
-                  className="w-32"
-                >
-                  {restrictNewAccounts ? "Restricted" : "Allowed"}
-                </Button>
-              </div>
-
-              <div className="flex items-center justify-between p-6 border rounded-xl hover:bg-muted/10 transition-colors bg-amber-50/30">
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="h-4 w-4 text-amber-600" />
-                    <Label className="text-base font-bold">Future Year Access</Label>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Block old accounts from accessing newly established years.
-                  </p>
-                </div>
-                <Button 
-                  variant={restrictOldAccounts ? "destructive" : "outline"}
-                  onClick={() => saveConfig(blockLogin, blockRegister, availableYears, restrictNewAccounts, !restrictOldAccounts, blockedYears)}
-                  className="w-32"
-                >
-                  {restrictOldAccounts ? "Restricted" : "Allowed"}
-                </Button>
-              </div>
-            </div>
-          </div>
         </TabsContent>
       </Tabs>
     </div>
