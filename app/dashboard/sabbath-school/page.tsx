@@ -189,15 +189,6 @@ const updateAttendance = async (
     console.error(err)
   }
 }
-export async function saveLetter(data: any) {
-  const { id, ...rest } = data
-
-  return await prisma.sabbathLetter.upsert({
-    where: { id: id || "new" },
-    update: rest,
-    create: rest,
-  })
-}
 
 export async function deleteLetter(id: string) {
   return await prisma.sabbathLetter.delete({ where: { id } })
