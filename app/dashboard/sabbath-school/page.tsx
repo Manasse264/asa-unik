@@ -12,13 +12,7 @@ import { saveAttendanceRecord } from "@/lib/actions"
 import { saveReport } from "@/lib/actions"
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
-import {
-  getAttendance,
-  saveAttendanceRecord,
-  deleteAttendance,
-  getLetters,
-  saveLetter,
-} from "@/lib/actions"
+
 import {
   getFamilies,
   saveFamily,
