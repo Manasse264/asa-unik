@@ -415,7 +415,7 @@ const handleSaveFamily = async () => {
                 <th className="h-12 px-4 text-left font-medium">{t.famName}</th>
                 <th className="h-12 px-4 text-left font-medium">{t.pere}</th>
                 <th className="h-12 px-4 text-left font-medium">{t.mere}</th>
-                <th className="h-12 px-4 text-left font-medium">{t.maxMem}</th>
+                <th className="h-12 px-4 text-left font-medium">{t.Mem}</th>
                 <th className="h-12 px-4 text-right font-medium">{t.actions}</th>
               </tr>
             </thead>
