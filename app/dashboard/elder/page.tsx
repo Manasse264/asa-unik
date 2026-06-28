@@ -192,7 +192,6 @@ export default function ElderDashboardClient() {
     setAnnouncements(await getAnnouncements(year))
     setUsers(await getUsers())
 
-    // Load evangelism sections from database instead of localStorage
     setWeekOfPrayers(await getWeekOfPrayers(year))
     setWeeklyPrograms(await getWeeklyPrograms(year))
     setWeeklyChoirs(await getWeeklyChoirs(year))
@@ -698,7 +697,7 @@ export default function ElderDashboardClient() {
                   <form onSubmit={handleAddChoir} className="grid gap-3 p-4 bg-muted/50 rounded-lg">
                     <div className="grid gap-1.5">
                       <Label>Day</Label>
-                      <Input placeholder="e.g. Sabbath" value={choirFormData.day} onChange={(e) => setQuestion => setChoirFormData({...choirFormData, day: e.target.value})} required />
+                      <Input placeholder="e.g. Sabbath" value={choirFormData.day} onChange={(e) => setChoirFormData({...choirFormData, day: e.target.value})} required />
                     </div>
                     <div className="grid gap-1.5">
                       <Label>Choir Name</Label>
