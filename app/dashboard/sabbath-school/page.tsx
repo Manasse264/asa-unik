@@ -546,7 +546,7 @@ const handleSaveFamily = async () => {
                 <th className="h-12 px-4 text-left font-medium">No.</th>
                 <th className="h-12 px-4 text-left font-medium">{t.name}</th>
                 <th className="h-12 px-4 text-left font-medium">{t.origin}</th>
-                <th className="h-12 px-4 text-left font-medium">{t.province} / {t.field}</th>
+                <th className="h-12 px-4 text-left font-medium">{t.district} / {t.field}</th>
                 <th className="h-12 px-4 text-left font-medium">{t.files}</th>
                 <th className="h-12 px-4 text-left font-medium">{t.status}</th>
                 <th className="h-12 px-4 text-right font-medium">{t.actions}</th>
@@ -558,7 +558,7 @@ const handleSaveFamily = async () => {
                   <td className="p-4">{index + 1}</td>
                   <td className="p-4 font-medium">{letter.name}</td>
                   <td className="p-4">{letter.originChurch}</td>
-                  <td className="p-4">{letter.province} / {letter.field}</td>
+                  <td className="p-4">{letter.district} / {letter.field}</td>
                   <td className="p-4">
                     <div 
                       className="flex items-center gap-1 text-xs text-primary cursor-pointer hover:underline" 
@@ -608,7 +608,7 @@ const handleSaveFamily = async () => {
               <div className="grid gap-2"><Label>{t.name}</Label><Input value={letterFormData.name} onChange={e => setLetterFormData({...letterFormData, name: e.target.value})} /></div>
               <div className="grid gap-2"><Label>{t.origin}</Label><Input value={letterFormData.originChurch} onChange={e => setLetterFormData({...letterFormData, originChurch: e.target.value})} /></div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2"><Label>{t.province}</Label><Input value={letterFormData.province} onChange={e => setLetterFormData({...letterFormData, district: e.target.value})} /></div>
+                <div className="grid gap-2"><Label>{t.district}</Label><Input value={letterFormData.district} onChange={e => setLetterFormData({...letterFormData, district: e.target.value})} /></div>
                 <div className="grid gap-2"><Label>{t.field}</Label><Input value={letterFormData.field} onChange={e => setLetterFormData({...letterFormData, field: e.target.value})} /></div>
               </div>
               <div className="grid gap-2">
