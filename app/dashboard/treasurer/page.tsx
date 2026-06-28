@@ -22,6 +22,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select } from "@/components/ui/select"
 import { 
   Table, 
   TableBody, 
@@ -187,11 +188,13 @@ const translations = {
   }
 }
 
+// --- Types ---
+
 type TransactionType = 'income' | 'expense'
 
 interface Transaction {
   id: string
-  type: string
+  type: string 
   category: string
   amount: number
   date: string
@@ -213,6 +216,9 @@ interface Gift {
   date: string
 }
 
+// In-memory runtime cache for synchronizing reports within the app session without LocalStorage
+let sessionChurchReports: any[] = []
+
 const STANDARD_INCOME = ['Tithes', 'Offerings', 'Donations']
 const INCOME_CATEGORIES = [...STANDARD_INCOME, 'Other']
 const STANDARD_EXPENSES = ['Church projects', 'Welfare', 'Utilities', 'Salaries', 'Maintenance']
@@ -229,6 +235,7 @@ export default function TreasurerDashboard() {
   const [selectedYear, setSelectedYear] = React.useState(new Date().getFullYear())
   const [selectedReportCategory, setSelectedReportCategory] = React.useState<string>("All")
 
+  // Form States
   const [formData, setFormData] = React.useState({
     type: 'income' as TransactionType,
     category: INCOME_CATEGORIES[0],
@@ -254,37 +261,52 @@ export default function TreasurerDashboard() {
   const [editingBookId, setEditingBookId] = React.useState<string | null>(null)
   const [editingGiftId, setEditingGiftId] = React.useState<string | null>(null)
 
-  const loadData = async () => {
-    const year = localStorage.getItem('selected_year') || new Date().getFullYear().toString()
-    setSelectedYear(Number(year.split('-')[0]))
+  const loadData = React.useCallback(async (customYear?: string) => {
+    const fallbackYear = new Date().getFullYear().toString()
+    const targetYear = customYear || selectedYear.toString() || fallbackYear
 
-    setTransactions(await getFinances(year))
-    const inventory = await getInventory(year)
+    setTransactions(await getFinances(targetYear))
+    const inventory = await getInventory(targetYear)
     setBooks(inventory.filter((item: any) => item.type === 'book'))
     setGifts(inventory.filter((item: any) => item.type === 'gift'))
-  }
+  }, [selectedYear])
 
+  // Load data and setup custom state event listeners
   React.useEffect(() => {
     loadData()
 
-    const updateLang = () => {
-      const savedLang = (localStorage.getItem("app_lang") || "en") as "en" | "rw" | "fr"
-      setLang(savedLang)
+    const handleLangChange = (e: Event) => {
+      const customEvent = e as CustomEvent
+      if (customEvent.detail && ["en", "rw", "fr"].includes(customEvent.detail)) {
+        setLang(customEvent.detail)
+      }
     }
-    updateLang()
 
-    window.addEventListener("lang-change", updateLang)
-    window.addEventListener("year-changed", loadData)
-    window.addEventListener("storage", loadData)
+    const handleYearChange = (e: Event) => {
+      const customEvent = e as CustomEvent
+      if (customEvent.detail) {
+        const newYear = Number(customEvent.detail.toString().split('-')[0])
+        setSelectedYear(newYear)
+        loadData(customEvent.detail.toString())
+      } else {
+        loadData()
+      }
+    }
+
+    window.addEventListener("lang-change", handleLangChange)
+    window.addEventListener("year-changed", handleYearChange)
+    window.addEventListener("storage", () => loadData())
     
     return () => {
-      window.removeEventListener("lang-change", updateLang)
-      window.removeEventListener("year-changed", loadData)
-      window.removeEventListener("storage", loadData)
+      window.removeEventListener("lang-change", handleLangChange)
+      window.removeEventListener("year-changed", handleYearChange)
+      window.removeEventListener("storage", () => loadData())
     }
-  }, [])
+  }, [loadData])
 
   const t = translations[lang === "rw" ? "en" : lang]
+
+  // --- Calculations ---
 
   const totalIncome = transactions
     .filter(t => t.type === 'income')
@@ -299,6 +321,8 @@ export default function TreasurerDashboard() {
   const recentTransactions = [...transactions]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 5)
+
+  // --- Handlers ---
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -315,7 +339,6 @@ export default function TreasurerDashboard() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const selectedYearVal = localStorage.getItem("selected_year") || new Date().getFullYear().toString()
     if (!formData.amount || isNaN(Number(formData.amount))) return
 
     const finalCategory = formData.category === 'Other' && formData.customCategory 
@@ -328,7 +351,7 @@ export default function TreasurerDashboard() {
       amount: Number(formData.amount),
       date: formData.date,
       description: formData.description,
-      year: selectedYearVal
+      year: selectedYear.toString()
     })
 
     setFormData(prev => ({
@@ -349,8 +372,6 @@ export default function TreasurerDashboard() {
     e.preventDefault()
     if (!bookFormData.name || !bookFormData.count) return
 
-    const year = localStorage.getItem('selected_year') || new Date().getFullYear().toString()
-
     await saveInventory({
       id: editingBookId,
       type: 'book',
@@ -358,7 +379,7 @@ export default function TreasurerDashboard() {
       date: bookFormData.date,
       count: Number(bookFormData.count),
       description: bookFormData.description,
-      year
+      year: selectedYear.toString()
     })
 
     setEditingBookId(null)
@@ -370,15 +391,13 @@ export default function TreasurerDashboard() {
     e.preventDefault()
     if (!giftFormData.name || !giftFormData.issuedTo) return
 
-    const year = localStorage.getItem('selected_year') || new Date().getFullYear().toString()
-
     await saveInventory({
       id: editingGiftId,
       type: 'gift',
       name: giftFormData.name,
       issuedTo: giftFormData.issuedTo,
       date: giftFormData.date,
-      year
+      year: selectedYear.toString()
     })
 
     setEditingGiftId(null)
@@ -491,9 +510,8 @@ export default function TreasurerDashboard() {
   }
 
   const generateMonthlyReport = () => {
-    const selectedYearVal = localStorage.getItem("selected_year")
-    if (!selectedYearVal) {
-      alert(lang === 'rw' ? "Nyamuneka hitamo umwaka w'itorero!" : (lang === 'fr' ? "Veuillez sélectionner une année d'église !" : "Please select a church year!"))
+    if (!selectedYear) {
+      alert(lang === 'rw' ? 'Nyamuneka hitamo umwaka w\'itorero!' : (lang === 'fr' ? 'Veuillez sélectionner une année d\'église !' : 'Please select a church year!'))
       return
     }
     const monthStr = `${selectedYear}-${(selectedMonth + 1).toString().padStart(2, '0')}`
@@ -566,6 +584,7 @@ export default function TreasurerDashboard() {
     const fileName = `Church_Report_${t.months[selectedMonth]}_${selectedYear}${selectedReportCategory !== "All" ? "_" + selectedReportCategory : ""}.pdf`
     doc.save(fileName)
 
+    // Synchronize with Elder using runtime session variable
     const newReport = {
       id: Math.random().toString(36).substr(2, 9),
       title: "Monthly Tithe & Offerings",
@@ -575,8 +594,7 @@ export default function TreasurerDashboard() {
       type: "Financial",
       pdfUrl: "#"
     }
-    const existingReports = JSON.parse(localStorage.getItem("church_reports") || "[]")
-    localStorage.setItem("church_reports", JSON.stringify([newReport, ...existingReports]))
+    sessionChurchReports = [newReport, ...sessionChurchReports]
     window.dispatchEvent(new Event("storage"))
   }
 
@@ -696,28 +714,18 @@ export default function TreasurerDashboard() {
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
                     <Label>{t.type}</Label>
-                    <select 
-                      name="type" 
-                      value={formData.type} 
-                      onChange={handleInputChange}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
+                    <Select name="type" value={formData.type} onChange={handleInputChange}>
                       <option value="income">{t.income}</option>
                       <option value="expense">{t.expenses}</option>
-                    </select>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label>{t.category}</Label>
-                    <select 
-                      name="category" 
-                      value={formData.category} 
-                      onChange={handleInputChange}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
+                    <Select name="category" value={formData.category} onChange={handleInputChange}>
                       {(formData.type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES).map(cat => (
                         <option key={cat} value={cat}>{t.categories[cat as keyof typeof t.categories] || cat}</option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
                   {formData.category === 'Other' && (
                     <div className="space-y-2">
@@ -1073,15 +1081,14 @@ export default function TreasurerDashboard() {
             <CardContent className="flex flex-wrap items-end gap-4">
               <div className="space-y-2">
                 <Label>{t.month}</Label>
-                <select 
+                <Select 
                   value={selectedMonth.toString()} 
                   onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {t.months.map((month, index) => (
                     <option key={month} value={index}>{month}</option>
                   ))}
-                </select>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label>{t.year}</Label>
@@ -1094,16 +1101,15 @@ export default function TreasurerDashboard() {
               </div>
               <div className="space-y-2">
                 <Label>{t.category}</Label>
-                <select 
+                <Select 
                   value={selectedReportCategory} 
                   onChange={(e) => setSelectedReportCategory(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <option value="All">{lang === 'rw' ? 'Byose' : (lang === 'fr' ? 'Tout' : 'All Categories')}</option>
                   {Array.from(new Set([...INCOME_CATEGORIES, ...EXPENSE_CATEGORIES])).map(cat => (
                     <option key={cat} value={cat}>{t.categories[cat as keyof typeof t.categories] || cat}</option>
                   ))}
-                </select>
+                </Select>
               </div>
               <Button onClick={generateMonthlyReport}>
                 <Download className="mr-2 h-4 w-4" />
