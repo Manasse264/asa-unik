@@ -258,11 +258,19 @@ export async function getAttendance(year: string) {
 
 export async function saveAttendanceRecord(data: any) {
   const { id, ...rest } = data
+  
+  // Ensure we have an ID to target, create a fallback if it's somehow missing
+  const targetId = id || Math.random().toString(36).substr(2, 9)
+
   const result = await prisma.attendance.upsert({
-    where: { id: id ?? "" },
+    where: { id: targetId },
     update: rest,
-    create: rest,
+    create: {
+      id: targetId, // Mandatorily inject the ID here for the creation path
+      ...rest,
+    },
   })
+  
   return { success: true, data: result }
 }
 

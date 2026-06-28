@@ -134,7 +134,7 @@ model Report {
 }
 
 model Attendance {
-  id         String @id
+  id         String @id @default(cuid()) // Add @default(cuid()) here
   date       String
   type       String
   targetId   String
@@ -142,7 +142,6 @@ model Attendance {
   count      Int
   year       String
 }
-
 model SabbathLetter {
   id           String   @id
   name         String
