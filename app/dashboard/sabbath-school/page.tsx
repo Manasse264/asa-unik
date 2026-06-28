@@ -347,7 +347,7 @@ const handleSaveFamily = async () => {
     localStorage.getItem("selected_year") ||
     new Date().getFullYear().toString()
 
-  await saveFamily({
+  const result = await saveFamily({
     id: editingFamily?.id,
     name: familyFormData.name,
     pere: familyFormData.pere,
@@ -356,15 +356,22 @@ const handleSaveFamily = async () => {
     year,
   })
 
+  if (!result.success) {
+    alert(result.error)
+    return
+  }
+
   await loadData()
 
   setIsFamilyModalOpen(false)
+
   setFamilyFormData({
     name: "",
     pere: "",
     mere: "",
-    memberCount: ,
+    memberCount: 2,
   })
+
   setEditingFamily(null)
 }
 

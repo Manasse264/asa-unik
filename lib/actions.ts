@@ -186,20 +186,57 @@ export async function getFamilies(year: string) {
 }
 
 export async function saveFamily(data: any) {
-  const { id, ...rest } = data
+  try {
+    console.log("SAVE FAMILY RECEIVED:", data)
 
-  if (id && id.length > 10) {
-    await prisma.family.update({
-      where: { id },
-      data: rest,
-    })
-  } else {
-    await prisma.family.create({
-      data: rest,
-    })
+    const { id, ...rest } = data
+
+    // Ensure required fields exist
+    if (!rest.name || !rest.pere || !rest.mere) {
+      throw new Error("Family Name, Pere and Mere are required.")
+    }
+
+    // Ensure year exists
+    if (!rest.year) {
+      rest.year = new Date().getFullYear().toString()
+    }
+
+    if (id && id.length > 10) {
+      await prisma.family.update({
+        where: { id },
+        data: {
+          name: rest.name,
+          pere: rest.pere,
+          mere: rest.mere,
+          memberCount: Number(rest.memberCount),
+          year: rest.year,
+        },
+      })
+    } else {
+      await prisma.family.create({
+        data: {
+          name: rest.name,
+          pere: rest.pere,
+          mere: rest.mere,
+          memberCount: Number(rest.memberCount),
+          year: rest.year,
+        },
+      })
+    }
+
+    revalidatePath("/dashboard/sabbath-school")
+
+    return {
+      success: true,
+    }
+  } catch (error: any) {
+    console.error("SAVE FAMILY ERROR:", error)
+
+    return {
+      success: false,
+      error: error.message,
+    }
   }
-
-  revalidatePath("/dashboard/sabbath-school")
 }
 
 export async function deleteFamily(id: string) {
@@ -208,6 +245,10 @@ export async function deleteFamily(id: string) {
   })
 
   revalidatePath("/dashboard/sabbath-school")
+
+  return {
+    success: true,
+  }
 }
 export async function loginUser(email: string, password: string) {
   const input = email.toLowerCase().trim()
