@@ -101,10 +101,15 @@ interface WeeklyProgram {
   year: string
 }
 
+// Update this interface in page.tsx
 interface WeeklyChoir {
   id: string
-  day: string
-  choirName: string
+  name: string        // Matches model field 'name'
+  leaderName: string  // Matches model field 'leaderName'
+  memberNames: string[]
+  year: string
+  createdAt: Date
+  updatedAt: Date
 }
 
 interface Announcement {
@@ -916,19 +921,26 @@ export default function ElderDashboardClient() {
                         <TableHead className="text-right">Action</TableHead>
                       </TableRow>
                     </TableHeader>
-                    <TableBody>
-                      {weeklyChoirs.map((c) => (
-                        <TableRow key={c.id}>
-                          <TableCell>{c.day}</TableCell>
-                          <TableCell>{c.choirName}</TableCell>
-                          <TableCell className="text-right">
-                            <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteChoir(c.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
+                  <TableBody>
+  {weeklyChoirs.map((c) => (
+    <TableRow key={c.id}>
+      {/* Changed from c.day to c.name */}
+      <TableCell>{c.name}</TableCell> 
+      {/* Changed from c.choirName to c.leaderName */}
+      <TableCell>{c.leaderName}</TableCell> 
+      <TableCell className="text-right">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="text-destructive" 
+          onClick={() => handleDeleteChoir(c.id)}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </TableCell>
+    </TableRow>
+  ))}
+</TableBody>
                   </Table>
                 </div>
               </div>
