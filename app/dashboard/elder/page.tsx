@@ -96,8 +96,9 @@ interface WeeklyProgram {
   id: string
   day: string
   preacherName: string
-  prayer: string
-  coordinator: string
+  prayer: string | null     // Updated to match model
+  coordinator: string | null // Updated to match model
+  year: string
 }
 
 interface WeeklyChoir {
