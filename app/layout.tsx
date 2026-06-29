@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils"
 import { Navbar } from "@/components/navbar"
 
 export const metadata = {
-  title: "Church Elder Dashboard",
+  title: "ASA RP NGOMA COLLEGE",
 }
 
 export default function RootLayout({
