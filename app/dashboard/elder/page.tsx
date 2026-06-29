@@ -84,7 +84,6 @@ interface UserAccount {
   allowedYears?: string[]
 }
 
-// Updated interface to match database return type
 interface WeekOfPrayer {
   id: string
   title: string
@@ -96,19 +95,17 @@ interface WeeklyProgram {
   id: string
   day: string
   preacherName: string
-  prayer: string | null     // Updated to match model
-  coordinator: string | null // Updated to match model
+  prayer: string | null     
+  coordinator: string | null 
   year: string
 }
 
-// Update this interface in page.tsx
+// Fixed interface to match actual data structure
 interface WeeklyChoir {
   id: string
-  name: string        // Matches model field 'name'
-  leaderName: string  // Matches model field 'leaderName'
+  name: string        
+  leaderName: string  
   memberNames: string[]
-  day: string; // Add this line (or 'number' if you use index)
-  choirName: string;
   year: string
   createdAt: Date
   updatedAt: Date
@@ -154,7 +151,6 @@ export default function ElderDashboardClient() {
 
   const [weekOfPrayers, setWeekOfPrayers] = React.useState<WeekOfPrayer[]>([])
   const [isAddingWOP, setIsAddingWOP] = React.useState(false)
-  // Updated state to match database fields
   const [wopFormData, setWopFormData] = React.useState({ title: "", content: "", date: "" })
 
   const [weeklyPrograms, setWeeklyPrograms] = React.useState<WeeklyProgram[]>([])
@@ -163,7 +159,8 @@ export default function ElderDashboardClient() {
 
   const [weeklyChoirs, setWeeklyChoirs] = React.useState<WeeklyChoir[]>([])
   const [isAddingChoir, setIsAddingChoir] = React.useState(false)
-  const [choirFormData, setChoirFormData] = React.useState({ day: "", choirName: "" })
+  // Updated state fields to match the interface
+  const [choirFormData, setChoirFormData] = React.useState({ name: "", leaderName: "" })
 
   const [generatedResetLink, setGeneratedResetLink] = React.useState<string | null>(null)
 
@@ -213,7 +210,6 @@ export default function ElderDashboardClient() {
     setAnnouncements(mappedAnnouncements)
     
     setUsers(await getUsers())
-    // Now matches WeekOfPrayer interface
     const wops = await getWeekOfPrayers(year)
     setWeekOfPrayers(wops)
     
@@ -442,7 +438,7 @@ export default function ElderDashboardClient() {
       year
     })
     setIsAddingChoir(false)
-    setChoirFormData({ day: "", choirName: "" })
+    setChoirFormData({ name: "", leaderName: "" })
     loadData()
   }
 
@@ -457,10 +453,11 @@ export default function ElderDashboardClient() {
     const doc = new jsPDF()
     doc.text("Weekly Choir Schedule", 14, 15)
     
-    const tableData = weeklyChoirs.map(c => [c.day, c.choirName])
+    // Updated to match actual properties
+    const tableData = weeklyChoirs.map(c => [c.name, c.leaderName])
     
     autoTable(doc, {
-      head: [['Day', 'Choir Name']],
+      head: [['Choir Name', 'Leader Name']],
       body: tableData,
       startY: 20,
     })
@@ -900,12 +897,12 @@ export default function ElderDashboardClient() {
                 {isAddingChoir && (
                   <form onSubmit={handleAddChoir} className="grid gap-3 p-4 bg-muted/50 rounded-lg">
                     <div className="grid gap-1.5">
-                      <Label>Day</Label>
-                      <Input placeholder="e.g. Sabbath" value={choirFormData.day} onChange={(e) => setChoirFormData({...choirFormData, day: e.target.value})} required />
+                      <Label>Choir Name</Label>
+                      <Input placeholder="e.g. Youth Choir" value={choirFormData.name} onChange={(e) => setChoirFormData({...choirFormData, name: e.target.value})} required />
                     </div>
                     <div className="grid gap-1.5">
-                      <Label>Choir Name</Label>
-                      <Input value={choirFormData.choirName} onChange={(e) => setChoirFormData({...choirFormData, choirName: e.target.value})} required />
+                      <Label>Leader Name</Label>
+                      <Input placeholder="e.g. John Doe" value={choirFormData.leaderName} onChange={(e) => setChoirFormData({...choirFormData, leaderName: e.target.value})} required />
                     </div>
                     <div className="flex gap-2">
                       <Button type="submit" className="flex-1">Save</Button>
@@ -918,31 +915,29 @@ export default function ElderDashboardClient() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Day</TableHead>
                         <TableHead>Choir</TableHead>
+                        <TableHead>Leader</TableHead>
                         <TableHead className="text-right">Action</TableHead>
                       </TableRow>
                     </TableHeader>
                   <TableBody>
-  {weeklyChoirs.map((c) => (
-    <TableRow key={c.id}>
-      {/* Changed from c.day to c.name */}
-      <TableCell>{c.name}</TableCell> 
-      {/* Changed from c.choirName to c.leaderName */}
-      <TableCell>{c.leaderName}</TableCell> 
-      <TableCell className="text-right">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="text-destructive" 
-          onClick={() => handleDeleteChoir(c.id)}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      </TableCell>
-    </TableRow>
-  ))}
-</TableBody>
+                  {weeklyChoirs.map((c) => (
+                    <TableRow key={c.id}>
+                      <TableCell>{c.name}</TableCell> 
+                      <TableCell>{c.leaderName}</TableCell> 
+                      <TableCell className="text-right">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="text-destructive" 
+                          onClick={() => handleDeleteChoir(c.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  </TableBody>
                   </Table>
                 </div>
               </div>
