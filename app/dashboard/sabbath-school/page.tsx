@@ -57,7 +57,7 @@ const sslTranslations = {
 interface Family { id: string; name: string; pere: string; mere: string; memberCount: number; }
 interface SabbathLetter { id: string; name: string; originChurch: string; district: string; field: string; fileName: string; fileData?: string | null; status: 'received' | 'rejected'; }
 interface AttendanceRecord { id: string; date: string; type: 'family' | 'choir'; targetId: string; targetName: string; count: number; year?: string; }
-
+const [manualTotal, setManualTotal] = React.useState<string>("")
 export default function SabbathSchoolDashboard() {
   const [lang, setLang] = React.useState<"en" | "rw" | "fr" >("en")
   const [activeTab, setActiveTab] = React.useState<"families" | "attendance" | "reports" | "letters">("families")
@@ -227,10 +227,13 @@ export default function SabbathSchoolDashboard() {
     
     doc.setFontSize(11)
     doc.setFont("helvetica", "normal")
-    doc.text(`${t.families}: ${fTotal}`, 15, 50)
-    doc.text(`${t.choirs}: ${cTotal}`, 75, 50)
-    doc.setFont("helvetica", "bold")
-    doc.text(`${t.total}: ${total}`, 140, 50)
+   doc.text(`${t.families}: ${fTotal}`, 15, 50)
+   doc.text(`${t.choirs}: ${cTotal}`, 75, 50)
+  doc.setFont("helvetica", "bold")
+
+// Use the manual total if provided, otherwise show a line
+const totalToShow = manualTotal || "_______"
+doc.text(`Total Attended: ${totalToShow}`, 140, 50)
 
     autoTable(doc, { 
       startY: 60, 
@@ -241,13 +244,13 @@ export default function SabbathSchoolDashboard() {
 
     const pdfBlob = doc.output("datauristring")
 
-    const newReport = {
+const newReport = {
       id: generateId(),
-      title: "Attendance",
+      title: "Attendance", 
       date,
       type: "attendance",
-      attendance: total,
-      total,
+      attendance: parseInt(manualTotal) || total,
+      total: parseInt(manualTotal) || total,
       pdfData: pdfBlob,
       pdfUrl: "#",
       status: "submitted",
@@ -490,7 +493,30 @@ export default function SabbathSchoolDashboard() {
           </table>
         </div>
       )}
-
+<div className="flex items-center gap-4">
+  {/* Add this new input field */}
+  <div className="flex items-center gap-2">
+    <Label htmlFor="manual-total" className="text-xs font-medium">Manual Total:</Label>
+    <Input 
+      id="manual-total"
+      type="number" 
+      className="w-20 h-8 text-center" 
+      placeholder="--" 
+      value={manualTotal} 
+      onChange={e => setManualTotal(e.target.value)} 
+    />
+  </div>
+  
+  <div className="font-bold">{t.total}: {currentDayAttendance.reduce((acc, c) => acc + c.count, 0)}</div>
+  <Button 
+    variant="outline" 
+    size="sm" 
+    className="gap-2 border-primary text-primary hover:bg-primary hover:text-white"
+    onClick={() => generateDailyPDF(selectedDate)}
+  >
+    <FileText className="h-4 w-4" /> {t.genPDF}
+  </Button>
+</div>
       {activeTab === 'attendance' && (
         <div className="space-y-4">
           <div className="bg-muted/50 p-4 rounded-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
