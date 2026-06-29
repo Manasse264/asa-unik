@@ -243,7 +243,7 @@ export default function SabbathSchoolDashboard() {
 
     const newReport = {
       id: generateId(),
-      title: "Sabbath Service Attendance",
+      title: "Attendance",
       date,
       type: "attendance",
       attendance: total,
