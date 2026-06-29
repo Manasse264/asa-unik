@@ -107,6 +107,8 @@ interface WeeklyChoir {
   name: string        // Matches model field 'name'
   leaderName: string  // Matches model field 'leaderName'
   memberNames: string[]
+  day: string; // Add this line (or 'number' if you use index)
+  choirName: string;
   year: string
   createdAt: Date
   updatedAt: Date
