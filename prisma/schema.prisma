@@ -124,19 +124,19 @@ model SystemConfig {
 model Report {
   id         String   @id @default(cuid())
   title      String
-  date       String
-  type       String
-  attendance Int      // <-- Make sure this line exists
-  total      Int
-  pdfData    String
-  pdfUrl     String
   status     String
+  type       String
   year       String
   createdAt  DateTime @default(now())
+  date       String
+  pdfData    String
+  total      Int
+  attendance Int
+  pdfUrl     String
 }
 
 model Attendance {
-  id         String @id @default(cuid()) // Add @default(cuid()) here
+  id         String @id @default(cuid())
   date       String
   type       String
   targetId   String
@@ -144,8 +144,9 @@ model Attendance {
   count      Int
   year       String
 }
+
 model SabbathLetter {
-  id           String   @id
+  id           String  @id
   name         String
   originChurch String
   district     String
@@ -165,6 +166,7 @@ model WeekOfPrayer {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
 model WeeklyProgram {
   id           String   @id @default(cuid())
   day          String
