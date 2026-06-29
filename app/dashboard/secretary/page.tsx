@@ -266,7 +266,7 @@ export default function SecretaryDashboard() {
   const [activeTab, setActiveTab] = React.useState<"members" | "council" | "departments" | "choirs" | "deacons" | "deaconesses" | "properties" | "reports">("members")
   const [members, setMembers] = React.useState<Member[]>(initialMembers)
   const [departments, setDepartments] = React.useState<Department[]>(initialDepartments)
-  const [choirs, setChoirs] = React.useState<Choose[] | any[]>(initialChoirs)
+  const [choirs, setChoirs] = React.useState<Choir[]>(initialChoirs)
   const [searchQuery, setSearchQuery] = React.useState("")
   
   // New States for Properties and Published Treasurer Reports
