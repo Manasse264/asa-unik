@@ -84,10 +84,11 @@ interface UserAccount {
   allowedYears?: string[]
 }
 
+// Updated interface to match database return type
 interface WeekOfPrayer {
   id: string
-  preacher: string
-  choirInvited: string
+  title: string
+  content: string | null
   date: string
 }
 
@@ -145,7 +146,8 @@ export default function ElderDashboardClient() {
 
   const [weekOfPrayers, setWeekOfPrayers] = React.useState<WeekOfPrayer[]>([])
   const [isAddingWOP, setIsAddingWOP] = React.useState(false)
-  const [wopFormData, setWopFormData] = React.useState({ preacher: "", choirInvited: "", date: "" })
+  // Updated state to match database fields
+  const [wopFormData, setWopFormData] = React.useState({ title: "", content: "", date: "" })
 
   const [weeklyPrograms, setWeeklyPrograms] = React.useState<WeeklyProgram[]>([])
   const [isAddingProgram, setIsAddingProgram] = React.useState(false)
@@ -203,7 +205,10 @@ export default function ElderDashboardClient() {
     setAnnouncements(mappedAnnouncements)
     
     setUsers(await getUsers())
-    setWeekOfPrayers(await getWeekOfPrayers(year))
+    // Now matches WeekOfPrayer interface
+    const wops = await getWeekOfPrayers(year)
+    setWeekOfPrayers(wops)
+    
     setWeeklyPrograms(await getWeeklyPrograms(year))
     setWeeklyChoirs(await getWeeklyChoirs(year))
 
@@ -391,7 +396,7 @@ export default function ElderDashboardClient() {
       year
     })
     setIsAddingWOP(false)
-    setWopFormData({ preacher: "", choirInvited: "", date: "" })
+    setWopFormData({ title: "", content: "", date: "" })
     loadData()
   }
 
@@ -773,12 +778,12 @@ export default function ElderDashboardClient() {
               {isAddingWOP && (
                 <form onSubmit={handleAddWOP} className="grid gap-4 md:grid-cols-4 p-4 bg-muted/50 rounded-lg">
                   <div className="grid gap-1.5">
-                    <Label>Preacher</Label>
-                    <Input value={wopFormData.preacher} onChange={(e) => setWopFormData({...wopFormData, preacher: e.target.value})} required />
+                    <Label>Title</Label>
+                    <Input value={wopFormData.title} onChange={(e) => setWopFormData({...wopFormData, title: e.target.value})} required />
                   </div>
                   <div className="grid gap-1.5">
-                    <Label>Choir Invited</Label>
-                    <Input value={wopFormData.choirInvited} onChange={(e) => setWopFormData({...wopFormData, choirInvited: e.target.value})} required />
+                    <Label>Content</Label>
+                    <Input value={wopFormData.content || ""} onChange={(e) => setWopFormData({...wopFormData, content: e.target.value})} required />
                   </div>
                   <div className="grid gap-1.5">
                     <Label>Date</Label>
@@ -795,8 +800,8 @@ export default function ElderDashboardClient() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Preacher</TableHead>
-                      <TableHead>Choir Invited</TableHead>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Content</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -804,8 +809,8 @@ export default function ElderDashboardClient() {
                   <TableBody>
                     {weekOfPrayers.map((w) => (
                       <TableRow key={w.id}>
-                        <TableCell>{w.preacher}</TableCell>
-                        <TableCell>{w.choirInvited}</TableCell>
+                        <TableCell>{w.title}</TableCell>
+                        <TableCell>{w.content}</TableCell>
                         <TableCell>{w.date}</TableCell>
                         <TableCell className="text-right">
                           <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteWOP(w.id)}>
@@ -1060,7 +1065,6 @@ export default function ElderDashboardClient() {
             
             <hr />
 
-            {/* --- CHURCH YEAR MANAGEMENT ENGINE WITH BLOCK & DELETE ACTIONS --- */}
             <div className="p-4 border rounded-lg bg-muted/10 space-y-4">
               <div>
                 <Label className="text-base font-semibold">Manage Church Configurations</Label>
@@ -1093,7 +1097,6 @@ export default function ElderDashboardClient() {
                 </Button>
               </div>
 
-              {/* Advanced Interactive Timeline Tokens */}
               <div className="flex flex-col gap-2 pt-2 border-t border-dashed mt-2">
                 <Label className="text-xs font-semibold text-muted-foreground">Active Operational Timelines:</Label>
                 <div className="flex flex-wrap gap-3">
@@ -1111,7 +1114,6 @@ export default function ElderDashboardClient() {
                         <span>{yr} {isBlocked && <span className="text-[10px] text-amber-600 font-bold">(BLOCKED)</span>}</span>
                         
                         <div className="flex items-center gap-0.5 ml-1 border-l pl-1">
-                          {/* Block / Access Toggle Button */}
                           <Button 
                             variant="ghost" 
                             size="icon" 
@@ -1131,7 +1133,6 @@ export default function ElderDashboardClient() {
                             {isBlocked ? <Eye className="h-3 w-3 text-green-600" /> : <Ban className="h-3 w-3 text-amber-600" />}
                           </Button>
 
-                          {/* Delete Config Button */}
                           <Button 
                             variant="ghost" 
                             size="icon" 
@@ -1162,7 +1163,6 @@ export default function ElderDashboardClient() {
               </div>
             </div>
 
-            {/* --- SECURITY PERMISSION CONTROLS GRID --- */}
             <div className="grid gap-6 md:grid-cols-2">
               <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/20">
                 <div className="space-y-0.5">
