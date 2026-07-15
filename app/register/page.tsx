@@ -106,9 +106,9 @@ export default function RegisterPage() {
   }
 
   const blockMessages = {
-    en: "Registration is currently disabled by the Church Elder.",
-    rw: "Kwiyandikisha kwahagaritswe n'Umukuru w'Itorero.",
-    fr: "L'inscription est actuellement désactivée par l'Ancien de l'église."
+    en: "Registration is currently disabled .",
+    rw: "Kwiyandikisha kwahagaritswe .",
+    fr: "L'inscription est actuellement désactivée ."
   }
 
   return (
