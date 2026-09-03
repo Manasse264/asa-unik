@@ -465,6 +465,9 @@ export default function ElderDashboardClient() {
     doc.save("weekly_choir_schedule.pdf")
   }
 
+
+
+
   const filteredMembers = members.filter(m => 
     `${m.firstName} ${m.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (m.email && m.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
@@ -898,11 +901,11 @@ export default function ElderDashboardClient() {
                   <form onSubmit={handleAddChoir} className="grid gap-3 p-4 bg-muted/50 rounded-lg">
                     <div className="grid gap-1.5">
                       <Label>Choir Name</Label>
-                      <Input placeholder="e.g. Youth Choir" value={choirFormData.name} onChange={(e) => setChoirFormData({...choirFormData, name: e.target.value})} required />
+                      <Input placeholder="" value={choirFormData.name} onChange={(e) => setChoirFormData({...choirFormData, name: e.target.value})} required />
                     </div>
                     <div className="grid gap-1.5">
                       <Label>Leader Name</Label>
-                      <Input placeholder="e.g. John Doe" value={choirFormData.leaderName} onChange={(e) => setChoirFormData({...choirFormData, leaderName: e.target.value})} required />
+                      <Input placeholder="" value={choirFormData.leaderName} onChange={(e) => setChoirFormData({...choirFormData, leaderName: e.target.value})} required />
                     </div>
                     <div className="flex gap-2">
                       <Button type="submit" className="flex-1">Save</Button>
