@@ -100,7 +100,6 @@ interface WeeklyProgram {
   year: string
 }
 
-// Fixed interface to match actual data structure
 interface WeeklyChoir {
   id: string
   name: string        
@@ -159,7 +158,6 @@ export default function ElderDashboardClient() {
 
   const [weeklyChoirs, setWeeklyChoirs] = React.useState<WeeklyChoir[]>([])
   const [isAddingChoir, setIsAddingChoir] = React.useState(false)
-  // Updated state fields to match the interface
   const [choirFormData, setChoirFormData] = React.useState({ name: "", leaderName: "" })
 
   const [generatedResetLink, setGeneratedResetLink] = React.useState<string | null>(null)
@@ -453,7 +451,6 @@ export default function ElderDashboardClient() {
     const doc = new jsPDF()
     doc.text("Weekly Choir Schedule", 14, 15)
     
-    // Updated to match actual properties
     const tableData = weeklyChoirs.map(c => [c.name, c.leaderName])
     
     autoTable(doc, {
@@ -464,9 +461,6 @@ export default function ElderDashboardClient() {
     
     doc.save("weekly_choir_schedule.pdf")
   }
-
-
-
 
   const filteredMembers = members.filter(m => 
     `${m.firstName} ${m.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -497,6 +491,182 @@ export default function ElderDashboardClient() {
           <TabsTrigger value="reports">Reports</TabsTrigger>
           <TabsTrigger value="system">System Config</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="members" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="relative w-72">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search members..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
+            </div>
+            <Button onClick={() => setIsAddingMember(true)}>
+              <Plus className="mr-2 h-4 w-4" /> Add Baptized Member
+            </Button>
+          </div>
+
+          {(isAddingMember || editingMember) && (
+            <div className="p-6 border rounded-xl bg-muted/30 space-y-4">
+              <h3 className="text-lg font-bold">{editingMember ? "Edit Member" : "Add New Baptized Member"}</h3>
+              <form onSubmit={editingMember ? handleUpdateMember : handleAddMember} className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-2">
+                    <Label>Full Name</Label>
+                    <Input 
+                      value={formData.name} 
+                      onChange={(e) => setFormData({...formData, name: e.target.value})} 
+                      required 
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Email</Label>
+                    <Input 
+                      type="email" 
+                      value={formData.email} 
+                      onChange={(e) => setFormData({...formData, email: e.target.value})} 
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Address</Label>
+                    <Input 
+                      value={formData.address} 
+                      onChange={(e) => setFormData({...formData, address: e.target.value})} 
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Telephone</Label>
+                    <Input 
+                      value={formData.telephone} 
+                      onChange={(e) => setFormData({...formData, telephone: e.target.value})} 
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Baptism Date</Label>
+                    <Input 
+                      type="date" 
+                      value={formData.baptismDate} 
+                      onChange={(e) => setFormData({...formData, baptismDate: e.target.value})} 
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Pastor</Label>
+                    <Input 
+                      value={formData.pastor} 
+                      onChange={(e) => setFormData({...formData, pastor: e.target.value})} 
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Church Elder</Label>
+                    <Input 
+                      value={formData.churchElder} 
+                      onChange={(e) => setFormData({...formData, churchElder: e.target.value})} 
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button type="submit">Save Member</Button>
+                  <Button variant="outline" type="button" onClick={() => { 
+                    setIsAddingMember(false); 
+                    setEditingMember(null); 
+                    setFormData({ name: "", email: "", address: "", telephone: "", baptismDate: "", pastor: "", churchElder: "" });
+                  }}>Cancel</Button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Full Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Telephone</TableHead>
+                  <TableHead>Address</TableHead>
+                  <TableHead>Baptism Date</TableHead>
+                  <TableHead>Pastor</TableHead>
+                  <TableHead>Church Elder</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredMembers.map((m) => (
+                  <TableRow key={m.id}>
+                    <TableCell className="font-medium">{m.firstName} {m.lastName}</TableCell>
+                    <TableCell>{m.email || "-"}</TableCell>
+                    <TableCell>{m.phone || "-"}</TableCell>
+                    <TableCell>{m.address || "-"}</TableCell>
+                    <TableCell>{m.baptismDate || "-"}</TableCell>
+                    <TableCell>{m.pastor || "-"}</TableCell>
+                    <TableCell>{m.churchElder || "-"}</TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="icon" onClick={() => { 
+                        setEditingMember(m); 
+                        setFormData({
+                          name: `${m.firstName} ${m.lastName}`.trim(),
+                          email: m.email || "",
+                          address: m.address || "",
+                          telephone: m.phone || "",
+                          baptismDate: m.baptismDate || "",
+                          pastor: m.pastor || "",
+                          churchElder: m.churchElder || ""
+                        }); 
+                      }}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteMember(m.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="council" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="relative w-72">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search council members..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+          </div>
+
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Full Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Telephone</TableHead>
+                  <TableHead>Address</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredCouncilMembers.map((m) => (
+                  <TableRow key={m.id}>
+                    <TableCell className="font-medium">{m.firstName} {m.lastName}</TableCell>
+                    <TableCell>{m.email || "-"}</TableCell>
+                    <TableCell>{m.phone || "-"}</TableCell>
+                    <TableCell>{m.address || "-"}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
 
         <TabsContent value="reports" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -848,12 +1018,20 @@ export default function ElderDashboardClient() {
                       <Input placeholder="e.g. Wednesday" value={programFormData.day} onChange={(e) => setProgramFormData({...programFormData, day: e.target.value})} required />
                     </div>
                     <div className="grid gap-1.5">
-                      <Label>Preacher Name</Label>
+                      <Label>Preacher</Label>
                       <Input value={programFormData.preacherName} onChange={(e) => setProgramFormData({...programFormData, preacherName: e.target.value})} required />
                     </div>
+                    <div className="grid gap-1.5">
+                      <Label>Prayer Leader</Label>
+                      <Input value={programFormData.prayer || ""} onChange={(e) => setProgramFormData({...programFormData, prayer: e.target.value})} />
+                    </div>
+                    <div className="grid gap-1.5">
+                      <Label>Coordinator</Label>
+                      <Input value={programFormData.coordinator || ""} onChange={(e) => setProgramFormData({...programFormData, coordinator: e.target.value})} />
+                    </div>
                     <div className="flex gap-2">
-                      <Button type="submit" className="flex-1">Save</Button>
-                      <Button variant="ghost" onClick={() => setIsAddingProgram(false)}>Cancel</Button>
+                      <Button type="submit" size="sm">Save Program</Button>
+                      <Button variant="ghost" size="sm" onClick={() => setIsAddingProgram(false)}>Cancel</Button>
                     </div>
                   </form>
                 )}
@@ -870,7 +1048,7 @@ export default function ElderDashboardClient() {
                     <TableBody>
                       {weeklyPrograms.map((p) => (
                         <TableRow key={p.id}>
-                          <TableCell>{p.day}</TableCell>
+                          <TableCell className="font-medium">{p.day}</TableCell>
                           <TableCell>{p.preacherName}</TableCell>
                           <TableCell className="text-right">
                             <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteProgram(p.id)}>
@@ -886,13 +1064,13 @@ export default function ElderDashboardClient() {
 
               <div className="space-y-4 p-6 border rounded-xl">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-bold">Weekly Program for Choir</h3>
+                  <h3 className="text-lg font-bold">Weekly Choir Schedule</h3>
                   <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => setIsAddingChoir(true)}>
-                      <Plus className="h-4 w-4 mr-1" /> Add
-                    </Button>
-                    <Button size="sm" variant="secondary" onClick={generateChoirPDF}>
+                    <Button size="sm" variant="outline" onClick={generateChoirPDF}>
                       <Download className="h-4 w-4 mr-1" /> PDF
+                    </Button>
+                    <Button size="sm" onClick={() => setIsAddingChoir(true)}>
+                      <Plus className="h-4 w-4 mr-1" /> Add
                     </Button>
                   </div>
                 </div>
@@ -901,15 +1079,15 @@ export default function ElderDashboardClient() {
                   <form onSubmit={handleAddChoir} className="grid gap-3 p-4 bg-muted/50 rounded-lg">
                     <div className="grid gap-1.5">
                       <Label>Choir Name</Label>
-                      <Input placeholder="" value={choirFormData.name} onChange={(e) => setChoirFormData({...choirFormData, name: e.target.value})} required />
+                      <Input value={choirFormData.name} onChange={(e) => setChoirFormData({...choirFormData, name: e.target.value})} required />
                     </div>
                     <div className="grid gap-1.5">
                       <Label>Leader Name</Label>
-                      <Input placeholder="" value={choirFormData.leaderName} onChange={(e) => setChoirFormData({...choirFormData, leaderName: e.target.value})} required />
+                      <Input value={choirFormData.leaderName} onChange={(e) => setChoirFormData({...choirFormData, leaderName: e.target.value})} required />
                     </div>
                     <div className="flex gap-2">
-                      <Button type="submit" className="flex-1">Save</Button>
-                      <Button variant="ghost" onClick={() => setIsAddingChoir(false)}>Cancel</Button>
+                      <Button type="submit" size="sm">Save Choir</Button>
+                      <Button variant="ghost" size="sm" onClick={() => setIsAddingChoir(false)}>Cancel</Button>
                     </div>
                   </form>
                 )}
@@ -918,29 +1096,24 @@ export default function ElderDashboardClient() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Choir</TableHead>
+                        <TableHead>Name</TableHead>
                         <TableHead>Leader</TableHead>
                         <TableHead className="text-right">Action</TableHead>
                       </TableRow>
                     </TableHeader>
-                  <TableBody>
-                  {weeklyChoirs.map((c) => (
-                    <TableRow key={c.id}>
-                      <TableCell>{c.name}</TableCell> 
-                      <TableCell>{c.leaderName}</TableCell> 
-                      <TableCell className="text-right">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="text-destructive" 
-                          onClick={() => handleDeleteChoir(c.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  </TableBody>
+                    <TableBody>
+                      {weeklyChoirs.map((c) => (
+                        <TableRow key={c.id}>
+                          <TableCell className="font-medium">{c.name}</TableCell>
+                          <TableCell>{c.leaderName}</TableCell>
+                          <TableCell className="text-right">
+                            <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteChoir(c.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
                   </Table>
                 </div>
               </div>
@@ -948,239 +1121,17 @@ export default function ElderDashboardClient() {
           </div>
         </TabsContent>
 
-        <TabsContent value="members" className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="relative w-72">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search members..." 
-                className="pl-8" 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <Button onClick={() => setIsAddingMember(true)}>
-              <Plus className="mr-2 h-4 w-4" /> Add Member
-            </Button>
-          </div>
-
-          {(isAddingMember || editingMember) && (
-            <div className="p-6 border rounded-xl bg-muted/30 space-y-4">
-              <h3 className="text-lg font-bold">{editingMember ? "Edit Member" : "Add New Baptized Member"}</h3>
-              <form onSubmit={editingMember ? handleUpdateMember : handleAddMember} className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <div className="grid gap-2">
-                  <Label htmlFor="name">Full Names</Label>
-                  <Input id="name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} required />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="address">Address</Label>
-                  <Input id="address" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} required />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="telephone">Telephone</Label>
-                  <Input id="telephone" value={formData.telephone} onChange={(e) => setFormData({...formData, telephone: e.target.value})} required />
-                </div>
-                <div className="flex items-end gap-2">
-                  <Button type="submit">{editingMember ? "Update" : "Save"}</Button>
-                  <Button variant="outline" type="button" onClick={() => { setIsAddingMember(false); setEditingMember(null); }}>Cancel</Button>
-                </div>
-              </form>
-            </div>
-          )}
-
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredMembers.map((m) => (
-                  <TableRow key={m.id}>
-                    <TableCell>{m.firstName} {m.lastName}</TableCell>
-                    <TableCell>{m.email}</TableCell>
-                    <TableCell>{m.phone}</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" onClick={() => { setEditingMember(m); setFormData({ name: `${m.firstName} ${m.lastName}`, email: m.email || "", address: m.address || "", telephone: m.phone || "", baptismDate: m.baptismDate || "", pastor: m.pastor || "", churchElder: m.churchElder || "" }); }}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteMember(m.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="council" className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="relative w-72">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search council members..." 
-                className="pl-8" 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredCouncilMembers.map((m) => (
-                  <TableRow key={m.id}>
-                    <TableCell>{m.firstName} {m.lastName}</TableCell>
-                    <TableCell>{m.email}</TableCell>
-                    <TableCell>{m.phone}</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" onClick={() => { setEditingMember(m); setFormData({ name: `${m.firstName} ${m.lastName}`, email: m.email || "", address: m.address || "", telephone: m.phone || "", baptismDate: m.baptismDate || "", pastor: m.pastor || "", churchElder: m.churchElder || "" }); }}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteMember(m.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="system" className="space-y-6">
-          <div className="border p-6 rounded-xl bg-background shadow-sm space-y-6">
-            <div>
-              <h3 className="text-xl font-bold flex items-center gap-2">
-                <Settings className="h-5 w-5" /> Global Security & System Access
-              </h3>
-              <p className="text-sm text-muted-foreground">Control registration, login gates, and historical system data visibility.</p>
-            </div>
+        <TabsContent value="system" className="space-y-4">
+          <div className="p-6 border rounded-xl space-y-6">
+            <h3 className="text-xl font-bold flex items-center gap-2">
+              <Settings className="h-5 w-5" /> System Controls
+            </h3>
             
-            <hr />
-
-            <div className="p-4 border rounded-lg bg-muted/10 space-y-4">
-              <div>
-                <Label className="text-base font-semibold">Manage Church Configurations</Label>
-                <p className="text-xs text-muted-foreground">Initialize, toggle visibility gates, or remove timeline modules completely.</p>
-              </div>
-              
-              <div className="flex gap-2 max-w-md">
-                <Input 
-                  id="new-church-year-input"
-                  placeholder="e.g. 2026-2027" 
-                  className="bg-background"
-                />
-                <Button 
-                  onClick={async () => {
-                    const inputEl = document.getElementById("new-church-year-input") as HTMLInputElement
-                    const newYear = inputEl?.value?.trim()
-                    
-                    if (!newYear) return alert("Please enter a valid configuration title!")
-                    if (availableYears.includes(newYear)) return alert("This calendar timeline already exists!")
-                    
-                    const updatedYears = [...availableYears, newYear]
-                    setAvailableYears(updatedYears)
-                    await updateSystemConfig({ availableYears: updatedYears })
-                    
-                    alert(`Year configuration setup completed for ${newYear}!`)
-                    inputEl.value = ""
-                  }}
-                >
-                  <Plus className="h-4 w-4 mr-1" /> Create Year
-                </Button>
-              </div>
-
-              <div className="flex flex-col gap-2 pt-2 border-t border-dashed mt-2">
-                <Label className="text-xs font-semibold text-muted-foreground">Active Operational Timelines:</Label>
-                <div className="flex flex-wrap gap-3">
-                  {availableYears.map((yr) => {
-                    const isBlocked = blockedYears.includes(yr);
-                    return (
-                      <div 
-                        key={yr} 
-                        className={cn(
-                          "inline-flex items-center gap-2 text-xs font-semibold pl-3 pr-1.5 py-1 rounded-full border bg-background shadow-sm transition-all",
-                          isBlocked && "opacity-60 bg-muted/60"
-                        )}
-                      >
-                        <span className={cn("h-1.5 w-1.5 rounded-full", isBlocked ? "bg-amber-500 animate-pulse" : "bg-green-500")} />
-                        <span>{yr} {isBlocked && <span className="text-[10px] text-amber-600 font-bold">(BLOCKED)</span>}</span>
-                        
-                        <div className="flex items-center gap-0.5 ml-1 border-l pl-1">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-5 w-5 rounded-full p-0 text-muted-foreground hover:text-foreground"
-                            title={isBlocked ? "Allow Access to Year" : "Block Access to Year"}
-                            onClick={async () => {
-                              let updatedBlocked: string[]
-                              if (isBlocked) {
-                                updatedBlocked = blockedYears.filter(y => y !== yr)
-                              } else {
-                                updatedBlocked = [...blockedYears, yr]
-                              }
-                              setBlockedYears(updatedBlocked)
-                              await updateSystemConfig({ blockedYears: updatedBlocked })
-                            }}
-                          >
-                            {isBlocked ? <Eye className="h-3 w-3 text-green-600" /> : <Ban className="h-3 w-3 text-amber-600" />}
-                          </Button>
-
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-5 w-5 rounded-full p-0 text-muted-foreground hover:text-destructive"
-                            title="Delete Configuration"
-                            onClick={async () => {
-                              if (confirm(`Are you completely sure you want to delete the configuration for ${yr}? This action clears its entry parameters.`)) {
-                                const updatedYears = availableYears.filter(y => y !== yr)
-                                const updatedBlocked = blockedYears.filter(y => y !== yr)
-                                
-                                setAvailableYears(updatedYears)
-                                setBlockedYears(updatedBlocked)
-                                
-                                await updateSystemConfig({ 
-                                  availableYears: updatedYears,
-                                  blockedYears: updatedBlocked
-                                })
-                              }
-                            }}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            </div>
-
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/20">
-                <div className="space-y-0.5">
-                  <Label className="text-base font-semibold">Block Application Logins</Label>
-                  <p className="text-xs text-muted-foreground">Prevents regular church users from signing into their profiles.</p>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <p className="font-semibold">Block Member Login</p>
+                  <p className="text-sm text-muted-foreground">Prevent non-admin users from signing in</p>
                 </div>
                 <Button 
                   variant={blockLogin ? "destructive" : "outline"}
@@ -1190,15 +1141,14 @@ export default function ElderDashboardClient() {
                     await updateSystemConfig({ blockLogin: newValue })
                   }}
                 >
-                  {blockLogin ? <Lock className="h-4 w-4 mr-1" /> : <Unlock className="h-4 w-4 mr-1" />}
-                  {blockLogin ? "Locked" : "Open"}
+                  {blockLogin ? "Blocked" : "Allowed"}
                 </Button>
               </div>
 
-              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/20">
-                <div className="space-y-0.5">
-                  <Label className="text-base font-semibold">Block New Registrations</Label>
-                  <p className="text-xs text-muted-foreground">Disables the sign-up endpoint for new user creation.</p>
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <p className="font-semibold">Block Registration</p>
+                  <p className="text-sm text-muted-foreground">Disable new account creation</p>
                 </div>
                 <Button 
                   variant={blockRegister ? "destructive" : "outline"}
@@ -1208,42 +1158,7 @@ export default function ElderDashboardClient() {
                     await updateSystemConfig({ blockRegister: newValue })
                   }}
                 >
-                  {blockRegister ? <XCircle className="h-4 w-4 mr-1" /> : <CheckCircle2 className="h-4 w-4 mr-1" />}
-                  {blockRegister ? "Disabled" : "Active"}
-                </Button>
-              </div>
-
-              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/20">
-                <div className="space-y-0.5">
-                  <Label className="text-base font-semibold">Restrict New Accounts</Label>
-                  <p className="text-xs text-muted-foreground">Forces newly registered accounts to require manual clearance.</p>
-                </div>
-                <Button 
-                  variant={restrictNewAccounts ? "secondary" : "outline"}
-                  onClick={async () => {
-                    const newValue = !restrictNewAccounts
-                    setRestrictNewAccounts(newValue)
-                    await updateSystemConfig({ restrictNewAccounts: newValue })
-                  }}
-                >
-                  {restrictNewAccounts ? "Restricted" : "Unrestricted"}
-                </Button>
-              </div>
-
-              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/20">
-                <div className="space-y-0.5">
-                  <Label className="text-base font-semibold">Archive Historical Years</Label>
-                  <p className="text-xs text-muted-foreground">Restricts modification permissions across previous configurations.</p>
-                </div>
-                <Button 
-                  variant={restrictOldAccounts ? "secondary" : "outline"}
-                  onClick={async () => {
-                    const newValue = !restrictOldAccounts
-                    setRestrictOldAccounts(newValue)
-                    await updateSystemConfig({ restrictOldAccounts: newValue })
-                  }}
-                >
-                  {restrictOldAccounts ? "Archived" : "Modifiable"}
+                  {blockRegister ? "Blocked" : "Allowed"}
                 </Button>
               </div>
             </div>
