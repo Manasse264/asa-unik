@@ -131,12 +131,15 @@ export default function ElderDashboardClient() {
   const [editingMember, setEditingMember] = React.useState<Member | null>(null)
   const [isAddingAnnouncement, setIsAddingAnnouncement] = React.useState(false)
   const [editingAnnouncement, setEditingAnnouncement] = React.useState<Announcement | null>(null)
+
+  // System Config States
   const [blockLogin, setBlockLogin] = React.useState(false)
   const [blockRegister, setBlockRegister] = React.useState(false)
   const [restrictNewAccounts, setRestrictNewAccounts] = React.useState(false)
   const [restrictOldAccounts, setRestrictOldAccounts] = React.useState(false)
   const [availableYears, setAvailableYears] = React.useState<string[]>(["2024-2025"])
   const [blockedYears, setBlockedYears] = React.useState<string[]>([])
+  const [newYearInput, setNewYearInput] = React.useState("")
 
   const [users, setUsers] = React.useState<UserAccount[]>([])
   const [editingUser, setEditingUser] = React.useState<UserAccount | null>(null)
@@ -460,6 +463,33 @@ export default function ElderDashboardClient() {
     })
     
     doc.save("weekly_choir_schedule.pdf")
+  }
+
+  // System Config Handlers
+  const handleAddYear = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newYearInput.trim() || availableYears.includes(newYearInput.trim())) return
+    const updatedYears = [...availableYears, newYearInput.trim()]
+    setAvailableYears(updatedYears)
+    setNewYearInput("")
+    await updateSystemConfig({ availableYears: updatedYears })
+  }
+
+  const handleRemoveYear = async (year: string) => {
+    const updatedYears = availableYears.filter(y => y !== year)
+    const updatedBlocked = blockedYears.filter(y => y !== year)
+    setAvailableYears(updatedYears)
+    setBlockedYears(updatedBlocked)
+    await updateSystemConfig({ availableYears: updatedYears, blockedYears: updatedBlocked })
+  }
+
+  const handleToggleBlockYear = async (year: string) => {
+    const isBlocked = blockedYears.includes(year)
+    const updatedBlocked = isBlocked 
+      ? blockedYears.filter(y => y !== year) 
+      : [...blockedYears, year]
+    setBlockedYears(updatedBlocked)
+    await updateSystemConfig({ blockedYears: updatedBlocked })
   }
 
   const filteredMembers = members.filter(m => 
@@ -1121,17 +1151,18 @@ export default function ElderDashboardClient() {
           </div>
         </TabsContent>
 
-        <TabsContent value="system" className="space-y-4">
-          <div className="p-6 border rounded-xl space-y-6">
+        <TabsContent value="system" className="space-y-6">
+          <div className="p-6 border rounded-xl space-y-6 bg-background shadow-sm">
             <h3 className="text-xl font-bold flex items-center gap-2">
-              <Settings className="h-5 w-5" /> System Controls
+              <Settings className="h-5 w-5" /> System Controls & Security Settings
             </h3>
             
+            {/* Global Access Controls */}
             <div className="grid gap-4 md:grid-cols-2">
-              <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/20">
                 <div>
                   <p className="font-semibold">Block Member Login</p>
-                  <p className="text-sm text-muted-foreground">Prevent non-admin users from signing in</p>
+                  <p className="text-sm text-muted-foreground">Prevent non-admin users from signing into the system</p>
                 </div>
                 <Button 
                   variant={blockLogin ? "destructive" : "outline"}
@@ -1145,10 +1176,10 @@ export default function ElderDashboardClient() {
                 </Button>
               </div>
 
-              <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/20">
                 <div>
                   <p className="font-semibold">Block Registration</p>
-                  <p className="text-sm text-muted-foreground">Disable new account creation</p>
+                  <p className="text-sm text-muted-foreground">Disable creation of new member accounts</p>
                 </div>
                 <Button 
                   variant={blockRegister ? "destructive" : "outline"}
@@ -1160,6 +1191,106 @@ export default function ElderDashboardClient() {
                 >
                   {blockRegister ? "Blocked" : "Allowed"}
                 </Button>
+              </div>
+
+              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/20">
+                <div>
+                  <p className="font-semibold">Restrict New Accounts</p>
+                  <p className="text-sm text-muted-foreground">Restrict access permissions for newly created accounts</p>
+                </div>
+                <Button 
+                  variant={restrictNewAccounts ? "destructive" : "outline"}
+                  onClick={async () => {
+                    const newValue = !restrictNewAccounts
+                    setRestrictNewAccounts(newValue)
+                    await updateSystemConfig({ restrictNewAccounts: newValue })
+                  }}
+                >
+                  {restrictNewAccounts ? "Restricted" : "Unrestricted"}
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/20">
+                <div>
+                  <p className="font-semibold">Restrict Legacy Accounts</p>
+                  <p className="text-sm text-muted-foreground">Apply structural restrictions to existing older user accounts</p>
+                </div>
+                <Button 
+                  variant={restrictOldAccounts ? "destructive" : "outline"}
+                  onClick={async () => {
+                    const newValue = !restrictOldAccounts
+                    setRestrictOldAccounts(newValue)
+                    await updateSystemConfig({ restrictOldAccounts: newValue })
+                  }}
+                >
+                  {restrictOldAccounts ? "Restricted" : "Unrestricted"}
+                </Button>
+              </div>
+            </div>
+
+            {/* Academic / Calendar Year Management */}
+            <div className="space-y-4 pt-4 border-t">
+              <h4 className="text-lg font-semibold flex items-center gap-2">
+                <Calendar className="h-4 w-4" /> Manage Available & Blocked Years
+              </h4>
+              
+              <form onSubmit={handleAddYear} className="flex gap-2 max-w-md">
+                <Input 
+                  placeholder="e.g. 2025-2026" 
+                  value={newYearInput} 
+                  onChange={(e) => setNewYearInput(e.target.value)} 
+                />
+                <Button type="submit">
+                  <Plus className="h-4 w-4 mr-1" /> Add Year
+                </Button>
+              </form>
+
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Year Period</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {availableYears.map((yr) => {
+                      const isBlocked = blockedYears.includes(yr)
+                      return (
+                        <TableRow key={yr}>
+                          <TableCell className="font-medium">{yr}</TableCell>
+                          <TableCell>
+                            <span className={cn(
+                              "px-2 py-1 rounded-full text-xs font-semibold",
+                              isBlocked ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                            )}>
+                              {isBlocked ? "Access Blocked" : "Active"}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right space-x-2">
+                            <Button 
+                              size="sm" 
+                              variant={isBlocked ? "outline" : "secondary"}
+                              onClick={() => handleToggleBlockYear(yr)}
+                            >
+                              {isBlocked ? <Unlock className="h-3.5 w-3.5 mr-1" /> : <Lock className="h-3.5 w-3.5 mr-1" />}
+                              {isBlocked ? "Unblock" : "Block Year"}
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              className="text-destructive"
+                              onClick={() => handleRemoveYear(yr)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
+                  </TableBody>
+                </Table>
               </div>
             </div>
           </div>
