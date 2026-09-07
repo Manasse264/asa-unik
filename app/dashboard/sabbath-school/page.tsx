@@ -137,20 +137,6 @@ export default function SabbathSchoolDashboard() {
     }
   }, [])
 
-  const saveAttendance = async (newAttendance: AttendanceRecord[]) => {
-    setAttendance(newAttendance)
-    try {
-      for (const record of newAttendance) {
-        await saveAttendanceRecord({
-          ...record,
-          year: getYear(),
-        })
-      }
-    } catch (err) {
-      console.error("Failed saving attendance:", err)
-    }
-  }
-
   const updateAttendance = async (
     type: "family" | "choir",
     id: string,
@@ -221,32 +207,93 @@ export default function SabbathSchoolDashboard() {
     }
 
     const doc = new jsPDF()
-    const fTotal = dayAtt.filter(a => a.type === 'family').reduce((acc, curr) => acc + curr.count, 0)
-    const cTotal = dayAtt.filter(a => a.type === 'choir').reduce((acc, curr) => acc + curr.count, 0)
-    const total = fTotal + cTotal
 
+    // Title Section
     doc.setFontSize(20)
     doc.setTextColor(79, 70, 229)
-    doc.text("ASA-UNIK Attendance Report", 105, 20, { align: "center" })
-    
-    doc.setFontSize(14)
+    doc.text("ASA-UNIK Attendance Daily Report", 105, 18, { align: "center" })
+
+    doc.setFontSize(12)
     doc.setTextColor(0, 0, 0)
     doc.setFont("helvetica", "bold")
-    doc.text(`${t.dateLabel}: ${date}`, 15, 40)
-    
-    doc.setFontSize(11)
-    doc.setFont("helvetica", "normal")
-    doc.text(`${t.families}: ${fTotal}`, 15, 50)
-    doc.text(`${t.choirs}: ${cTotal}`, 75, 50)
-    doc.setFont("helvetica", "bold")
-    doc.text(`${t.total}: ${total}`, 140, 50)
+    doc.text(`${t.dateLabel}: ${date}`, 14, 28)
 
-    autoTable(doc, { 
-      startY: 60, 
-      head: [[t.name, t.type, t.count]], 
-      body: dayAtt.map(a => [a.targetName, a.type.charAt(0).toUpperCase() + a.type.slice(1), a.count.toString()]),
-      headStyles: { fillColor: [79, 70, 229] }
+    // Build Family Table Data
+    let familyRegSum = 0
+    let familyPresSum = 0
+
+    const familyRows = families.map(f => {
+      const attRecord = dayAtt.find(a => a.type === 'family' && a.targetId === f.id)
+      const registered = f.memberCount || 0
+      const present = attRecord ? attRecord.count : 0
+      const percentage = registered > 0 ? ((present / registered) * 100).toFixed(1) + '%' : '0.0%'
+
+      familyRegSum += registered
+      familyPresSum += present
+
+      return [f.name, registered.toString(), present.toString(), percentage]
     })
+
+    const familyTotalPct = familyRegSum > 0 ? ((familyPresSum / familyRegSum) * 100).toFixed(1) + '%' : '0.0%'
+
+    doc.setFontSize(14)
+    doc.setFont("helvetica", "bold")
+    doc.text("Families Attendance", 14, 38)
+
+    autoTable(doc, {
+      startY: 42,
+      head: [['Name', 'Registered Members', 'Present', 'Percentage']],
+      body: [
+        ...familyRows,
+        [{ content: 'Total', styles: { fontStyle: 'bold' } }, familyRegSum.toString(), familyPresSum.toString(), familyTotalPct]
+      ],
+      headStyles: { fillColor: [79, 70, 229] },
+      theme: 'grid',
+    })
+
+    // Build Choir Table Data
+    let choirRegSum = 0
+    let choirPresSum = 0
+
+    const choirRows = choirs.map(c => {
+      const attRecord = dayAtt.find(a => a.type === 'choir' && a.targetId === c.id)
+      const registered = c.memberCount ?? c.memberNames?.length ?? 0
+      const present = attRecord ? attRecord.count : 0
+      const percentage = registered > 0 ? ((present / registered) * 100).toFixed(1) + '%' : '0.0%'
+
+      choirRegSum += registered
+      choirPresSum += present
+
+      return [c.name, registered.toString(), present.toString(), percentage]
+    })
+
+    const choirTotalPct = choirRegSum > 0 ? ((choirPresSum / choirRegSum) * 100).toFixed(1) + '%' : '0.0%'
+
+    const nextY = (doc as any).lastAutoTable.finalY + 12
+    doc.setFontSize(14)
+    doc.setFont("helvetica", "bold")
+    doc.text("Choirs Attendance", 14, nextY)
+
+    autoTable(doc, {
+      startY: nextY + 4,
+      head: [['Name', 'Registered Members', 'Present', 'Percentage']],
+      body: [
+        ...choirRows,
+        [{ content: 'Total', styles: { fontStyle: 'bold' } }, choirRegSum.toString(), choirPresSum.toString(), choirTotalPct]
+      ],
+      headStyles: { fillColor: [79, 70, 229] },
+      theme: 'grid',
+    })
+
+    // Grand Summary
+    const totalReg = familyRegSum + choirRegSum
+    const totalPres = familyPresSum + choirPresSum
+    const grandPct = totalReg > 0 ? ((totalPres / totalReg) * 100).toFixed(1) + '%' : '0.0%'
+
+    const grandY = (doc as any).lastAutoTable.finalY + 12
+    doc.setFontSize(12)
+    doc.setFont("helvetica", "bold")
+    doc.text(`Overall Attendance Summary: Registered: ${totalReg} | Present: ${totalPres} | Rate: ${grandPct}`, 14, grandY)
 
     const pdfBlob = doc.output("datauristring")
 
@@ -255,8 +302,8 @@ export default function SabbathSchoolDashboard() {
       title: " Attendance",
       date,
       type: "attendance",
-      attendance: total,
-      total,
+      attendance: totalPres,
+      total: totalPres,
       pdfData: pdfBlob,
       pdfUrl: "#",
       status: "submitted",
@@ -319,98 +366,7 @@ export default function SabbathSchoolDashboard() {
   }
 
   const generatePDF = () => {
-    const selectedYear = getYear()
-    if (!selectedYear) {
-      alert(lang === 'fr' ? 'Veuillez sélectionner une année d\'église !' : 'Please select a church year!')
-      return
-    }
-    const allDates = Array.from(new Set(attendance.map(a => a.date))).sort()
-    if (allDates.length === 0) {
-      alert(t.noData)
-      return
-    }
-
-    const doc = new jsPDF()
-    let currentY = 20
-
-    doc.setFontSize(20)
-    doc.setTextColor(79, 70, 229)
-    doc.text("ASA-RP Ngoma College Attendance Report", 105, currentY, { align: "center" })
-    currentY += 15
-
-    allDates.forEach((date) => {
-      const dayAtt = attendance.filter(a => a.date === date)
-      const fTotal = dayAtt.filter(a => a.type === 'family').reduce((acc, curr) => acc + curr.count, 0)
-      const cTotal = dayAtt.filter(a => a.type === 'choir').reduce((acc, curr) => acc + curr.count, 0)
-      const total = fTotal + cTotal
-
-      if (currentY > 230) {
-        doc.addPage()
-        currentY = 20
-      }
-
-      doc.setFontSize(14)
-      doc.setTextColor(0, 0, 0)
-      doc.setFont("helvetica", "bold")
-      doc.text(`${t.dateLabel}: ${date}`, 15, currentY)
-      currentY += 8
-      
-      doc.setFontSize(10)
-      doc.setFont("helvetica", "normal")
-      doc.text(`${t.families}: ${fTotal}  |  ${t.choirs}: ${cTotal}  |  ${t.total}: ${total}`, 15, currentY)
-      currentY += 5
-
-      autoTable(doc, { 
-        startY: currentY, 
-        head: [[t.name, t.type, t.count]], 
-        body: dayAtt.map(a => [a.targetName, a.type.charAt(0).toUpperCase() + a.type.slice(1), a.count.toString()]),
-        headStyles: { fillColor: [79, 70, 229] },
-        margin: { left: 15 },
-        theme: 'striped'
-      })
-      
-      currentY = (doc as any).lastAutoTable.finalY + 15
-    })
-
-    doc.addPage()
-    let totalFamiliesSum = 0
-    let totalChoirsSum = 0
-    
-    allDates.forEach(date => {
-      const dayAtt = attendance.filter(a => a.date === date)
-      totalFamiliesSum += dayAtt.filter(a => a.type === 'family').reduce((acc, curr) => acc + curr.count, 0)
-      totalChoirsSum += dayAtt.filter(a => a.type === 'choir').reduce((acc, curr) => acc + curr.count, 0)
-    })
-    
-    const avgFamilies = (totalFamiliesSum / allDates.length).toFixed(1)
-    const avgChoirs = (totalChoirsSum / allDates.length).toFixed(1)
-    const avgTotal = ((totalFamiliesSum + totalChoirsSum) / allDates.length).toFixed(1)
-
-    doc.setFontSize(22)
-    doc.setTextColor(79, 70, 229)
-    doc.text("ASA RP Ngoma College Attendance Report", 105, 20, { align: "center" })
-    
-    doc.setFontSize(16)
-    doc.setTextColor(0, 0, 0)
-    doc.text("Global Average Participation", 15, 40)
-    
-    doc.setFontSize(12)
-    doc.text(`Total Number of Days Recorded: ${allDates.length}`, 15, 50)
-    
-    autoTable(doc, {
-      startY: 55,
-      head: [['Category', 'Average Presence']],
-      body: [
-        ['Family Members', avgFamilies],
-        ['Choir Members', avgChoirs],
-        ['Overall Average', avgTotal]
-      ],
-      headStyles: { fillColor: [79, 70, 229] },
-      theme: 'grid'
-    })
-
-    doc.save(`Attendance_Report_${new Date().toISOString().split('T')[0]}.pdf`)
-    alert(t.sentMsg)
+    generateDailyPDF(selectedDate)
   }
 
   const handleSaveFamily = async () => {
@@ -459,7 +415,6 @@ export default function SabbathSchoolDashboard() {
 
     const year = getYear()
 
-    // Pass expected Prisma fields while matching expected schema inputs
     const payload = {
       id: editingChoir?.id,
       name: choirFormData.name,
