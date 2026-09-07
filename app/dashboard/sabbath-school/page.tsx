@@ -253,11 +253,11 @@ export default function SabbathSchoolDashboard() {
       theme: 'grid',
     })
 
-    // Family Summary (Placed below family table, before choir)
+    // Family Summary (Placed directly below family table)
     const familySummaryY = (doc as any).lastAutoTable.finalY + 10
     doc.setFontSize(11)
     doc.setFont("helvetica", "bold")
-    doc.text(`Family Attendance Summary: Registered: ${familyRegSum} | Present: ${familyPresSum} | Rate: ${familyTotalPct}`, 14, familySummaryY)
+    doc.text(`Family Attendance: Registered: ${familyRegSum} | Present: ${familyPresSum} | Rate: ${familyTotalPct}`, 14, familySummaryY)
 
     // ------------------- CHOIR SECTION -------------------
     let choirRegSum = 0
@@ -294,11 +294,11 @@ export default function SabbathSchoolDashboard() {
       theme: 'grid',
     })
 
-    // Choir Summary (Placed below choir table)
+    // Choir Summary (Placed directly below choir table)
     const choirSummaryY = (doc as any).lastAutoTable.finalY + 10
     doc.setFontSize(11)
     doc.setFont("helvetica", "bold")
-    doc.text(`Choir Attendance Summary: Registered: ${choirRegSum} | Present: ${choirPresSum} | Rate: ${choirTotalPct}`, 14, choirSummaryY)
+    doc.text(`Choir Attendance: Registered: ${choirRegSum} | Present: ${choirPresSum} | Rate: ${choirTotalPct}`, 14, choirSummaryY)
 
     const pdfBlob = doc.output("datauristring")
 
