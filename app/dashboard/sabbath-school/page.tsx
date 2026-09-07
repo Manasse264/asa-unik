@@ -73,7 +73,7 @@ interface Choir {
 }
 
 export default function SabbathSchoolDashboard() {
-  const [lang, setLang] = React.useState<"en" | "rw" | "fr" >("en")
+  const [lang, setLang] = React.useState<"en" | "rw" | "fr">("en")
   const [activeTab, setActiveTab] = React.useState<"families" | "choirs" | "attendance" | "reports" | "letters">("families")
   const [families, setFamilies] = React.useState<Family[]>([])
   const [choirs, setChoirs] = React.useState<Choir[]>([])
@@ -253,7 +253,7 @@ export default function SabbathSchoolDashboard() {
       theme: 'grid',
     })
 
-    // Family Summary (Placed directly below family table)
+    // Family Summary (Placed directly below family table without "Overall Attendance Summary:")
     const familySummaryY = (doc as any).lastAutoTable.finalY + 10
     doc.setFontSize(11)
     doc.setFont("helvetica", "bold")
@@ -294,7 +294,7 @@ export default function SabbathSchoolDashboard() {
       theme: 'grid',
     })
 
-    // Choir Summary (Placed directly below choir table)
+    // Choir Summary (Placed directly below choir table without "Overall Attendance Summary:")
     const choirSummaryY = (doc as any).lastAutoTable.finalY + 10
     doc.setFontSize(11)
     doc.setFont("helvetica", "bold")
