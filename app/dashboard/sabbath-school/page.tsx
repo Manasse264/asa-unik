@@ -114,16 +114,8 @@ export default function SabbathSchoolDashboard() {
       setLetters((dbLetters as SabbathLetter[]) || [])
 
       const dbChoirs = await getChoirs(year)
-      setChoirs(
-        dbChoirs?.length
-          ? (dbChoirs as Choir[])
-          : [
-              { id: "c1", name: "Calvary Memory", memberCount: 0 },
-              { id: "c2", name: "New heritage", memberCount: 0 },
-              { id: "c3", name: "Morning stars", memberCount: 0 },
-              { id: "c4", name: "Sauti ya huruma", memberCount: 0 },
-            ]
-      )
+      // Removed initial fallback choir entries to start with a clean state
+      setChoirs((dbChoirs as Choir[]) || [])
     } catch (err) {
       console.error("DB load error:", err)
     }
@@ -467,12 +459,14 @@ export default function SabbathSchoolDashboard() {
 
     const year = getYear()
 
+    // Pass leaderName as "" to satisfy Prisma validation requirements
     const result = await saveChoir({
       id: editingChoir?.id,
       name: choirFormData.name,
       memberCount: choirFormData.memberCount,
+      leaderName: "",
       year,
-    })
+    } as any)
 
     if (result && !result.success) {
       alert(result.error)
