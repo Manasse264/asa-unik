@@ -208,17 +208,18 @@ export default function SabbathSchoolDashboard() {
 
     const doc = new jsPDF()
 
-    // Title Section
+    // 1. Top Title (Centered)
     doc.setFontSize(20)
     doc.setTextColor(79, 70, 229)
     doc.text("ASA-UNIK Attendance Daily Report", 105, 18, { align: "center" })
 
-    doc.setFontSize(12)
+    // 2. Date (Top-Right below Title)
+    doc.setFontSize(11)
     doc.setTextColor(0, 0, 0)
     doc.setFont("helvetica", "bold")
-    doc.text(`${t.dateLabel}: ${date}`, 14, 28)
+    doc.text(`${t.dateLabel}: ${date}`, 196, 26, { align: "right" })
 
-    // Build Family Table Data
+    // ------------------- FAMILY SECTION -------------------
     let familyRegSum = 0
     let familyPresSum = 0
 
@@ -236,12 +237,13 @@ export default function SabbathSchoolDashboard() {
 
     const familyTotalPct = familyRegSum > 0 ? ((familyPresSum / familyRegSum) * 100).toFixed(1) + '%' : '0.0%'
 
+    // Title: Families Attendance (Middle at top of table)
     doc.setFontSize(14)
     doc.setFont("helvetica", "bold")
-    doc.text("Families Attendance", 14, 38)
+    doc.text("Families Attendance", 105, 36, { align: "center" })
 
     autoTable(doc, {
-      startY: 42,
+      startY: 40,
       head: [['Name', 'Registered Members', 'Present', 'Percentage']],
       body: [
         ...familyRows,
@@ -251,7 +253,13 @@ export default function SabbathSchoolDashboard() {
       theme: 'grid',
     })
 
-    // Build Choir Table Data
+    // Overall Attendance Summary for Family (Placed below family table, before choir)
+    const familySummaryY = (doc as any).lastAutoTable.finalY + 10
+    doc.setFontSize(11)
+    doc.setFont("helvetica", "bold")
+    doc.text(`Family Attendance Summary: Registered: ${familyRegSum} | Present: ${familyPresSum} | Rate: ${familyTotalPct}`, 14, familySummaryY)
+
+    // ------------------- CHOIR SECTION -------------------
     let choirRegSum = 0
     let choirPresSum = 0
 
@@ -269,13 +277,14 @@ export default function SabbathSchoolDashboard() {
 
     const choirTotalPct = choirRegSum > 0 ? ((choirPresSum / choirRegSum) * 100).toFixed(1) + '%' : '0.0%'
 
-    const nextY = (doc as any).lastAutoTable.finalY + 12
+    // Title: Choirs Attendance (Middle at top of table)
+    const choirTitleY = familySummaryY + 12
     doc.setFontSize(14)
     doc.setFont("helvetica", "bold")
-    doc.text("Choirs Attendance", 14, nextY)
+    doc.text("Choirs Attendance", 105, choirTitleY, { align: "center" })
 
     autoTable(doc, {
-      startY: nextY + 4,
+      startY: choirTitleY + 4,
       head: [['Name', 'Registered Members', 'Present', 'Percentage']],
       body: [
         ...choirRows,
@@ -285,17 +294,15 @@ export default function SabbathSchoolDashboard() {
       theme: 'grid',
     })
 
-    // Grand Summary
-    const totalReg = familyRegSum + choirRegSum
-    const totalPres = familyPresSum + choirPresSum
-    const grandPct = totalReg > 0 ? ((totalPres / totalReg) * 100).toFixed(1) + '%' : '0.0%'
-
-    const grandY = (doc as any).lastAutoTable.finalY + 12
-    doc.setFontSize(12)
+    // Overall Attendance Summary for Choir (Placed below choir table)
+    const choirSummaryY = (doc as any).lastAutoTable.finalY + 10
+    doc.setFontSize(11)
     doc.setFont("helvetica", "bold")
-    doc.text(`Overall Attendance Summary: Registered: ${totalReg} | Present: ${totalPres} | Rate: ${grandPct}`, 14, grandY)
+    doc.text(`Choir Attendance Summary: Registered: ${choirRegSum} | Present: ${choirPresSum} | Rate: ${choirTotalPct}`, 14, choirSummaryY)
 
     const pdfBlob = doc.output("datauristring")
+
+    const totalPres = familyPresSum + choirPresSum
 
     const newReport = {
       id: generateId(),
