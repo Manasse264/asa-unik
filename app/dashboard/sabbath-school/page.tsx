@@ -253,7 +253,7 @@ export default function SabbathSchoolDashboard() {
       theme: 'grid',
     })
 
-    // Overall Attendance Summary for Family (Placed below family table, before choir)
+    // Family Summary (Placed below family table, before choir)
     const familySummaryY = (doc as any).lastAutoTable.finalY + 10
     doc.setFontSize(11)
     doc.setFont("helvetica", "bold")
@@ -294,7 +294,7 @@ export default function SabbathSchoolDashboard() {
       theme: 'grid',
     })
 
-    // Overall Attendance Summary for Choir (Placed below choir table)
+    // Choir Summary (Placed below choir table)
     const choirSummaryY = (doc as any).lastAutoTable.finalY + 10
     doc.setFontSize(11)
     doc.setFont("helvetica", "bold")
