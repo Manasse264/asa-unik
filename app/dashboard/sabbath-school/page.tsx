@@ -16,7 +16,9 @@ import {
   deleteFamily,
   getLetters,
   getChoirs,
-  saveLetter
+  saveLetter,
+  saveChoir,
+  deleteChoir
 } from "@/lib/actions"
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
@@ -35,7 +37,9 @@ const sslTranslations = {
     dateLabel: "Date",
     tabLetter: "Sabbath Letters", addLetter: "Register Letter",
     origin: "Origin Church", district: "District", field: "Field", upload: "Upload Letter",
-    status: "Status", received: "Received", rejected: "Rejected", files: "Files"
+    status: "Status", received: "Received", rejected: "Rejected", files: "Files",
+    tabChoir: "Choir Management", addChoir: "Register Choir", choirName: "Choir Name",
+    updateChoir: "Update Choir"
   },
   fr: {
     title: "Responsable École du Sabbat", subtitle: "Officier de Présence", addFamily: "Enregistrer Famille",
@@ -50,19 +54,22 @@ const sslTranslations = {
     dateLabel: "Date",
     tabLetter: "Lettres de Sabbat", addLetter: "Enregistrer Lettre",
     origin: "Église d'Origine", district: "District", field: "Champ", upload: "Télécharger Lettre",
-    status: "Statut", received: "Reçu", rejected: "Rejeté", files: "Fichiers"
+    status: "Statut", received: "Reçu", rejected: "Rejeté", files: "Fichiers",
+    tabChoir: "Gestion des Chorales", addChoir: "Enregistrer Chorale", choirName: "Nom de la Chorale",
+    updateChoir: "Mettre à jour la chorale"
   }
 }
 
 interface Family { id: string; name: string; pere: string; mere: string; memberCount: number; }
+interface Choir { id: string; name: string; memberCount: number; }
 interface SabbathLetter { id: string; name: string; originChurch: string; district: string; field: string; fileName: string; fileData?: string | null; status: 'received' | 'rejected'; }
 interface AttendanceRecord { id: string; date: string; type: 'family' | 'choir'; targetId: string; targetName: string; count: number; year?: string; }
 
 export default function SabbathSchoolDashboard() {
-  const [lang, setLang] = React.useState<"en" | "rw" | "fr" >("en")
-  const [activeTab, setActiveTab] = React.useState<"families" | "attendance" | "reports" | "letters">("families")
+  const [lang, setLang] = React.useState<"en" | "rw" | "fr">("en")
+  const [activeTab, setActiveTab] = React.useState<"families" | "attendance" | "reports" | "letters" | "choirs">("families")
   const [families, setFamilies] = React.useState<Family[]>([])
-  const [choirs, setChoirs] = React.useState<any[]>([])
+  const [choirs, setChoirs] = React.useState<Choir[]>([])
   const [attendance, setAttendance] = React.useState<AttendanceRecord[]>([])
   const [letters, setLetters] = React.useState<SabbathLetter[]>([])
   const [selectedDate, setSelectedDate] = React.useState(new Date().toISOString().split('T')[0])
@@ -70,6 +77,10 @@ export default function SabbathSchoolDashboard() {
   const [editingFamily, setEditingFamily] = React.useState<Family | null>(null)
   const [isFamilyModalOpen, setIsFamilyModalOpen] = React.useState(false)
   const [familyFormData, setFamilyFormData] = React.useState({ name: "", pere: "", mere: "", memberCount: 2 })
+
+  const [editingChoir, setEditingChoir] = React.useState<Choir | null>(null)
+  const [isChoirModalOpen, setIsChoirModalOpen] = React.useState(false)
+  const [choirFormData, setChoirFormData] = React.useState({ name: "", memberCount: 10 })
 
   const [editingLetter, setEditingLetter] = React.useState<SabbathLetter | null>(null)
   const [isLetterModalOpen, setIsLetterModalOpen] = React.useState(false)
@@ -101,10 +112,10 @@ export default function SabbathSchoolDashboard() {
         dbChoirs?.length
           ? dbChoirs
           : [
-              { id: "c1", name: "Calvary Memory" },
-              { id: "c2", name: "New heritage" },
-              { id: "c3", name: "Morning stars" },
-              { id: "c4", name: "Sauti ya huruma" },
+              { id: "c1", name: "Calvary Memory", memberCount: 15 },
+              { id: "c2", name: "New heritage", memberCount: 20 },
+              { id: "c3", name: "Morning stars", memberCount: 12 },
+              { id: "c4", name: "Sauti ya huruma", memberCount: 18 },
             ]
       )
     } catch (err) {
@@ -442,6 +453,57 @@ export default function SabbathSchoolDashboard() {
     setEditingFamily(family); setFamilyFormData({ name: family.name, pere: family.pere, mere: family.mere, memberCount: family.memberCount }); setIsFamilyModalOpen(true)
   }
 
+  const handleSaveChoir = async () => {
+    if (!choirFormData.name) {
+      alert("Please fill in the Choir Name.")
+      return
+    }
+
+    const year = getYear()
+
+    if (typeof saveChoir === "function") {
+      const result = await saveChoir({
+        id: editingChoir?.id,
+        name: choirFormData.name,
+        memberCount: choirFormData.memberCount,
+        year,
+      })
+
+      if (result && !result.success) {
+        alert(result.error)
+        return
+      }
+    } else {
+      const newChoir: Choir = {
+        id: editingChoir ? editingChoir.id : generateId(),
+        name: choirFormData.name,
+        memberCount: choirFormData.memberCount
+      }
+      setChoirs(editingChoir ? choirs.map(c => c.id === editingChoir.id ? newChoir : c) : [...choirs, newChoir])
+    }
+
+    await loadData()
+    setIsChoirModalOpen(false)
+    setChoirFormData({ name: "", memberCount: 10 })
+    setEditingChoir(null)
+  }
+
+  const deleteChoirHandler = async (id: string) => {
+    if (!confirm(`${t.confirmDel} choir?`)) return
+    if (typeof deleteChoir === "function") {
+      await deleteChoir(id)
+    } else {
+      setChoirs(choirs.filter(c => c.id !== id))
+    }
+    await loadData()
+  }
+
+  const openEditChoir = (choir: Choir) => {
+    setEditingChoir(choir)
+    setChoirFormData({ name: choir.name, memberCount: choir.memberCount || 0 })
+    setIsChoirModalOpen(true)
+  }
+
   const currentDayAttendance = attendance.filter(a => a.date === selectedDate)
 
   return (
@@ -451,15 +513,16 @@ export default function SabbathSchoolDashboard() {
         <div><h2 className="text-3xl font-bold">{t.title}</h2><p className="text-muted-foreground">{t.subtitle}</p></div>
         <div className="flex gap-2">
           {activeTab === 'families' && <Button onClick={() => { setEditingFamily(null); setFamilyFormData({ name: "", pere: "", mere: "", memberCount: 2 }); setIsFamilyModalOpen(true) }}>{t.addFamily}</Button>}
+          {activeTab === 'choirs' && <Button onClick={() => { setEditingChoir(null); setChoirFormData({ name: "", memberCount: 10 }); setIsChoirModalOpen(true) }} className="gap-2"><Plus className="h-4 w-4" /> {t.addChoir}</Button>}
           {activeTab === 'letters' && <Button onClick={() => { setEditingLetter(null); setLetterFormData({ name: "", originChurch: "", district: "", field: "", fileName: "", status: "received", fileData: "" }); setIsLetterModalOpen(true) }} className="gap-2"><Plus className="h-4 w-4" /> {t.addLetter}</Button>}
           {activeTab === 'attendance' && <Button variant="outline" className="border-primary text-primary" onClick={() => setActiveTab("reports")}>{t.tabRep}</Button>}
         </div>
       </div>
 
       <div className="flex border-b overflow-x-auto">
-        {["families", "attendance", "reports", "letters"].map(tab => (
+        {["families", "choirs", "attendance", "reports", "letters"].map(tab => (
           <button key={tab} className={cn("px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap", activeTab === tab ? "border-primary text-primary" : "border-transparent text-muted-foreground")} onClick={() => setActiveTab(tab as any)}>
-            {tab === "families" ? t.tabFamily : tab === "attendance" ? t.tabAtt : tab === "reports" ? t.tabRep : t.tabLetter}
+            {tab === "families" ? t.tabFamily : tab === "choirs" ? t.tabChoir : tab === "attendance" ? t.tabAtt : tab === "reports" ? t.tabRep : t.tabLetter}
           </button>
         ))}
       </div>
@@ -483,6 +546,34 @@ export default function SabbathSchoolDashboard() {
                   <td className="p-4 text-right space-x-1">
                     <Button variant="ghost" size="icon" onClick={() => openEditFamily(family)}><Pencil className="h-4 w-4" /></Button>
                     <Button variant="ghost" size="icon" className="text-destructive" onClick={() => deleteFamilyHandler(family.id)}><Trash2 className="h-4 w-4" /></Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {activeTab === 'choirs' && (
+        <div className="rounded-md border bg-card overflow-auto">
+          <table className="w-full text-sm">
+            <thead className="border-b bg-muted/50">
+              <tr>
+                <th className="h-12 px-4 text-left font-medium">No.</th>
+                <th className="h-12 px-4 text-left font-medium">{t.choirName}</th>
+                <th className="h-12 px-4 text-left font-medium">{t.maxMem}</th>
+                <th className="h-12 px-4 text-right font-medium">{t.actions}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {choirs.map((choir, index) => (
+                <tr key={choir.id} className="border-b hover:bg-muted/50 transition-colors">
+                  <td className="p-4">{index + 1}</td>
+                  <td className="p-4 font-medium">{choir.name}</td>
+                  <td className="p-4">{choir.memberCount || "-"}</td>
+                  <td className="p-4 text-right space-x-1">
+                    <Button variant="ghost" size="icon" onClick={() => openEditChoir(choir)}><Pencil className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" className="text-destructive" onClick={() => deleteChoirHandler(choir.id)}><Trash2 className="h-4 w-4" /></Button>
                   </td>
                 </tr>
               ))}
@@ -527,7 +618,10 @@ export default function SabbathSchoolDashboard() {
               <div className="border rounded-lg divide-y bg-card">
                 {choirs.map(c => (
                   <div key={c.id} className="p-3 flex justify-between items-center">
-                    <p className="text-sm font-medium">{c.name}</p>
+                    <div>
+                      <p className="text-sm font-medium">{c.name}</p>
+                      {c.memberCount && <p className="text-xs text-muted-foreground">Max: {c.memberCount}</p>}
+                    </div>
                     <div className="flex gap-2 items-center"><span className="text-xs">{t.att}:</span><Input type="number" className="w-16 h-8" value={attendance.find(a => a.targetId === c.id && a.date === selectedDate)?.count || 0} onChange={e => updateAttendance('choir', c.id, c.name, parseInt(e.target.value) || 0)} /></div>
                   </div>
                 ))}
@@ -654,6 +748,22 @@ export default function SabbathSchoolDashboard() {
               <div className="flex gap-2 pt-2">
                 <Button variant="outline" className="flex-1" onClick={() => setIsFamilyModalOpen(false)}>{t.cancel}</Button>
                 <Button className="flex-1" onClick={handleSaveFamily}>{editingFamily ? t.update : t.save}</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isChoirModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md bg-background p-6 rounded-lg shadow-xl space-y-4">
+            <div className="flex justify-between items-center border-b pb-2"><h3 className="text-lg font-bold">{editingChoir ? t.updateChoir : t.addChoir}</h3><Button variant="ghost" size="sm" onClick={() => setIsChoirModalOpen(false)}><X className="h-4 w-4" /></Button></div>
+            <div className="grid gap-4">
+              <div className="grid gap-2"><Label>{t.choirName}</Label><Input value={choirFormData.name} onChange={e => setChoirFormData({...choirFormData, name: e.target.value})} /></div>
+              <div className="grid gap-2"><Label>{t.maxMem}</Label><Input type="number" value={choirFormData.memberCount} onChange={e => setChoirFormData({...choirFormData, memberCount: parseInt(e.target.value) || 0})} /></div>
+              <div className="flex gap-2 pt-2">
+                <Button variant="outline" className="flex-1" onClick={() => setIsChoirModalOpen(false)}>{t.cancel}</Button>
+                <Button className="flex-1" onClick={handleSaveChoir}>{editingChoir ? t.updateChoir : t.save}</Button>
               </div>
             </div>
           </div>
