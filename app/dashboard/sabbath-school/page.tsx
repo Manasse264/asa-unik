@@ -265,11 +265,7 @@ export default function SabbathSchoolDashboard() {
       theme: 'grid',
     })
 
-    const familySummaryY = (doc as any).lastAutoTable.finalY + 10
-    doc.setFontSize(11)
-    doc.setFont("helvetica", "bold")
     
-
     let choirRegSum = 0
     let choirPresSum = 0
 
