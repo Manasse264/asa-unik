@@ -265,7 +265,6 @@ export default function SabbathSchoolDashboard() {
       theme: 'grid',
     })
 
-    
     let choirRegSum = 0
     let choirPresSum = 0
 
@@ -283,7 +282,7 @@ export default function SabbathSchoolDashboard() {
 
     const choirTotalPct = choirRegSum > 0 ? ((choirPresSum / choirRegSum) * 100).toFixed(1) + '%' : '0.0%'
 
-    const choirTitleY = familySummaryY + 12
+    const choirTitleY = (doc as any).lastAutoTable.finalY + 12
     doc.setFontSize(14)
     doc.setFont("helvetica", "bold")
     doc.text("Choirs Attendance", 105, choirTitleY, { align: "center" })
@@ -298,11 +297,6 @@ export default function SabbathSchoolDashboard() {
       headStyles: { fillColor: [79, 70, 229] },
       theme: 'grid',
     })
-
-    const choirSummaryY = (doc as any).lastAutoTable.finalY + 10
-    doc.setFontSize(11)
-    doc.setFont("helvetica", "bold")
-    doc.text(`Choir Attendance: Registered: ${choirRegSum} | Present: ${choirPresSum} | Rate: ${choirTotalPct}`, 14, choirSummaryY)
 
     const pdfBlob = doc.output("datauristring")
     const totalPres = familyPresSum + choirPresSum
@@ -582,7 +576,6 @@ export default function SabbathSchoolDashboard() {
         <div className="space-y-6">
           <div className="bg-muted/50 p-6 rounded-xl border flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div className="space-y-1">
-              <div className="flex items-center gap-2 text-primary font-semibold"><Calendar className="h-5 w-5" /> {t.summary}</div>
               <div className="flex items-center gap-4">
                 <Label>{t.selDate}:</Label>
                 <Input type="date" className="w-40 h-9" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} />
@@ -712,7 +705,7 @@ export default function SabbathSchoolDashboard() {
               <div className="grid gap-2"><Label>{t.memberCount}</Label><Input type="number" value={choirFormData.memberCount} onChange={e => setChoirFormData({...choirFormData, memberCount: parseInt(e.target.value) || 0})} /></div>
               <div className="flex gap-2 pt-2">
                 <Button variant="outline" className="flex-1" onClick={() => setIsChoirModalOpen(false)}>{t.cancel}</Button>
-                <Button className="flex-1" onClick={handleSaveChoir}>{editingChoir ? t.updateChoir : t.save}</Button>
+                <Button className="flex-1" onClick={handleSaveChoir}>{editingChoir ? t.update : t.save}</Button>
               </div>
             </div>
           </div>
@@ -723,18 +716,19 @@ export default function SabbathSchoolDashboard() {
       {isLetterModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-md bg-background p-6 rounded-lg shadow-xl space-y-4">
-            <div className="flex justify-between items-center border-b pb-2"><h3 className="text-lg font-bold">{editingLetter ? "Edit Letter" : t.addLetter}</h3><Button variant="ghost" size="sm" onClick={() => setIsLetterModalOpen(false)}><X className="h-4 w-4" /></Button></div>
+            <div className="flex justify-between items-center border-b pb-2"><h3 className="text-lg font-bold">{editingLetter ? "Update Letter" : t.addLetter}</h3><Button variant="ghost" size="sm" onClick={() => setIsLetterModalOpen(false)}><X className="h-4 w-4" /></Button></div>
             <div className="grid gap-4">
-              <div className="grid gap-2"><Label>{t.name}</Label><Input value={letterFormData.name || ""} onChange={e => setLetterFormData({...letterFormData, name: e.target.value})} /></div>
-              <div className="grid gap-2"><Label>{t.origin}</Label><Input value={letterFormData.originChurch || ""} onChange={e => setLetterFormData({...letterFormData, originChurch: e.target.value})} /></div>
+              <div className="grid gap-2"><Label>{t.name}</Label><Input value={letterFormData.name} onChange={e => setLetterFormData({...letterFormData, name: e.target.value})} /></div>
+              <div className="grid gap-2"><Label>{t.origin}</Label><Input value={letterFormData.originChurch} onChange={e => setLetterFormData({...letterFormData, originChurch: e.target.value})} /></div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2"><Label>{t.district}</Label><Input value={letterFormData.district || ""} onChange={e => setLetterFormData({...letterFormData, district: e.target.value})} /></div>
-                <div className="grid gap-2"><Label>{t.field}</Label><Input value={letterFormData.field || ""} onChange={e => setLetterFormData({...letterFormData, field: e.target.value})} /></div>
+                <div className="grid gap-2"><Label>{t.district}</Label><Input value={letterFormData.district} onChange={e => setLetterFormData({...letterFormData, district: e.target.value})} /></div>
+                <div className="grid gap-2"><Label>{t.field}</Label><Input value={letterFormData.field} onChange={e => setLetterFormData({...letterFormData, field: e.target.value})} /></div>
               </div>
               <div className="grid gap-2">
                 <Label>{t.upload}</Label>
                 <Input 
                   type="file" 
+                  accept=".pdf,.doc,.docx,image/*" 
                   onChange={e => {
                     const file = e.target.files?.[0]
                     if (file) {
@@ -753,7 +747,7 @@ export default function SabbathSchoolDashboard() {
               </div>
               <div className="flex gap-2 pt-2">
                 <Button variant="outline" className="flex-1" onClick={() => setIsLetterModalOpen(false)}>{t.cancel}</Button>
-                <Button className="flex-1" onClick={handleSaveLetter}>{editingLetter ? t.save : t.save}</Button>
+                <Button className="flex-1" onClick={handleSaveLetter}>{editingLetter ? t.update : t.save}</Button>
               </div>
             </div>
           </div>
