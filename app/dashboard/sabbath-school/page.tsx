@@ -26,7 +26,7 @@ import autoTable from "jspdf-autotable"
 const sslTranslations = {
   en: {
     title: "Sabbath School Leader", subtitle: "Attendance Officer", addFamily: "Register Family",
-    genPDF: "Generate Daily Report", tabFamily: "Family Management", tabChoir: "Choir Management", tabAtt: "Record Attendance", tabRep: "weekly Report",
+    genPDF: "Generate Daily Report", tabFamily: "Family Management", tabChoir: "Choir Management", tabAtt: "Record Attendance", tabRep: "Weekly Report",
     selDate: "Select Date", total: "Total", families: "Families", choirs: "Choirs",
     famName: "Family Name", pere: "Pere (Father)", mere: "Mere (Mother)", maxMem: "Members",
     att: "Attended", summary: "Attendance Summary", actions: "Actions",
@@ -55,6 +55,22 @@ const sslTranslations = {
     origin: "Église d'Origine", district: "District", field: "Champ", upload: "Télécharger Lettre",
     status: "Statut", received: "Reçu", rejected: "Rejeté", files: "Fichiers",
     addChoir: "Enregistrer Chorale", choirName: "Nom de la Chorale", memberCount: "Nombre de Membres", updateChoir: "Mettre à jour la chorale"
+  },
+  rw: {
+    title: "Umuyobozi w'Ishuri ryo ku Isabato", subtitle: "Ushinzwe Imyitwarire n'Abaramukwa", addFamily: "Andika Umuryango",
+    genPDF: "Sohora Raporo y'Umunsi", tabFamily: "Cunga Imiryango", tabChoir: "Cunga Amakorali", tabAtt: "Andika Abaramukwa", tabRep: "Raporo y'Icyumweru",
+    selDate: "Hitamo Itariki", total: "Igiteranyo", families: "Imiryango", choirs: "Amakorali",
+    famName: "Izina ry'Umuryango", pere: "Data", mere: "Mama", maxMem: "Abanyamuryango",
+    att: "Abejejwe", summary: "Inshamake y'Abitabiye", actions: "Ibikorwa",
+    save: "Bika", cancel: "Bikore Hano", name: "Izina", type: "Ubwoko", count: "Umubare",
+    confirmDel: "Uramutse ushaka gusiba iki", update: "Vugurura Umuryango",
+    sentMsg: "Raporo y'umunsi yateguwe yoherezwa kubushingwabikorwa.",
+    noData: "Nta makuru y'abaramukwa yanditswe kuri iyi tariki.",
+    dateLabel: "Itariki",
+    tabLetter: "Ibaruwa zo ku Isabato", addLetter: "Andika Ibaruwa",
+    origin: "Itorero Inkomoko", district: "Akarere", field: "Inshingano", upload: "Shiraho Ibaruwa",
+    status: "Ikarita", received: "Yakiriwe", rejected: "Yanzwe", files: "Inyandiko",
+    addChoir: "Andika Korali", choirName: "Izina rya Korali", memberCount: "Umubare w'Abaririmbyi", updateChoir: "Vugurura Korali"
   }
 }
 
@@ -208,18 +224,15 @@ export default function SabbathSchoolDashboard() {
 
     const doc = new jsPDF()
 
-    // 1. Top Title (Centered)
     doc.setFontSize(20)
     doc.setTextColor(79, 70, 229)
     doc.text("ASA-UNIK Attendance Daily Report", 105, 18, { align: "center" })
 
-    // 2. Date (Top-Right below Title)
     doc.setFontSize(11)
     doc.setTextColor(0, 0, 0)
     doc.setFont("helvetica", "bold")
     doc.text(`${t.dateLabel}: ${date}`, 196, 26, { align: "right" })
 
-    // ------------------- FAMILY SECTION -------------------
     let familyRegSum = 0
     let familyPresSum = 0
 
@@ -237,7 +250,6 @@ export default function SabbathSchoolDashboard() {
 
     const familyTotalPct = familyRegSum > 0 ? ((familyPresSum / familyRegSum) * 100).toFixed(1) + '%' : '0.0%'
 
-    // Title: Families Attendance (Middle at top of table)
     doc.setFontSize(14)
     doc.setFont("helvetica", "bold")
     doc.text("Families Attendance", 105, 36, { align: "center" })
@@ -253,13 +265,11 @@ export default function SabbathSchoolDashboard() {
       theme: 'grid',
     })
 
-    // Family Summary (Placed directly below family table without "Overall Attendance Summary:")
     const familySummaryY = (doc as any).lastAutoTable.finalY + 10
     doc.setFontSize(11)
     doc.setFont("helvetica", "bold")
     doc.text(`Family Attendance: Registered: ${familyRegSum} | Present: ${familyPresSum} | Rate: ${familyTotalPct}`, 14, familySummaryY)
 
-    // ------------------- CHOIR SECTION -------------------
     let choirRegSum = 0
     let choirPresSum = 0
 
@@ -277,7 +287,6 @@ export default function SabbathSchoolDashboard() {
 
     const choirTotalPct = choirRegSum > 0 ? ((choirPresSum / choirRegSum) * 100).toFixed(1) + '%' : '0.0%'
 
-    // Title: Choirs Attendance (Middle at top of table)
     const choirTitleY = familySummaryY + 12
     doc.setFontSize(14)
     doc.setFont("helvetica", "bold")
@@ -294,14 +303,12 @@ export default function SabbathSchoolDashboard() {
       theme: 'grid',
     })
 
-    // Choir Summary (Placed directly below choir table without "Overall Attendance Summary:")
     const choirSummaryY = (doc as any).lastAutoTable.finalY + 10
     doc.setFontSize(11)
     doc.setFont("helvetica", "bold")
     doc.text(`Choir Attendance: Registered: ${choirRegSum} | Present: ${choirPresSum} | Rate: ${choirTotalPct}`, 14, choirSummaryY)
 
     const pdfBlob = doc.output("datauristring")
-
     const totalPres = familyPresSum + choirPresSum
 
     const newReport = {
@@ -325,7 +332,7 @@ export default function SabbathSchoolDashboard() {
     }
   }
 
-  const t = sslTranslations[lang === "rw" ? "en" : lang]
+  const t = sslTranslations[lang] || sslTranslations.en
 
   const handleSaveLetter = () => {
     if (!letterFormData.name || !letterFormData.originChurch) {
@@ -678,6 +685,7 @@ export default function SabbathSchoolDashboard() {
         </div>
       )}
 
+      {/* Family Modal */}
       {isFamilyModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-md bg-background p-6 rounded-lg shadow-xl space-y-4">
@@ -698,6 +706,7 @@ export default function SabbathSchoolDashboard() {
         </div>
       )}
 
+      {/* Choir Modal */}
       {isChoirModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-md bg-background p-6 rounded-lg shadow-xl space-y-4">
@@ -714,48 +723,41 @@ export default function SabbathSchoolDashboard() {
         </div>
       )}
 
+      {/* Letter Modal */}
       {isLetterModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-md bg-background p-6 rounded-lg shadow-xl space-y-4">
-            <div className="flex justify-between items-center border-b pb-2"><h3 className="text-lg font-bold">{editingLetter ? t.update : t.addLetter}</h3><Button variant="ghost" size="sm" onClick={() => setIsLetterModalOpen(false)}><X className="h-4 w-4" /></Button></div>
+            <div className="flex justify-between items-center border-b pb-2"><h3 className="text-lg font-bold">{editingLetter ? "Edit Letter" : t.addLetter}</h3><Button variant="ghost" size="sm" onClick={() => setIsLetterModalOpen(false)}><X className="h-4 w-4" /></Button></div>
             <div className="grid gap-4">
-              <div className="grid gap-2"><Label>{t.name}</Label><Input value={letterFormData.name} onChange={e => setLetterFormData({...letterFormData, name: e.target.value})} /></div>
-              <div className="grid gap-2"><Label>{t.origin}</Label><Input value={letterFormData.originChurch} onChange={e => setLetterFormData({...letterFormData, originChurch: e.target.value})} /></div>
+              <div className="grid gap-2"><Label>{t.name}</Label><Input value={letterFormData.name || ""} onChange={e => setLetterFormData({...letterFormData, name: e.target.value})} /></div>
+              <div className="grid gap-2"><Label>{t.origin}</Label><Input value={letterFormData.originChurch || ""} onChange={e => setLetterFormData({...letterFormData, originChurch: e.target.value})} /></div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2"><Label>{t.district}</Label><Input value={letterFormData.district} onChange={e => setLetterFormData({...letterFormData, district: e.target.value})} /></div>
-                <div className="grid gap-2"><Label>{t.field}</Label><Input value={letterFormData.field} onChange={e => setLetterFormData({...letterFormData, field: e.target.value})} /></div>
+                <div className="grid gap-2"><Label>{t.district}</Label><Input value={letterFormData.district || ""} onChange={e => setLetterFormData({...letterFormData, district: e.target.value})} /></div>
+                <div className="grid gap-2"><Label>{t.field}</Label><Input value={letterFormData.field || ""} onChange={e => setLetterFormData({...letterFormData, field: e.target.value})} /></div>
               </div>
               <div className="grid gap-2">
                 <Label>{t.upload}</Label>
                 <Input 
                   type="file" 
-                  className="text-xs" 
                   onChange={e => {
-                    const file = e.target.files?.[0];
+                    const file = e.target.files?.[0]
                     if (file) {
-                      const reader = new FileReader();
+                      const reader = new FileReader()
                       reader.onloadend = () => {
-                        setLetterFormData({...letterFormData, fileName: file.name, fileData: reader.result as string});
-                      };
-                      reader.readAsDataURL(file);
+                        setLetterFormData({
+                          ...letterFormData,
+                          fileName: file.name,
+                          fileData: reader.result as string
+                        })
+                      }
+                      reader.readAsDataURL(file)
                     }
                   }} 
                 />
               </div>
-              <div className="grid gap-2">
-                <Label>{t.status}</Label>
-                <select 
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  value={letterFormData.status} 
-                  onChange={e => setLetterFormData({...letterFormData, status: e.target.value as 'received' | 'rejected'})}
-                >
-                  <option value="received">{t.received}</option>
-                  <option value="rejected">{t.rejected}</option>
-                </select>
-              </div>
               <div className="flex gap-2 pt-2">
                 <Button variant="outline" className="flex-1" onClick={() => setIsLetterModalOpen(false)}>{t.cancel}</Button>
-                <Button className="flex-1" onClick={handleSaveLetter}>{editingLetter ? t.update : t.save}</Button>
+                <Button className="flex-1" onClick={handleSaveLetter}>{editingLetter ? t.save : t.save}</Button>
               </div>
             </div>
           </div>
