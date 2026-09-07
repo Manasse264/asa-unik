@@ -61,7 +61,16 @@ const sslTranslations = {
 interface Family { id: string; name: string; pere: string; mere: string; memberCount: number; }
 interface SabbathLetter { id: string; name: string; originChurch: string; district: string; field: string; fileName: string; fileData?: string | null; status: 'received' | 'rejected'; }
 interface AttendanceRecord { id: string; date: string; type: 'family' | 'choir'; targetId: string; targetName: string; count: number; year?: string; }
-interface Choir { id: string; name: string; memberCount: number; }
+interface Choir { 
+  id: string; 
+  name: string; 
+  memberCount?: number; 
+  createdAt?: Date; 
+  updatedAt?: Date; 
+  year?: string; 
+  leaderName?: string; 
+  memberNames?: string[]; 
+}
 
 export default function SabbathSchoolDashboard() {
   const [lang, setLang] = React.useState<"en" | "rw" | "fr" >("en")
@@ -108,7 +117,7 @@ export default function SabbathSchoolDashboard() {
       const dbChoirs = await getChoirs(year)
       setChoirs(
         dbChoirs?.length
-          ? dbChoirs
+          ? (dbChoirs as Choir[])
           : [
               { id: "c1", name: "Calvary Memory", memberCount: 0 },
               { id: "c2", name: "New heritage", memberCount: 0 },
@@ -484,7 +493,7 @@ export default function SabbathSchoolDashboard() {
   }
 
   const openEditChoir = (choir: Choir) => {
-    setEditingChoir(choir); setChoirFormData({ name: choir.name, memberCount: choir.memberCount || 0 }); setIsChoirModalOpen(true)
+    setEditingChoir(choir); setChoirFormData({ name: choir.name, memberCount: choir.memberCount ?? choir.memberNames?.length ?? 0 }); setIsChoirModalOpen(true)
   }
 
   const currentDayAttendance = attendance.filter(a => a.date === selectedDate)
@@ -551,7 +560,7 @@ export default function SabbathSchoolDashboard() {
               {choirs.map(choir => (
                 <tr key={choir.id} className="border-b hover:bg-muted/50 transition-colors">
                   <td className="p-4 font-medium">{choir.name}</td>
-                  <td className="p-4">{choir.memberCount || 0}</td>
+                  <td className="p-4">{choir.memberCount ?? choir.memberNames?.length ?? 0}</td>
                   <td className="p-4 text-right space-x-1">
                     <Button variant="ghost" size="icon" onClick={() => openEditChoir(choir)}><Pencil className="h-4 w-4" /></Button>
                     <Button variant="ghost" size="icon" className="text-destructive" onClick={() => deleteChoirHandler(choir.id)}><Trash2 className="h-4 w-4" /></Button>
