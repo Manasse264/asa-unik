@@ -68,7 +68,6 @@ interface Choir {
   createdAt?: Date; 
   updatedAt?: Date; 
   year?: string; 
-  leaderName?: string; 
   memberNames?: string[]; 
 }
 
