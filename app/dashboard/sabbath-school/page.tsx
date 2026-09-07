@@ -268,7 +268,7 @@ export default function SabbathSchoolDashboard() {
     const familySummaryY = (doc as any).lastAutoTable.finalY + 10
     doc.setFontSize(11)
     doc.setFont("helvetica", "bold")
-    doc.text(`Family Attendance: Registered: ${familyRegSum} | Present: ${familyPresSum} | Rate: ${familyTotalPct}`, 14, familySummaryY)
+    
 
     let choirRegSum = 0
     let choirPresSum = 0
