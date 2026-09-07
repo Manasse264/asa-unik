@@ -26,7 +26,7 @@ import autoTable from "jspdf-autotable"
 const sslTranslations = {
   en: {
     title: "Sabbath School Leader", subtitle: "Attendance Officer", addFamily: "Register Family",
-    genPDF: "Generate Daily Report", tabFamily: "Family Management", tabAtt: "Record Attendance", tabRep: "weekly Report",
+    genPDF: "Generate Daily Report", tabFamily: "Family Management", tabChoir: "Choir Management", tabAtt: "Record Attendance", tabRep: "weekly Report",
     selDate: "Select Date", total: "Total", families: "Families", choirs: "Choirs",
     famName: "Family Name", pere: "Pere (Father)", mere: "Mere (Mother)", maxMem: "Members",
     att: "Attended", summary: "Attendance Summary", actions: "Actions",
@@ -38,12 +38,11 @@ const sslTranslations = {
     tabLetter: "Sabbath Letters", addLetter: "Register Letter",
     origin: "Origin Church", district: "District", field: "Field", upload: "Upload Letter",
     status: "Status", received: "Received", rejected: "Rejected", files: "Files",
-    tabChoir: "Choir Management", addChoir: "Register Choir", choirName: "Choir Name",
-    updateChoir: "Update Choir"
+    addChoir: "Register Choir", choirName: "Choir Name", memberCount: "Number of Members", updateChoir: "Update Choir"
   },
   fr: {
     title: "Responsable École du Sabbat", subtitle: "Officier de Présence", addFamily: "Enregistrer Famille",
-    genPDF: "Générer Rapport Journalier", tabFamily: "Gestion des Familles", tabAtt: "Noter la Présence", tabRep: "Enregistrer",
+    genPDF: "Générer Rapport Journalier", tabFamily: "Gestion des Familles", tabChoir: "Gestion des Chorales", tabAtt: "Noter la Présence", tabRep: "Enregistrer",
     selDate: "Choisir Date", total: "Total", families: "Familles", choirs: "Chorales",
     famName: "Nom Famille", pere: "Père", mere: "Mère", maxMem: "Membres Max",
     att: "Présents", summary: "Résumé des Présences", actions: "Actions",
@@ -55,19 +54,18 @@ const sslTranslations = {
     tabLetter: "Lettres de Sabbat", addLetter: "Enregistrer Lettre",
     origin: "Église d'Origine", district: "District", field: "Champ", upload: "Télécharger Lettre",
     status: "Statut", received: "Reçu", rejected: "Rejeté", files: "Fichiers",
-    tabChoir: "Gestion des Chorales", addChoir: "Enregistrer Chorale", choirName: "Nom de la Chorale",
-    updateChoir: "Mettre à jour la chorale"
+    addChoir: "Enregistrer Chorale", choirName: "Nom de la Chorale", memberCount: "Nombre de Membres", updateChoir: "Mettre à jour la chorale"
   }
 }
 
 interface Family { id: string; name: string; pere: string; mere: string; memberCount: number; }
-interface Choir { id: string; name: string; memberCount: number; }
 interface SabbathLetter { id: string; name: string; originChurch: string; district: string; field: string; fileName: string; fileData?: string | null; status: 'received' | 'rejected'; }
 interface AttendanceRecord { id: string; date: string; type: 'family' | 'choir'; targetId: string; targetName: string; count: number; year?: string; }
+interface Choir { id: string; name: string; memberCount: number; }
 
 export default function SabbathSchoolDashboard() {
-  const [lang, setLang] = React.useState<"en" | "rw" | "fr">("en")
-  const [activeTab, setActiveTab] = React.useState<"families" | "attendance" | "reports" | "letters" | "choirs">("families")
+  const [lang, setLang] = React.useState<"en" | "rw" | "fr" >("en")
+  const [activeTab, setActiveTab] = React.useState<"families" | "choirs" | "attendance" | "reports" | "letters">("families")
   const [families, setFamilies] = React.useState<Family[]>([])
   const [choirs, setChoirs] = React.useState<Choir[]>([])
   const [attendance, setAttendance] = React.useState<AttendanceRecord[]>([])
@@ -80,7 +78,7 @@ export default function SabbathSchoolDashboard() {
 
   const [editingChoir, setEditingChoir] = React.useState<Choir | null>(null)
   const [isChoirModalOpen, setIsChoirModalOpen] = React.useState(false)
-  const [choirFormData, setChoirFormData] = React.useState({ name: "", memberCount: 10 })
+  const [choirFormData, setChoirFormData] = React.useState({ name: "", memberCount: 0 })
 
   const [editingLetter, setEditingLetter] = React.useState<SabbathLetter | null>(null)
   const [isLetterModalOpen, setIsLetterModalOpen] = React.useState(false)
@@ -112,10 +110,10 @@ export default function SabbathSchoolDashboard() {
         dbChoirs?.length
           ? dbChoirs
           : [
-              { id: "c1", name: "Calvary Memory", memberCount: 15 },
-              { id: "c2", name: "New heritage", memberCount: 20 },
-              { id: "c3", name: "Morning stars", memberCount: 12 },
-              { id: "c4", name: "Sauti ya huruma", memberCount: 18 },
+              { id: "c1", name: "Calvary Memory", memberCount: 0 },
+              { id: "c2", name: "New heritage", memberCount: 0 },
+              { id: "c3", name: "Morning stars", memberCount: 0 },
+              { id: "c4", name: "Sauti ya huruma", memberCount: 0 },
             ]
       )
     } catch (err) {
@@ -455,53 +453,38 @@ export default function SabbathSchoolDashboard() {
 
   const handleSaveChoir = async () => {
     if (!choirFormData.name) {
-      alert("Please fill in the Choir Name.")
+      alert("Please fill in Choir Name.")
       return
     }
 
     const year = getYear()
 
-    if (typeof saveChoir === "function") {
-      const result = await saveChoir({
-        id: editingChoir?.id,
-        name: choirFormData.name,
-        memberCount: choirFormData.memberCount,
-        year,
-      })
+    const result = await saveChoir({
+      id: editingChoir?.id,
+      name: choirFormData.name,
+      memberCount: choirFormData.memberCount,
+      year,
+    })
 
-      if (result && !result.success) {
-        alert(result.error)
-        return
-      }
-    } else {
-      const newChoir: Choir = {
-        id: editingChoir ? editingChoir.id : generateId(),
-        name: choirFormData.name,
-        memberCount: choirFormData.memberCount
-      }
-      setChoirs(editingChoir ? choirs.map(c => c.id === editingChoir.id ? newChoir : c) : [...choirs, newChoir])
+    if (result && !result.success) {
+      alert(result.error)
+      return
     }
 
     await loadData()
     setIsChoirModalOpen(false)
-    setChoirFormData({ name: "", memberCount: 10 })
+    setChoirFormData({ name: "", memberCount: 0 })
     setEditingChoir(null)
   }
 
   const deleteChoirHandler = async (id: string) => {
     if (!confirm(`${t.confirmDel} choir?`)) return
-    if (typeof deleteChoir === "function") {
-      await deleteChoir(id)
-    } else {
-      setChoirs(choirs.filter(c => c.id !== id))
-    }
+    await deleteChoir(id)
     await loadData()
   }
 
   const openEditChoir = (choir: Choir) => {
-    setEditingChoir(choir)
-    setChoirFormData({ name: choir.name, memberCount: choir.memberCount || 0 })
-    setIsChoirModalOpen(true)
+    setEditingChoir(choir); setChoirFormData({ name: choir.name, memberCount: choir.memberCount || 0 }); setIsChoirModalOpen(true)
   }
 
   const currentDayAttendance = attendance.filter(a => a.date === selectedDate)
@@ -513,7 +496,7 @@ export default function SabbathSchoolDashboard() {
         <div><h2 className="text-3xl font-bold">{t.title}</h2><p className="text-muted-foreground">{t.subtitle}</p></div>
         <div className="flex gap-2">
           {activeTab === 'families' && <Button onClick={() => { setEditingFamily(null); setFamilyFormData({ name: "", pere: "", mere: "", memberCount: 2 }); setIsFamilyModalOpen(true) }}>{t.addFamily}</Button>}
-          {activeTab === 'choirs' && <Button onClick={() => { setEditingChoir(null); setChoirFormData({ name: "", memberCount: 10 }); setIsChoirModalOpen(true) }} className="gap-2"><Plus className="h-4 w-4" /> {t.addChoir}</Button>}
+          {activeTab === 'choirs' && <Button onClick={() => { setEditingChoir(null); setChoirFormData({ name: "", memberCount: 0 }); setIsChoirModalOpen(true) }}>{t.addChoir}</Button>}
           {activeTab === 'letters' && <Button onClick={() => { setEditingLetter(null); setLetterFormData({ name: "", originChurch: "", district: "", field: "", fileName: "", status: "received", fileData: "" }); setIsLetterModalOpen(true) }} className="gap-2"><Plus className="h-4 w-4" /> {t.addLetter}</Button>}
           {activeTab === 'attendance' && <Button variant="outline" className="border-primary text-primary" onClick={() => setActiveTab("reports")}>{t.tabRep}</Button>}
         </div>
@@ -559,18 +542,16 @@ export default function SabbathSchoolDashboard() {
           <table className="w-full text-sm">
             <thead className="border-b bg-muted/50">
               <tr>
-                <th className="h-12 px-4 text-left font-medium">No.</th>
                 <th className="h-12 px-4 text-left font-medium">{t.choirName}</th>
-                <th className="h-12 px-4 text-left font-medium">{t.maxMem}</th>
+                <th className="h-12 px-4 text-left font-medium">{t.memberCount}</th>
                 <th className="h-12 px-4 text-right font-medium">{t.actions}</th>
               </tr>
             </thead>
             <tbody>
-              {choirs.map((choir, index) => (
+              {choirs.map(choir => (
                 <tr key={choir.id} className="border-b hover:bg-muted/50 transition-colors">
-                  <td className="p-4">{index + 1}</td>
                   <td className="p-4 font-medium">{choir.name}</td>
-                  <td className="p-4">{choir.memberCount || "-"}</td>
+                  <td className="p-4">{choir.memberCount || 0}</td>
                   <td className="p-4 text-right space-x-1">
                     <Button variant="ghost" size="icon" onClick={() => openEditChoir(choir)}><Pencil className="h-4 w-4" /></Button>
                     <Button variant="ghost" size="icon" className="text-destructive" onClick={() => deleteChoirHandler(choir.id)}><Trash2 className="h-4 w-4" /></Button>
@@ -618,10 +599,7 @@ export default function SabbathSchoolDashboard() {
               <div className="border rounded-lg divide-y bg-card">
                 {choirs.map(c => (
                   <div key={c.id} className="p-3 flex justify-between items-center">
-                    <div>
-                      <p className="text-sm font-medium">{c.name}</p>
-                      {c.memberCount && <p className="text-xs text-muted-foreground">Max: {c.memberCount}</p>}
-                    </div>
+                    <p className="text-sm font-medium">{c.name}</p>
                     <div className="flex gap-2 items-center"><span className="text-xs">{t.att}:</span><Input type="number" className="w-16 h-8" value={attendance.find(a => a.targetId === c.id && a.date === selectedDate)?.count || 0} onChange={e => updateAttendance('choir', c.id, c.name, parseInt(e.target.value) || 0)} /></div>
                   </div>
                 ))}
@@ -760,7 +738,7 @@ export default function SabbathSchoolDashboard() {
             <div className="flex justify-between items-center border-b pb-2"><h3 className="text-lg font-bold">{editingChoir ? t.updateChoir : t.addChoir}</h3><Button variant="ghost" size="sm" onClick={() => setIsChoirModalOpen(false)}><X className="h-4 w-4" /></Button></div>
             <div className="grid gap-4">
               <div className="grid gap-2"><Label>{t.choirName}</Label><Input value={choirFormData.name} onChange={e => setChoirFormData({...choirFormData, name: e.target.value})} /></div>
-              <div className="grid gap-2"><Label>{t.maxMem}</Label><Input type="number" value={choirFormData.memberCount} onChange={e => setChoirFormData({...choirFormData, memberCount: parseInt(e.target.value) || 0})} /></div>
+              <div className="grid gap-2"><Label>{t.memberCount}</Label><Input type="number" value={choirFormData.memberCount} onChange={e => setChoirFormData({...choirFormData, memberCount: parseInt(e.target.value) || 0})} /></div>
               <div className="flex gap-2 pt-2">
                 <Button variant="outline" className="flex-1" onClick={() => setIsChoirModalOpen(false)}>{t.cancel}</Button>
                 <Button className="flex-1" onClick={handleSaveChoir}>{editingChoir ? t.updateChoir : t.save}</Button>
