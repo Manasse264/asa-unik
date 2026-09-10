@@ -703,8 +703,15 @@ export default function ElderDashboardClient() {
             {reports.map((r) => (
               <div key={r.id} className="border p-4 rounded-xl space-y-2 bg-background shadow-sm">
                 <h3 className="font-bold text-lg">{r.title}</h3>
-                <Button variant="destructive" onClick={() => setReports([])}>
-      <Trash2 className="mr-2 h-4 w-4" /> Clear All
+                <Button 
+      variant="destructive" 
+      onClick={() => {
+        if (confirm("Are you sure you want to delete all reports?")) {
+          setReports([])
+        }
+      }}
+    >
+      <Trash2 className="mr-2 h-4 w-4" /> Delete All
     </Button>
                 <p className="text-sm text-muted-foreground">Date: {r.date}</p>
                 <p className="text-sm font-medium">Total Attendance: {r.total}</p>
