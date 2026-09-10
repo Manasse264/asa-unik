@@ -335,7 +335,7 @@ export default function SabbathSchoolDashboard() {
     doc.setFontSize(14)
     doc.setFont("helvetica", "bold")
     doc.setTextColor(0, 0, 0)
-    doc.text("Families Performance (3-Day)", 105, 30, { align: "center" })
+    doc.text("Families presence (3-Day)", 105, 30, { align: "center" })
 
     const familyRows = familyPerformance.map((f, i) => [
       (i + 1).toString(),
@@ -357,7 +357,7 @@ export default function SabbathSchoolDashboard() {
     const choirTitleY = (doc as any).lastAutoTable.finalY + 12
     doc.setFontSize(14)
     doc.setFont("helvetica", "bold")
-    doc.text("Choirs Performance (3-Day)", 105, choirTitleY, { align: "center" })
+    doc.text("Choirs Presence (3-Day)", 105, choirTitleY, { align: "center" })
 
     const choirRows = choirPerformance.map((c, i) => [
       (i + 1).toString(),
