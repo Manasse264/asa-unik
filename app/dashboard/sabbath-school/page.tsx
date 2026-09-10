@@ -452,6 +452,42 @@ export default function SabbathSchoolDashboard() {
 
   const currentDayAttendance = attendance.filter(a => a.date === selectedDate)
 
+  // 3-day Performance Helpers
+  const uniqueDates = Array.from(new Set(attendance.map(a => a.date))).sort((a, b) => b.localeCompare(a)).slice(0, 3)
+
+  const familyPerformance = React.useMemo(() => {
+    return families.map(f => {
+      const records = attendance.filter(a => a.type === 'family' && a.targetId === f.id && uniqueDates.includes(a.date))
+      const presentCount = records.reduce((sum, r) => sum + r.count, 0)
+      const maxPossible = f.memberCount * 3
+      const averagePct = maxPossible > 0 ? (presentCount / maxPossible) * 100 : 0
+      return {
+        id: f.id,
+        name: f.name,
+        registered: f.memberCount,
+        presentCount,
+        averagePct
+      }
+    }).sort((a, b) => b.averagePct - a.averagePct)
+  }, [families, attendance, uniqueDates])
+
+  const choirPerformance = React.useMemo(() => {
+    return choirs.map(c => {
+      const records = attendance.filter(a => a.type === 'choir' && a.targetId === c.id && uniqueDates.includes(a.date))
+      const registered = c.memberCount ?? c.memberNames?.length ?? 0
+      const presentCount = records.reduce((sum, r) => sum + r.count, 0)
+      const maxPossible = registered * 3
+      const averagePct = maxPossible > 0 ? (presentCount / maxPossible) * 100 : 0
+      return {
+        id: c.id,
+        name: c.name,
+        registered,
+        presentCount,
+        averagePct
+      }
+    }).sort((a, b) => b.averagePct - a.averagePct)
+  }, [choirs, attendance, uniqueDates])
+
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
       <YearSelector />
@@ -586,8 +622,82 @@ export default function SabbathSchoolDashboard() {
             </Button>
           </div>
 
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold">3-Day Overall Performance Breakdown</h3>
+            <p className="text-xs text-muted-foreground">
+              Based on the last 3 recorded days: {uniqueDates.length > 0 ? uniqueDates.join(", ") : "No dates recorded"}
+            </p>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Families Performance Table */}
+              <div className="space-y-3">
+                <h4 className="font-semibold flex items-center gap-2"><Users2 className="h-4 w-4" /> Families Ranking</h4>
+                <div className="rounded-md border bg-card overflow-auto">
+                  <table className="w-full text-sm">
+                    <thead className="border-b bg-muted/50">
+                      <tr>
+                        <th className="p-2 text-left">Rank</th>
+                        <th className="p-2 text-left">Family</th>
+                        <th className="p-2 text-center">Present (3 Days)</th>
+                        <th className="p-2 text-right">Average %</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {familyPerformance.map((item, idx) => (
+                        <tr key={item.id} className="border-b hover:bg-muted/30">
+                          <td className="p-2 font-bold">{idx + 1}</td>
+                          <td className="p-2 font-medium">{item.name}</td>
+                          <td className="p-2 text-center">{item.presentCount} / {item.registered * 3}</td>
+                          <td className="p-2 text-right font-bold text-primary">{item.averagePct.toFixed(1)}%</td>
+                        </tr>
+                      ))}
+                      {familyPerformance.length === 0 && (
+                        <tr>
+                          <td colSpan={4} className="p-4 text-center text-muted-foreground">No family performance data</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Choirs Performance Table */}
+              <div className="space-y-3">
+                <h4 className="font-semibold flex items-center gap-2"><Music className="h-4 w-4" /> Choirs Ranking</h4>
+                <div className="rounded-md border bg-card overflow-auto">
+                  <table className="w-full text-sm">
+                    <thead className="border-b bg-muted/50">
+                      <tr>
+                        <th className="p-2 text-left">Rank</th>
+                        <th className="p-2 text-left">Choir</th>
+                        <th className="p-2 text-center">Present (3 Days)</th>
+                        <th className="p-2 text-right">Average %</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {choirPerformance.map((item, idx) => (
+                        <tr key={item.id} className="border-b hover:bg-muted/30">
+                          <td className="p-2 font-bold">{idx + 1}</td>
+                          <td className="p-2 font-medium">{item.name}</td>
+                          <td className="p-2 text-center">{item.presentCount} / {item.registered * 3}</td>
+                          <td className="p-2 text-right font-bold text-primary">{item.averagePct.toFixed(1)}%</td>
+                        </tr>
+                      ))}
+                      {choirPerformance.length === 0 && (
+                        <tr>
+                          <td colSpan={4} className="p-4 text-center text-muted-foreground">No choir performance data</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {currentDayAttendance.length > 0 ? (
-            <div className="grid gap-6">
+            <div className="grid gap-6 pt-4 border-t">
+              <h3 className="text-md font-bold">Selected Date Attendance Summary ({selectedDate})</h3>
               <div className="grid md:grid-cols-3 gap-4">
                 <div className="p-4 border rounded-lg bg-card text-center">
                   <p className="text-sm text-muted-foreground">{t.families}</p>
@@ -705,7 +815,7 @@ export default function SabbathSchoolDashboard() {
               <div className="grid gap-2"><Label>{t.memberCount}</Label><Input type="number" value={choirFormData.memberCount} onChange={e => setChoirFormData({...choirFormData, memberCount: parseInt(e.target.value) || 0})} /></div>
               <div className="flex gap-2 pt-2">
                 <Button variant="outline" className="flex-1" onClick={() => setIsChoirModalOpen(false)}>{t.cancel}</Button>
-                <Button className="flex-1" onClick={handleSaveChoir}>{editingChoir ? t.update : t.save}</Button>
+                <Button className="flex-1" onClick={handleSaveChoir}>{editingChoir ? t.updateChoir : t.save}</Button>
               </div>
             </div>
           </div>
@@ -718,11 +828,11 @@ export default function SabbathSchoolDashboard() {
           <div className="w-full max-w-md bg-background p-6 rounded-lg shadow-xl space-y-4">
             <div className="flex justify-between items-center border-b pb-2"><h3 className="text-lg font-bold">{editingLetter ? "Update Letter" : t.addLetter}</h3><Button variant="ghost" size="sm" onClick={() => setIsLetterModalOpen(false)}><X className="h-4 w-4" /></Button></div>
             <div className="grid gap-4">
-              <div className="grid gap-2"><Label>{t.name}</Label><Input value={letterFormData.name} onChange={e => setLetterFormData({...letterFormData, name: e.target.value})} /></div>
-              <div className="grid gap-2"><Label>{t.origin}</Label><Input value={letterFormData.originChurch} onChange={e => setLetterFormData({...letterFormData, originChurch: e.target.value})} /></div>
+              <div className="grid gap-2"><Label>{t.name}</Label><Input value={letterFormData.name || ""} onChange={e => setLetterFormData({...letterFormData, name: e.target.value})} /></div>
+              <div className="grid gap-2"><Label>{t.origin}</Label><Input value={letterFormData.originChurch || ""} onChange={e => setLetterFormData({...letterFormData, originChurch: e.target.value})} /></div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2"><Label>{t.district}</Label><Input value={letterFormData.district} onChange={e => setLetterFormData({...letterFormData, district: e.target.value})} /></div>
-                <div className="grid gap-2"><Label>{t.field}</Label><Input value={letterFormData.field} onChange={e => setLetterFormData({...letterFormData, field: e.target.value})} /></div>
+                <div className="grid gap-2"><Label>{t.district}</Label><Input value={letterFormData.district || ""} onChange={e => setLetterFormData({...letterFormData, district: e.target.value})} /></div>
+                <div className="grid gap-2"><Label>{t.field}</Label><Input value={letterFormData.field || ""} onChange={e => setLetterFormData({...letterFormData, field: e.target.value})} /></div>
               </div>
               <div className="grid gap-2">
                 <Label>{t.upload}</Label>
@@ -744,10 +854,18 @@ export default function SabbathSchoolDashboard() {
                     }
                   }} 
                 />
+                {letterFormData.fileName && <p className="text-xs text-muted-foreground">Selected: {letterFormData.fileName}</p>}
+              </div>
+              <div className="grid gap-2">
+                <Label>{t.status}</Label>
+                <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={letterFormData.status || "received"} onChange={e => setLetterFormData({...letterFormData, status: e.target.value as any})}>
+                  <option value="received">{t.received}</option>
+                  <option value="rejected">{t.rejected}</option>
+                </select>
               </div>
               <div className="flex gap-2 pt-2">
                 <Button variant="outline" className="flex-1" onClick={() => setIsLetterModalOpen(false)}>{t.cancel}</Button>
-                <Button className="flex-1" onClick={handleSaveLetter}>{editingLetter ? t.update : t.save}</Button>
+                <Button className="flex-1" onClick={handleSaveLetter}>{t.save}</Button>
               </div>
             </div>
           </div>
