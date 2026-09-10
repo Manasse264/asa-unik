@@ -278,22 +278,16 @@ export default function SabbathSchoolDashboard() {
       theme: 'grid',
     })
 
-    let choirRegSum = 0
     let choirPresSum = 0
 
     const choirRows = choirs.map(c => {
       const attRecord = dayAtt.find(a => a.type === 'choir' && a.targetId === c.id)
-      const registered = c.memberCount ?? c.memberNames?.length ?? 0
       const present = attRecord ? attRecord.count : 0
-      const percentage = registered > 0 ? ((present / registered) * 100).toFixed(1) + '%' : '0.0%'
 
-      choirRegSum += registered
       choirPresSum += present
 
-      return [c.name, registered.toString(), present.toString(), percentage]
+      return [c.name, present.toString()]
     })
-
-    const choirTotalPct = choirRegSum > 0 ? ((choirPresSum / choirRegSum) * 100).toFixed(1) + '%' : '0.0%'
 
     const choirTitleY = (doc as any).lastAutoTable.finalY + 12
     doc.setFontSize(14)
@@ -302,11 +296,8 @@ export default function SabbathSchoolDashboard() {
 
     autoTable(doc, {
       startY: choirTitleY + 4,
-      head: [['Name', 'Registered Members', 'Present', 'Percentage']],
-      body: [
-        ...choirRows,
-        [{ content: 'Total', styles: { fontStyle: 'bold' } }, choirRegSum.toString(), choirPresSum.toString(), choirTotalPct]
-      ],
+      head: [['Name', 'Present']],
+      body: choirRows,
       headStyles: { fillColor: [79, 70, 229] },
       theme: 'grid',
     })
