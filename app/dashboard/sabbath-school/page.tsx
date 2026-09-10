@@ -39,7 +39,7 @@ const sslTranslations = {
     origin: "Origin Church", district: "District", field: "Field", upload: "Upload Letter",
     status: "Status", received: "Received", rejected: "Rejected", files: "Files",
     addChoir: "Register Choir", choirName: "Choir Name", memberCount: "Number of Members", updateChoir: "Update Choir",
-    rank: "Rank", avg: "Average %"
+    rank: "Rank", avg: "Average %", downloadWeekly: "Download Weekly Report"
   },
   fr: {
     title: "Responsable École du Sabbat", subtitle: "Officier de Présence", addFamily: "Enregistrer Famille",
@@ -56,7 +56,7 @@ const sslTranslations = {
     origin: "Église d'Origine", district: "District", field: "Champ", upload: "Télécharger Lettre",
     status: "Statut", received: "Reçu", rejected: "Rejeté", files: "Fichiers",
     addChoir: "Enregistrer Chorale", choirName: "Nom de la Chorale", memberCount: "Nombre de Membres", updateChoir: "Mettre à jour la chorale",
-    rank: "Rang", avg: "Moyenne %"
+    rank: "Rang", avg: "Moyenne %", downloadWeekly: "Télécharger le Rapport Hebdomadaire"
   },
   rw: {
     title: "Umuyobozi w'Ishuri ryo ku Isabato", subtitle: "Ushinzwe Imyitwarire n'Abaramukwa", addFamily: "Andika Umuryango",
@@ -73,7 +73,7 @@ const sslTranslations = {
     origin: "Itorero Inkomoko", district: "Akarere", field: "Inshingano", upload: "Shiraho Ibaruwa",
     status: "Ikarita", received: "Yakiriwe", rejected: "Yanzwe", files: "Inyandiko",
     addChoir: "Andika Korali", choirName: "Izina rya Korali", memberCount: "Umubare w'Abaririmbyi", updateChoir: "Vugurura Korali",
-    rank: "Umwanya", avg: "Impuzandengo %"
+    rank: "Umwanya", avg: "Impuzandengo %", downloadWeekly: "Sohora Raporo y'Icyumweru"
   }
 }
 
@@ -325,6 +325,60 @@ export default function SabbathSchoolDashboard() {
     }
   }
 
+  const generateWeeklyPDF = () => {
+    const doc = new jsPDF()
+
+    doc.setFontSize(20)
+    doc.setTextColor(79, 70, 229)
+    doc.text("ASA-UNIK Attendance Weekly Report", 105, 18, { align: "center" })
+
+    doc.setFontSize(14)
+    doc.setFont("helvetica", "bold")
+    doc.setTextColor(0, 0, 0)
+    doc.text("Families Performance (3-Day Comparison)", 105, 30, { align: "center" })
+
+    const familyRows = familyPerformance.map((f, i) => [
+      (i + 1).toString(),
+      f.name,
+      `${f.day1.toFixed(1)}%`,
+      `${f.day2.toFixed(1)}%`,
+      `${f.day3.toFixed(1)}%`,
+      `${f.average.toFixed(1)}%`
+    ])
+
+    autoTable(doc, {
+      startY: 35,
+      head: [['Rank', 'Family Name', uniqueDates[0] || 'Day 1', uniqueDates[1] || 'Day 2', uniqueDates[2] || 'Day 3', 'Average %']],
+      body: familyRows,
+      headStyles: { fillColor: [79, 70, 229] },
+      theme: 'grid',
+    })
+
+    const choirTitleY = (doc as any).lastAutoTable.finalY + 12
+    doc.setFontSize(14)
+    doc.setFont("helvetica", "bold")
+    doc.text("Choirs Performance (3-Day Comparison)", 105, choirTitleY, { align: "center" })
+
+    const choirRows = choirPerformance.map((c, i) => [
+      (i + 1).toString(),
+      c.name,
+      `${c.day1.toFixed(1)}%`,
+      `${c.day2.toFixed(1)}%`,
+      `${c.day3.toFixed(1)}%`,
+      `${c.average.toFixed(1)}%`
+    ])
+
+    autoTable(doc, {
+      startY: choirTitleY + 5,
+      head: [['Rank', 'Choir Name', uniqueDates[0] || 'Day 1', uniqueDates[1] || 'Day 2', uniqueDates[2] || 'Day 3', 'Average %']],
+      body: choirRows,
+      headStyles: { fillColor: [79, 70, 229] },
+      theme: 'grid',
+    })
+
+    doc.save(`Weekly_Performance_Report.pdf`)
+  }
+
   const t = sslTranslations[lang] || sslTranslations.en
 
   const handleSaveLetter = () => {
@@ -370,10 +424,6 @@ export default function SabbathSchoolDashboard() {
 
   const openEditLetter = (letter: SabbathLetter) => {
     setEditingLetter(letter); setLetterFormData(letter); setIsLetterModalOpen(true)
-  }
-
-  const generatePDF = () => {
-    generateDailyPDF(selectedDate)
   }
 
   const handleSaveFamily = async () => {
@@ -505,7 +555,6 @@ export default function SabbathSchoolDashboard() {
           {activeTab === 'families' && <Button onClick={() => { setEditingFamily(null); setFamilyFormData({ name: "", pere: "", mere: "", memberCount: 2 }); setIsFamilyModalOpen(true) }}>{t.addFamily}</Button>}
           {activeTab === 'choirs' && <Button onClick={() => { setEditingChoir(null); setChoirFormData({ name: "", memberCount: 0 }); setIsChoirModalOpen(true) }}>{t.addChoir}</Button>}
           {activeTab === 'letters' && <Button onClick={() => { setEditingLetter(null); setLetterFormData({ name: "", originChurch: "", district: "", field: "", fileName: "", status: "received", fileData: "" }); setIsLetterModalOpen(true) }} className="gap-2"><Plus className="h-4 w-4" /> {t.addLetter}</Button>}
-          {activeTab === 'attendance' && <Button variant="outline" className="border-primary text-primary" onClick={() => setActiveTab("reports")}>{t.tabRep}</Button>}
         </div>
       </div>
 
@@ -578,7 +627,6 @@ export default function SabbathSchoolDashboard() {
               <Input type="date" className="w-40" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} />
             </div>
             <div className="flex items-center gap-4">
-              <div className="font-bold">{t.total}: {currentDayAttendance.reduce((acc, c) => acc + c.count, 0)}</div>
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -692,6 +740,12 @@ export default function SabbathSchoolDashboard() {
                 </tbody>
               </table>
             </div>
+          </div>
+
+          <div className="flex justify-end pt-4">
+            <Button size="lg" className="gap-2 px-6 shadow-lg shadow-primary/20" onClick={generateWeeklyPDF}>
+              <Download className="h-5 w-5" /> {t.downloadWeekly}
+            </Button>
           </div>
         </div>
       )}
