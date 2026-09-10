@@ -335,7 +335,7 @@ export default function SabbathSchoolDashboard() {
     doc.setFontSize(14)
     doc.setFont("helvetica", "bold")
     doc.setTextColor(0, 0, 0)
-    doc.text("Families Performance (3-Day Comparison)", 105, 30, { align: "center" })
+    doc.text("Families Performance (3-Day)", 105, 30, { align: "center" })
 
     const familyRows = familyPerformance.map((f, i) => [
       (i + 1).toString(),
@@ -357,7 +357,7 @@ export default function SabbathSchoolDashboard() {
     const choirTitleY = (doc as any).lastAutoTable.finalY + 12
     doc.setFontSize(14)
     doc.setFont("helvetica", "bold")
-    doc.text("Choirs Performance (3-Day Comparison)", 105, choirTitleY, { align: "center" })
+    doc.text("Choirs Performance (3-Day)", 105, choirTitleY, { align: "center" })
 
     const choirRows = choirPerformance.map((c, i) => [
       (i + 1).toString(),
@@ -669,7 +669,7 @@ export default function SabbathSchoolDashboard() {
           {/* Families Performance Table */}
           <div className="space-y-3">
             <h3 className="text-lg font-bold flex items-center gap-2">
-              <Users2 className="h-5 w-5 text-primary" /> {t.families} Performance (3-Day Comparison)
+              <Users2 className="h-5 w-5 text-primary" /> {t.families} Performance (3-Day)
             </h3>
             <div className="rounded-md border bg-card overflow-x-auto">
               <table className="w-full text-sm">
@@ -707,7 +707,7 @@ export default function SabbathSchoolDashboard() {
           {/* Choirs Performance Table */}
           <div className="space-y-3">
             <h3 className="text-lg font-bold flex items-center gap-2">
-              <Music className="h-5 w-5 text-primary" /> {t.choirs} Performance (3-Day Comparison)
+              <Music className="h-5 w-5 text-primary" /> {t.choirs} Performance (3-Day)
             </h3>
             <div className="rounded-md border bg-card overflow-x-auto">
               <table className="w-full text-sm">
