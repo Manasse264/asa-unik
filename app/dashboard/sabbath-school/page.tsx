@@ -38,7 +38,8 @@ const sslTranslations = {
     tabLetter: "Sabbath Letters", addLetter: "Register Letter",
     origin: "Origin Church", district: "District", field: "Field", upload: "Upload Letter",
     status: "Status", received: "Received", rejected: "Rejected", files: "Files",
-    addChoir: "Register Choir", choirName: "Choir Name", memberCount: "Number of Members", updateChoir: "Update Choir"
+    addChoir: "Register Choir", choirName: "Choir Name", memberCount: "Number of Members", updateChoir: "Update Choir",
+    rank: "Rank", avg: "Average %"
   },
   fr: {
     title: "Responsable École du Sabbat", subtitle: "Officier de Présence", addFamily: "Enregistrer Famille",
@@ -54,7 +55,8 @@ const sslTranslations = {
     tabLetter: "Lettres de Sabbat", addLetter: "Enregistrer Lettre",
     origin: "Église d'Origine", district: "District", field: "Champ", upload: "Télécharger Lettre",
     status: "Statut", received: "Reçu", rejected: "Rejeté", files: "Fichiers",
-    addChoir: "Enregistrer Chorale", choirName: "Nom de la Chorale", memberCount: "Nombre de Membres", updateChoir: "Mettre à jour la chorale"
+    addChoir: "Enregistrer Chorale", choirName: "Nom de la Chorale", memberCount: "Nombre de Membres", updateChoir: "Mettre à jour la chorale",
+    rank: "Rang", avg: "Moyenne %"
   },
   rw: {
     title: "Umuyobozi w'Ishuri ryo ku Isabato", subtitle: "Ushinzwe Imyitwarire n'Abaramukwa", addFamily: "Andika Umuryango",
@@ -70,7 +72,8 @@ const sslTranslations = {
     tabLetter: "Ibaruwa zo ku Isabato", addLetter: "Andika Ibaruwa",
     origin: "Itorero Inkomoko", district: "Akarere", field: "Inshingano", upload: "Shiraho Ibaruwa",
     status: "Ikarita", received: "Yakiriwe", rejected: "Yanzwe", files: "Inyandiko",
-    addChoir: "Andika Korali", choirName: "Izina rya Korali", memberCount: "Umubare w'Abaririmbyi", updateChoir: "Vugurura Korali"
+    addChoir: "Andika Korali", choirName: "Izina rya Korali", memberCount: "Umubare w'Abaririmbyi", updateChoir: "Vugurura Korali",
+    rank: "Umwanya", avg: "Impuzandengo %"
   }
 }
 
@@ -452,41 +455,46 @@ export default function SabbathSchoolDashboard() {
 
   const currentDayAttendance = attendance.filter(a => a.date === selectedDate)
 
-  // 3-day Performance Helpers
-  const uniqueDates = Array.from(new Set(attendance.map(a => a.date))).sort((a, b) => b.localeCompare(a)).slice(0, 3)
+  // Calculating 3-day Performance for Weekly Report
+  const uniqueDates = Array.from(new Set(attendance.map(a => a.date)))
+    .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
+    .slice(0, 3)
 
-  const familyPerformance = React.useMemo(() => {
-    return families.map(f => {
-      const records = attendance.filter(a => a.type === 'family' && a.targetId === f.id && uniqueDates.includes(a.date))
-      const presentCount = records.reduce((sum, r) => sum + r.count, 0)
-      const maxPossible = f.memberCount * 3
-      const averagePct = maxPossible > 0 ? (presentCount / maxPossible) * 100 : 0
-      return {
-        id: f.id,
-        name: f.name,
-        registered: f.memberCount,
-        presentCount,
-        averagePct
-      }
-    }).sort((a, b) => b.averagePct - a.averagePct)
-  }, [families, attendance, uniqueDates])
+  const familyPerformance = families.map(f => {
+    const totalMembers = f.memberCount || 1
+    const percentages = uniqueDates.map(date => {
+      const rec = attendance.find(a => a.type === 'family' && a.targetId === f.id && a.date === date)
+      return rec ? (rec.count / totalMembers) * 100 : 0
+    })
+    const sum = percentages.reduce((acc, curr) => acc + curr, 0)
+    const avg = uniqueDates.length > 0 ? sum / uniqueDates.length : 0
+    return {
+      id: f.id,
+      name: f.name,
+      day1: percentages[0] ?? 0,
+      day2: percentages[1] ?? 0,
+      day3: percentages[2] ?? 0,
+      average: avg
+    }
+  }).sort((a, b) => b.average - a.average)
 
-  const choirPerformance = React.useMemo(() => {
-    return choirs.map(c => {
-      const records = attendance.filter(a => a.type === 'choir' && a.targetId === c.id && uniqueDates.includes(a.date))
-      const registered = c.memberCount ?? c.memberNames?.length ?? 0
-      const presentCount = records.reduce((sum, r) => sum + r.count, 0)
-      const maxPossible = registered * 3
-      const averagePct = maxPossible > 0 ? (presentCount / maxPossible) * 100 : 0
-      return {
-        id: c.id,
-        name: c.name,
-        registered,
-        presentCount,
-        averagePct
-      }
-    }).sort((a, b) => b.averagePct - a.averagePct)
-  }, [choirs, attendance, uniqueDates])
+  const choirPerformance = choirs.map(c => {
+    const totalMembers = c.memberCount ?? c.memberNames?.length ?? 1
+    const percentages = uniqueDates.map(date => {
+      const rec = attendance.find(a => a.type === 'choir' && a.targetId === c.id && a.date === date)
+      return rec ? (rec.count / totalMembers) * 100 : 0
+    })
+    const sum = percentages.reduce((acc, curr) => acc + curr, 0)
+    const avg = uniqueDates.length > 0 ? sum / uniqueDates.length : 0
+    return {
+      id: c.id,
+      name: c.name,
+      day1: percentages[0] ?? 0,
+      day2: percentages[1] ?? 0,
+      day3: percentages[2] ?? 0,
+      average: avg
+    }
+  }).sort((a, b) => b.average - a.average)
 
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
@@ -609,133 +617,82 @@ export default function SabbathSchoolDashboard() {
       )}
 
       {activeTab === 'reports' && (
-        <div className="space-y-6">
-          <div className="bg-muted/50 p-6 rounded-xl border flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-4">
-                <Label>{t.selDate}:</Label>
-                <Input type="date" className="w-40 h-9" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} />
-              </div>
-            </div>
-            <Button size="lg" className="gap-2 px-8 shadow-lg shadow-primary/20" onClick={generatePDF}>
-              <Download className="h-5 w-5" /> {t.genPDF}
-            </Button>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-lg font-bold">3-Day Overall Performance Breakdown</h3>
-            <p className="text-xs text-muted-foreground">
-              Based on the last 3 recorded days: {uniqueDates.length > 0 ? uniqueDates.join(", ") : "No dates recorded"}
-            </p>
-
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Families Performance Table */}
-              <div className="space-y-3">
-                <h4 className="font-semibold flex items-center gap-2"><Users2 className="h-4 w-4" /> Families Ranking</h4>
-                <div className="rounded-md border bg-card overflow-auto">
-                  <table className="w-full text-sm">
-                    <thead className="border-b bg-muted/50">
-                      <tr>
-                        <th className="p-2 text-left">Rank</th>
-                        <th className="p-2 text-left">Family</th>
-                        <th className="p-2 text-center">Present (3 Days)</th>
-                        <th className="p-2 text-right">Average %</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {familyPerformance.map((item, idx) => (
-                        <tr key={item.id} className="border-b hover:bg-muted/30">
-                          <td className="p-2 font-bold">{idx + 1}</td>
-                          <td className="p-2 font-medium">{item.name}</td>
-                          <td className="p-2 text-center">{item.presentCount} / {item.registered * 3}</td>
-                          <td className="p-2 text-right font-bold text-primary">{item.averagePct.toFixed(1)}%</td>
-                        </tr>
-                      ))}
-                      {familyPerformance.length === 0 && (
-                        <tr>
-                          <td colSpan={4} className="p-4 text-center text-muted-foreground">No family performance data</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Choirs Performance Table */}
-              <div className="space-y-3">
-                <h4 className="font-semibold flex items-center gap-2"><Music className="h-4 w-4" /> Choirs Ranking</h4>
-                <div className="rounded-md border bg-card overflow-auto">
-                  <table className="w-full text-sm">
-                    <thead className="border-b bg-muted/50">
-                      <tr>
-                        <th className="p-2 text-left">Rank</th>
-                        <th className="p-2 text-left">Choir</th>
-                        <th className="p-2 text-center">Present (3 Days)</th>
-                        <th className="p-2 text-right">Average %</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {choirPerformance.map((item, idx) => (
-                        <tr key={item.id} className="border-b hover:bg-muted/30">
-                          <td className="p-2 font-bold">{idx + 1}</td>
-                          <td className="p-2 font-medium">{item.name}</td>
-                          <td className="p-2 text-center">{item.presentCount} / {item.registered * 3}</td>
-                          <td className="p-2 text-right font-bold text-primary">{item.averagePct.toFixed(1)}%</td>
-                        </tr>
-                      ))}
-                      {choirPerformance.length === 0 && (
-                        <tr>
-                          <td colSpan={4} className="p-4 text-center text-muted-foreground">No choir performance data</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+        <div className="space-y-8">
+          {/* Families Performance Table */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-bold flex items-center gap-2">
+              <Users2 className="h-5 w-5 text-primary" /> {t.families} Performance (3-Day Comparison)
+            </h3>
+            <div className="rounded-md border bg-card overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="border-b bg-muted/50">
+                  <tr>
+                    <th className="p-3 text-left w-16">{t.rank}</th>
+                    <th className="p-3 text-left">{t.famName}</th>
+                    <th className="p-3 text-center">{uniqueDates[0] || "Day 1"}</th>
+                    <th className="p-3 text-center">{uniqueDates[1] || "Day 2"}</th>
+                    <th className="p-3 text-center">{uniqueDates[2] || "Day 3"}</th>
+                    <th className="p-3 text-right font-bold">{t.avg}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {familyPerformance.map((item, index) => (
+                    <tr key={item.id} className="border-b hover:bg-muted/30 transition-colors">
+                      <td className="p-3 font-semibold text-muted-foreground">{index + 1}</td>
+                      <td className="p-3 font-medium">{item.name}</td>
+                      <td className="p-3 text-center">{item.day1.toFixed(1)}%</td>
+                      <td className="p-3 text-center">{item.day2.toFixed(1)}%</td>
+                      <td className="p-3 text-center">{item.day3.toFixed(1)}%</td>
+                      <td className="p-3 text-right font-bold text-primary">{item.average.toFixed(1)}%</td>
+                    </tr>
+                  ))}
+                  {familyPerformance.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="p-4 text-center text-muted-foreground">{t.noData}</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
 
-          {currentDayAttendance.length > 0 ? (
-            <div className="grid gap-6 pt-4 border-t">
-              <h3 className="text-md font-bold">Selected Date Attendance Summary ({selectedDate})</h3>
-              <div className="grid md:grid-cols-3 gap-4">
-                <div className="p-4 border rounded-lg bg-card text-center">
-                  <p className="text-sm text-muted-foreground">{t.families}</p>
-                  <p className="text-2xl font-bold">{currentDayAttendance.filter(a => a.type === 'family').reduce((acc, c) => acc + c.count, 0)}</p>
-                </div>
-                <div className="p-4 border rounded-lg bg-card text-center">
-                  <p className="text-sm text-muted-foreground">{t.choirs}</p>
-                  <p className="text-2xl font-bold">{currentDayAttendance.filter(a => a.type === 'choir').reduce((acc, c) => acc + c.count, 0)}</p>
-                </div>
-                <div className="p-4 border rounded-lg bg-primary text-primary-foreground text-center">
-                  <p className="text-sm opacity-90">{t.total}</p>
-                  <p className="text-2xl font-bold">{currentDayAttendance.reduce((acc, c) => acc + c.count, 0)}</p>
-                </div>
-              </div>
-
-              <div className="rounded-md border bg-card">
-                <table className="w-full text-sm">
-                  <thead className="border-b bg-muted/50">
-                    <tr><th className="p-3 text-left">{t.name}</th><th className="p-3 text-left">{t.type}</th><th className="p-3 text-right">{t.count}</th></tr>
-                  </thead>
-                  <tbody>
-                    {currentDayAttendance.map(a => (
-                      <tr key={a.id} className="border-b transition-colors hover:bg-muted/30">
-                        <td className="p-3">{a.targetName}</td>
-                        <td className="p-3 uppercase text-[10px] font-bold tracking-wider">{a.type === 'family' ? t.families : t.choirs}</td>
-                        <td className="p-3 text-right font-medium">{a.count}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+          {/* Choirs Performance Table */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-bold flex items-center gap-2">
+              <Music className="h-5 w-5 text-primary" /> {t.choirs} Performance (3-Day Comparison)
+            </h3>
+            <div className="rounded-md border bg-card overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="border-b bg-muted/50">
+                  <tr>
+                    <th className="p-3 text-left w-16">{t.rank}</th>
+                    <th className="p-3 text-left">{t.choirName}</th>
+                    <th className="p-3 text-center">{uniqueDates[0] || "Day 1"}</th>
+                    <th className="p-3 text-center">{uniqueDates[1] || "Day 2"}</th>
+                    <th className="p-3 text-center">{uniqueDates[2] || "Day 3"}</th>
+                    <th className="p-3 text-right font-bold">{t.avg}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {choirPerformance.map((item, index) => (
+                    <tr key={item.id} className="border-b hover:bg-muted/30 transition-colors">
+                      <td className="p-3 font-semibold text-muted-foreground">{index + 1}</td>
+                      <td className="p-3 font-medium">{item.name}</td>
+                      <td className="p-3 text-center">{item.day1.toFixed(1)}%</td>
+                      <td className="p-3 text-center">{item.day2.toFixed(1)}%</td>
+                      <td className="p-3 text-center">{item.day3.toFixed(1)}%</td>
+                      <td className="p-3 text-right font-bold text-primary">{item.average.toFixed(1)}%</td>
+                    </tr>
+                  ))}
+                  {choirPerformance.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="p-4 text-center text-muted-foreground">{t.noData}</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
-          ) : (
-            <div className="h-40 flex flex-col items-center justify-center border-2 border-dashed rounded-xl text-muted-foreground">
-              <FileText className="h-10 w-10 mb-2 opacity-20" />
-              <p>{t.noData}</p>
-            </div>
-          )}
+          </div>
         </div>
       )}
 
@@ -828,44 +785,31 @@ export default function SabbathSchoolDashboard() {
           <div className="w-full max-w-md bg-background p-6 rounded-lg shadow-xl space-y-4">
             <div className="flex justify-between items-center border-b pb-2"><h3 className="text-lg font-bold">{editingLetter ? "Update Letter" : t.addLetter}</h3><Button variant="ghost" size="sm" onClick={() => setIsLetterModalOpen(false)}><X className="h-4 w-4" /></Button></div>
             <div className="grid gap-4">
-              <div className="grid gap-2"><Label>{t.name}</Label><Input value={letterFormData.name || ""} onChange={e => setLetterFormData({...letterFormData, name: e.target.value})} /></div>
-              <div className="grid gap-2"><Label>{t.origin}</Label><Input value={letterFormData.originChurch || ""} onChange={e => setLetterFormData({...letterFormData, originChurch: e.target.value})} /></div>
+              <div className="grid gap-2"><Label>{t.name}</Label><Input value={letterFormData.name} onChange={e => setLetterFormData({...letterFormData, name: e.target.value})} /></div>
+              <div className="grid gap-2"><Label>{t.origin}</Label><Input value={letterFormData.originChurch} onChange={e => setLetterFormData({...letterFormData, originChurch: e.target.value})} /></div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2"><Label>{t.district}</Label><Input value={letterFormData.district || ""} onChange={e => setLetterFormData({...letterFormData, district: e.target.value})} /></div>
-                <div className="grid gap-2"><Label>{t.field}</Label><Input value={letterFormData.field || ""} onChange={e => setLetterFormData({...letterFormData, field: e.target.value})} /></div>
+                <div className="grid gap-2"><Label>{t.district}</Label><Input value={letterFormData.district} onChange={e => setLetterFormData({...letterFormData, district: e.target.value})} /></div>
+                <div className="grid gap-2"><Label>{t.field}</Label><Input value={letterFormData.field} onChange={e => setLetterFormData({...letterFormData, field: e.target.value})} /></div>
               </div>
-              <div className="grid gap-2">
-                <Label>{t.upload}</Label>
-                <Input 
-                  type="file" 
-                  accept=".pdf,.doc,.docx,image/*" 
-                  onChange={e => {
-                    const file = e.target.files?.[0]
-                    if (file) {
-                      const reader = new FileReader()
-                      reader.onloadend = () => {
-                        setLetterFormData({
-                          ...letterFormData,
-                          fileName: file.name,
-                          fileData: reader.result as string
-                        })
-                      }
-                      reader.readAsDataURL(file)
-                    }
-                  }} 
-                />
-                {letterFormData.fileName && <p className="text-xs text-muted-foreground">Selected: {letterFormData.fileName}</p>}
-              </div>
-              <div className="grid gap-2">
-                <Label>{t.status}</Label>
-                <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={letterFormData.status || "received"} onChange={e => setLetterFormData({...letterFormData, status: e.target.value as any})}>
+              <div className="grid gap-2"><Label>{t.status}</Label>
+                <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={letterFormData.status} onChange={e => setLetterFormData({...letterFormData, status: e.target.value as any})}>
                   <option value="received">{t.received}</option>
                   <option value="rejected">{t.rejected}</option>
                 </select>
               </div>
+              <div className="grid gap-2"><Label>{t.upload}</Label><Input type="file" onChange={e => {
+                const file = e.target.files?.[0]
+                if (file) {
+                  const reader = new FileReader()
+                  reader.onloadend = () => {
+                    setLetterFormData({...letterFormData, fileName: file.name, fileData: reader.result as string})
+                  }
+                  reader.readAsDataURL(file)
+                }
+              }} /></div>
               <div className="flex gap-2 pt-2">
                 <Button variant="outline" className="flex-1" onClick={() => setIsLetterModalOpen(false)}>{t.cancel}</Button>
-                <Button className="flex-1" onClick={handleSaveLetter}>{t.save}</Button>
+                <Button className="flex-1" onClick={handleSaveLetter}>{editingLetter ? "Update" : t.save}</Button>
               </div>
             </div>
           </div>
