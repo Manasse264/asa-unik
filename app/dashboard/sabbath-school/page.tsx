@@ -99,6 +99,7 @@ export default function SabbathSchoolDashboard() {
   const [attendance, setAttendance] = React.useState<AttendanceRecord[]>([])
   const [letters, setLetters] = React.useState<SabbathLetter[]>([])
   const [selectedDate, setSelectedDate] = React.useState(new Date().toISOString().split('T')[0])
+  const [generatedDates, setGeneratedDates] = React.useState<string[]>([])
 
   const [editingFamily, setEditingFamily] = React.useState<Family | null>(null)
   const [isFamilyModalOpen, setIsFamilyModalOpen] = React.useState(false)
@@ -135,6 +136,15 @@ export default function SabbathSchoolDashboard() {
 
       const dbChoirs = await getChoirs(year)
       setChoirs((dbChoirs as Choir[]) || [])
+
+      if (typeof window !== "undefined") {
+        const storedGenDates = localStorage.getItem(`generated_dates_${year}`)
+        if (storedGenDates) {
+          setGeneratedDates(JSON.parse(storedGenDates))
+        } else {
+          setGeneratedDates([])
+        }
+      }
     } catch (err) {
       console.error("DB load error:", err)
     }
@@ -319,6 +329,13 @@ export default function SabbathSchoolDashboard() {
 
     try {
       await saveReport(newReport)
+      if (!generatedDates.includes(date)) {
+        const updatedGenDates = [...generatedDates, date]
+        setGeneratedDates(updatedGenDates)
+        if (typeof window !== "undefined") {
+          localStorage.setItem(`generated_dates_${selectedYear}`, JSON.stringify(updatedGenDates))
+        }
+      }
       doc.save(`Attendance_Report_at_${date}.pdf`)
     } catch (err) {
       console.error("Failed to sync report:", err)
@@ -335,7 +352,7 @@ export default function SabbathSchoolDashboard() {
     doc.setFontSize(14)
     doc.setFont("helvetica", "bold")
     doc.setTextColor(0, 0, 0)
-    doc.text("Families presence (3-Day)", 105, 30, { align: "center" })
+    doc.text("Families Performance (3-Day Comparison)", 105, 30, { align: "center" })
 
     const familyRows = familyPerformance.map((f, i) => [
       (i + 1).toString(),
@@ -357,7 +374,7 @@ export default function SabbathSchoolDashboard() {
     const choirTitleY = (doc as any).lastAutoTable.finalY + 12
     doc.setFontSize(14)
     doc.setFont("helvetica", "bold")
-    doc.text("Choirs Presence (3-Day)", 105, choirTitleY, { align: "center" })
+    doc.text("Choirs Performance (3-Day Comparison)", 105, choirTitleY, { align: "center" })
 
     const choirRows = choirPerformance.map((c, i) => [
       (i + 1).toString(),
@@ -505,12 +522,14 @@ export default function SabbathSchoolDashboard() {
 
   const currentDayAttendance = attendance.filter(a => a.date === selectedDate)
 
-  // Calculating 3-day Performance for Weekly Report
-  const uniqueDates = Array.from(new Set(attendance.map(a => a.date)))
+  // Calculating 3-day Performance for Weekly Report strictly from generated daily reports
+  const uniqueDates = generatedDates
     .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
     .slice(0, 3)
 
-  const familyPerformance = families.map(f => {
+  const hasGeneratedReports = uniqueDates.length > 0
+
+  const familyPerformance = hasGeneratedReports ? families.map(f => {
     const totalMembers = f.memberCount || 1
     const percentages = uniqueDates.map(date => {
       const rec = attendance.find(a => a.type === 'family' && a.targetId === f.id && a.date === date)
@@ -526,9 +545,9 @@ export default function SabbathSchoolDashboard() {
       day3: percentages[2] ?? 0,
       average: avg
     }
-  }).sort((a, b) => b.average - a.average)
+  }).sort((a, b) => b.average - a.average) : []
 
-  const choirPerformance = choirs.map(c => {
+  const choirPerformance = hasGeneratedReports ? choirs.map(c => {
     const totalMembers = c.memberCount ?? c.memberNames?.length ?? 1
     const percentages = uniqueDates.map(date => {
       const rec = attendance.find(a => a.type === 'choir' && a.targetId === c.id && a.date === date)
@@ -544,7 +563,7 @@ export default function SabbathSchoolDashboard() {
       day3: percentages[2] ?? 0,
       average: avg
     }
-  }).sort((a, b) => b.average - a.average)
+  }).sort((a, b) => b.average - a.average) : []
 
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
@@ -666,87 +685,85 @@ export default function SabbathSchoolDashboard() {
 
       {activeTab === 'reports' && (
         <div className="space-y-8">
-          {/* Families Performance Table */}
-          <div className="space-y-3">
-            <h3 className="text-lg font-bold flex items-center gap-2">
-              <Users2 className="h-5 w-5 text-primary" /> {t.families} Performance (3-Day)
-            </h3>
-            <div className="rounded-md border bg-card overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="border-b bg-muted/50">
-                  <tr>
-                    <th className="p-3 text-left w-16">{t.rank}</th>
-                    <th className="p-3 text-left">{t.famName}</th>
-                    <th className="p-3 text-center">{uniqueDates[0] || "Day 1"}</th>
-                    <th className="p-3 text-center">{uniqueDates[1] || "Day 2"}</th>
-                    <th className="p-3 text-center">{uniqueDates[2] || "Day 3"}</th>
-                    <th className="p-3 text-right font-bold">{t.avg}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {familyPerformance.map((item, index) => (
-                    <tr key={item.id} className="border-b hover:bg-muted/30 transition-colors">
-                      <td className="p-3 font-semibold text-muted-foreground">{index + 1}</td>
-                      <td className="p-3 font-medium">{item.name}</td>
-                      <td className="p-3 text-center">{item.day1.toFixed(1)}%</td>
-                      <td className="p-3 text-center">{item.day2.toFixed(1)}%</td>
-                      <td className="p-3 text-center">{item.day3.toFixed(1)}%</td>
-                      <td className="p-3 text-right font-bold text-primary">{item.average.toFixed(1)}%</td>
-                    </tr>
-                  ))}
-                  {familyPerformance.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className="p-4 text-center text-muted-foreground">{t.noData}</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+          {!hasGeneratedReports ? (
+            <div className="p-8 text-center border rounded-lg bg-card text-muted-foreground">
+              {t.noData}
             </div>
-          </div>
+          ) : (
+            <>
+              {/* Families Performance Table */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-bold flex items-center gap-2">
+                  <Users2 className="h-5 w-5 text-primary" /> {t.families} Performance (3-Day Comparison)
+                </h3>
+                <div className="rounded-md border bg-card overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="border-b bg-muted/50">
+                      <tr>
+                        <th className="p-3 text-left w-16">{t.rank}</th>
+                        <th className="p-3 text-left">{t.famName}</th>
+                        <th className="p-3 text-center">{uniqueDates[0] || "Day 1"}</th>
+                        <th className="p-3 text-center">{uniqueDates[1] || "Day 2"}</th>
+                        <th className="p-3 text-center">{uniqueDates[2] || "Day 3"}</th>
+                        <th className="p-3 text-right font-bold">{t.avg}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {familyPerformance.map((item, index) => (
+                        <tr key={item.id} className="border-b hover:bg-muted/30 transition-colors">
+                          <td className="p-3 font-semibold text-muted-foreground">{index + 1}</td>
+                          <td className="p-3 font-medium">{item.name}</td>
+                          <td className="p-3 text-center">{item.day1.toFixed(1)}%</td>
+                          <td className="p-3 text-center">{item.day2.toFixed(1)}%</td>
+                          <td className="p-3 text-center">{item.day3.toFixed(1)}%</td>
+                          <td className="p-3 text-right font-bold text-primary">{item.average.toFixed(1)}%</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
 
-          {/* Choirs Performance Table */}
-          <div className="space-y-3">
-            <h3 className="text-lg font-bold flex items-center gap-2">
-              <Music className="h-5 w-5 text-primary" /> {t.choirs} Performance (3-Day)
-            </h3>
-            <div className="rounded-md border bg-card overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="border-b bg-muted/50">
-                  <tr>
-                    <th className="p-3 text-left w-16">{t.rank}</th>
-                    <th className="p-3 text-left">{t.choirName}</th>
-                    <th className="p-3 text-center">{uniqueDates[0] || "Day 1"}</th>
-                    <th className="p-3 text-center">{uniqueDates[1] || "Day 2"}</th>
-                    <th className="p-3 text-center">{uniqueDates[2] || "Day 3"}</th>
-                    <th className="p-3 text-right font-bold">{t.avg}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {choirPerformance.map((item, index) => (
-                    <tr key={item.id} className="border-b hover:bg-muted/30 transition-colors">
-                      <td className="p-3 font-semibold text-muted-foreground">{index + 1}</td>
-                      <td className="p-3 font-medium">{item.name}</td>
-                      <td className="p-3 text-center">{item.day1.toFixed(1)}%</td>
-                      <td className="p-3 text-center">{item.day2.toFixed(1)}%</td>
-                      <td className="p-3 text-center">{item.day3.toFixed(1)}%</td>
-                      <td className="p-3 text-right font-bold text-primary">{item.average.toFixed(1)}%</td>
-                    </tr>
-                  ))}
-                  {choirPerformance.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className="p-4 text-center text-muted-foreground">{t.noData}</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+              {/* Choirs Performance Table */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-bold flex items-center gap-2">
+                  <Music className="h-5 w-5 text-primary" /> {t.choirs} Performance (3-Day Comparison)
+                </h3>
+                <div className="rounded-md border bg-card overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="border-b bg-muted/50">
+                      <tr>
+                        <th className="p-3 text-left w-16">{t.rank}</th>
+                        <th className="p-3 text-left">{t.choirName}</th>
+                        <th className="p-3 text-center">{uniqueDates[0] || "Day 1"}</th>
+                        <th className="p-3 text-center">{uniqueDates[1] || "Day 2"}</th>
+                        <th className="p-3 text-center">{uniqueDates[2] || "Day 3"}</th>
+                        <th className="p-3 text-right font-bold">{t.avg}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {choirPerformance.map((item, index) => (
+                        <tr key={item.id} className="border-b hover:bg-muted/30 transition-colors">
+                          <td className="p-3 font-semibold text-muted-foreground">{index + 1}</td>
+                          <td className="p-3 font-medium">{item.name}</td>
+                          <td className="p-3 text-center">{item.day1.toFixed(1)}%</td>
+                          <td className="p-3 text-center">{item.day2.toFixed(1)}%</td>
+                          <td className="p-3 text-center">{item.day3.toFixed(1)}%</td>
+                          <td className="p-3 text-right font-bold text-primary">{item.average.toFixed(1)}%</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
 
-          <div className="flex justify-end pt-4">
-            <Button size="lg" className="gap-2 px-6 shadow-lg shadow-primary/20" onClick={generateWeeklyPDF}>
-              <Download className="h-5 w-5" /> {t.downloadWeekly}
-            </Button>
-          </div>
+              <div className="flex justify-end pt-4">
+                <Button size="lg" className="gap-2 px-6 shadow-lg shadow-primary/20" onClick={generateWeeklyPDF}>
+                  <Download className="h-5 w-5" /> {t.downloadWeekly}
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       )}
 
