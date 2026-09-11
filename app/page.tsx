@@ -17,13 +17,7 @@ import {
   ArrowRight,
   Sparkles,
   ChevronRight,
-  Compass,
-  Phone,
-  Mail,
-  Facebook,
-  Youtube,
-  Instagram,
-  Twitter
+  Compass
 } from "lucide-react"
 
 const translations = {
@@ -78,19 +72,7 @@ const translations = {
     viewAllUpdates: "View All Updates",
 
     galleryBadge: "CHURCH GALLERY",
-    viewGallery: "View Gallery",
-
-    footerDesc: "A vibrant Seventh-day Adventist student & local community worshiping God together at RP Ngoma Campus.",
-    quickLinks: "Quick Links",
-    contactUs: "Contact Us",
-    findUs: "Find Us",
-    home: "Home",
-    about: "About Us",
-    sermons: "Sermons",
-    ministries: "Ministries",
-    events: "Events",
-    gallery: "Gallery",
-    copyright: "All rights reserved."
+    viewGallery: "View Gallery"
   },
   rw: {
     welcomeSub: "MURA KAZA NEZA KURI",
@@ -143,19 +125,7 @@ const translations = {
     viewAllUpdates: "Reba Amakuru Yose",
 
     galleryBadge: "AMAFOTO Y'ITORERO",
-    viewGallery: "Reba Amafoto",
-
-    footerDesc: "Umuryango w'abizera n'abanyeshuri b'Abadiventisti basengera hamwe mu kigo cya RP Ngoma.",
-    quickLinks: "Ibyerekeye",
-    contactUs: "Tuvugishe",
-    findUs: "Aho Turi",
-    home: "Ahabanza",
-    about: "Turi Bamwe",
-    sermons: "Inyigisho",
-    ministries: "Minisitiri",
-    events: "Ibyakorwa",
-    gallery: "Amafoto",
-    copyright: "Uburenganzira bwose burabitswe."
+    viewGallery: "Reba Amafoto"
   },
   fr: {
     welcomeSub: "BIENVENUE À",
@@ -208,19 +178,7 @@ const translations = {
     viewAllUpdates: "Voir Toutes les Mises à Jour",
 
     galleryBadge: "GALERIE DE L'ÉGLISE",
-    viewGallery: "Voir la Galerie",
-
-    footerDesc: "Une communauté d'étudiants et de membres locaux adorant Dieu ensemble sur le campus de RP Ngoma.",
-    quickLinks: "Liens Rapides",
-    contactUs: "Contactez-nous",
-    findUs: "Nous Trouver",
-    home: "Accueil",
-    about: "À Propos",
-    sermons: "Sermons",
-    ministries: "Ministères",
-    events: "Événements",
-    gallery: "Galerie",
-    copyright: "Tous droits réservés."
+    viewGallery: "Voir la Galerie"
   }
 }
 
@@ -287,498 +245,337 @@ export default function Page() {
   ]
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
-      <main className="flex-1 w-full overflow-x-hidden">
-        
-        {/* 1. HERO SECTION */}
-        <section className="relative w-full min-h-[580px] lg:min-h-[640px] flex items-center justify-center overflow-hidden bg-slate-900 py-16">
-          <div 
-            className="absolute inset-0 z-0 bg-cover bg-center opacity-40 scale-105 transition-transform duration-1000"
-            style={{ backgroundImage: "url('/photo1.jpg')" }}
-          />
-          <div className="absolute inset-0 z-10 bg-gradient-to-r from-slate-950/80 via-slate-900/60 to-transparent" />
+    <main className="flex-1 w-full bg-slate-50 overflow-x-hidden">
+      
+      {/* 1. HERO SECTION */}
+      <section className="relative w-full min-h-[580px] lg:min-h-[640px] flex items-center justify-center overflow-hidden bg-slate-900 py-16">
+        <div 
+          className="absolute inset-0 z-0 bg-cover bg-center opacity-40 scale-105 transition-transform duration-1000"
+          style={{ backgroundImage: "url('/photo1.jpg')" }}
+        />
+        <div className="absolute inset-0 z-10 bg-gradient-to-r from-slate-950/80 via-slate-900/60 to-transparent" />
 
-          <div className="container relative z-20 px-4 md:px-8 grid lg:grid-cols-12 gap-8 items-center">
-            <div className="lg:col-span-8 space-y-6 text-left">
-              <div className="inline-block px-3 py-1 bg-white/10 backdrop-blur-md rounded-md border border-white/20 text-xs font-bold tracking-widest text-white uppercase">
-                {t.welcomeSub}
-              </div>
-              
-              <div className="space-y-2">
-                <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight leading-none">
-                  {t.churchName}
-                </h1>
-                <p className="text-xl md:text-2xl font-semibold text-blue-200">
-                  {t.sdaSub}
-                </p>
-              </div>
-
-              <div className="space-y-2 max-w-2xl">
-                <h2 className="text-2xl md:text-3xl font-extrabold text-amber-300 italic">
-                  {t.mottoTitle}
-                </h2>
-                <p className="text-base md:text-lg text-slate-200 leading-relaxed font-medium">
-                  {t.mottoDesc}
-                </p>
-              </div>
-
-              <div className="flex flex-wrap gap-4 pt-2">
-                <Button asChild size="lg" className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-full px-6 shadow-lg border-none">
-                  <Link href="/events" className="flex items-center gap-2">
-                    <Users className="w-5 h-5" />
-                    {t.joinSabbath}
-                    <ArrowRight className="w-4 h-4 ml-1" />
-                  </Link>
-                </Button>
-                <Button variant="outline" size="lg" asChild className="border-2 border-white/80 bg-white/10 hover:bg-white/20 text-white font-bold rounded-full px-6 backdrop-blur-sm">
-                  <Link href="/sermons" className="flex items-center gap-2">
-                    <Play className="w-5 h-5 fill-current" />
-                    {t.watchOnline}
-                  </Link>
-                </Button>
-              </div>
+        <div className="container relative z-20 px-4 md:px-8 grid lg:grid-cols-12 gap-8 items-center">
+          <div className="lg:col-span-8 space-y-6 text-left">
+            <div className="inline-block px-3 py-1 bg-white/10 backdrop-blur-md rounded-md border border-white/20 text-xs font-bold tracking-widest text-white uppercase">
+              {t.welcomeSub}
             </div>
-
-            <div className="lg:col-span-4 hidden lg:block">
-              <div className="p-6 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white space-y-4 shadow-2xl">
-                <p className="text-lg italic font-serif leading-relaxed text-slate-100">
-                  {t.heroQuote}
-                </p>
-                <p className="text-sm font-bold text-amber-300 text-right">
-                  — {t.heroVerse}
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* 2. WORSHIP WITH US SECTION */}
-        <section className="w-full bg-white border-b border-slate-200 shadow-sm py-8">
-          <div className="container px-4 md:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-6 items-center">
-              
-              <div className="md:col-span-1 flex items-center gap-4 pr-4 border-b md:border-b-0 md:border-r border-slate-200 pb-4 md:pb-0">
-                <div className="p-3 bg-blue-50 text-blue-900 rounded-xl">
-                  <Calendar className="w-8 h-8" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">{t.worshipHeader}</h3>
-                  <p className="text-xs text-slate-500 leading-snug mt-0.5">{t.worshipSub}</p>
-                </div>
-              </div>
-
-              <div className="md:col-span-4 grid grid-cols-2 lg:grid-cols-4 gap-4 text-center">
-                <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 flex flex-col items-center justify-center">
-                  <Calendar className="w-5 h-5 text-blue-600 mb-1" />
-                  <span className="text-xs font-bold text-slate-900">{t.sabbathWorship}</span>
-                  <span className="text-[11px] font-medium text-slate-600 mt-0.5">{t.sabbathTime}</span>
-                </div>
-
-                <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 flex flex-col items-center justify-center">
-                  <BookOpen className="w-5 h-5 text-blue-600 mb-1" />
-                  <span className="text-xs font-bold text-slate-900">{t.bibleStudy}</span>
-                  <span className="text-[11px] font-medium text-slate-600 mt-0.5">{t.bibleStudyTime}</span>
-                </div>
-
-                <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 flex flex-col items-center justify-center">
-                  <HeartHandshake className="w-5 h-5 text-blue-600 mb-1" />
-                  <span className="text-xs font-bold text-slate-900">{t.prayerMeeting}</span>
-                  <span className="text-[11px] font-medium text-slate-600 mt-0.5">{t.prayerTime}</span>
-                </div>
-
-                <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 flex flex-col items-center justify-center">
-                  <MapPin className="w-5 h-5 text-blue-600 mb-1" />
-                  <span className="text-xs font-bold text-slate-900">{t.ourLocation}</span>
-                  <span className="text-[11px] font-medium text-slate-600 mt-0.5">{t.locationDesc}</span>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </section>
-
-        {/* 3. WELCOME & BIBLE VERSE SECTION */}
-        <section className="w-full py-16 bg-slate-50">
-          <div className="container px-4 md:px-8">
-            <div className="grid lg:grid-cols-12 gap-8 items-stretch">
-              
-              {/* Left: About Church Card */}
-              <div className="lg:col-span-7 bg-white rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm flex flex-col md:flex-row gap-6 items-center">
-                <div className="relative w-full md:w-1/2 h-56 md:h-full min-h-[220px] rounded-xl overflow-hidden shrink-0">
-                  <Image 
-                    src="/photo2.jpg" 
-                    alt="Church Building" 
-                    fill 
-                    className="object-cover"
-                  />
-                </div>
-                <div className="space-y-4 flex-1">
-                  <span className="text-xs font-extrabold tracking-widest text-blue-800 uppercase">
-                    {t.aboutBadge}
-                  </span>
-                  <h2 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight">
-                    {t.aboutTitle}
-                  </h2>
-                  <p className="text-sm text-slate-600 leading-relaxed">
-                    {t.aboutDesc}
-                  </p>
-                  <Button asChild size="sm" className="bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-full px-5">
-                    <Link href="/about" className="flex items-center gap-1.5">
-                      {t.learnAboutUs}
-                      <ArrowRight className="w-4 h-4" />
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-
-              {/* Right: Bible Verse Card */}
-              <div className="lg:col-span-5 bg-gradient-to-br from-blue-900 to-slate-900 rounded-2xl p-6 md:p-8 text-white flex flex-col justify-between relative overflow-hidden shadow-md">
-                <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-                  <BookOpen className="w-40 h-40" />
-                </div>
-                <div className="space-y-4 relative z-10">
-                  <div className="flex items-center gap-2">
-                    <BookOpen className="w-4 h-4 text-amber-400" />
-                    <span className="text-xs font-extrabold tracking-widest text-amber-400 uppercase">
-                      {t.verseBadge}
-                    </span>
-                  </div>
-                  <p className="text-lg md:text-xl font-serif italic text-slate-100 leading-relaxed pt-2">
-                    {t.verseText}
-                  </p>
-                </div>
-                <div className="pt-6 relative z-10 text-right">
-                  <span className="text-sm font-bold text-amber-300">
-                    — {t.verseRef}
-                  </span>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </section>
-
-        {/* 4. LATEST SERMON & MINISTRIES SECTION */}
-        <section className="w-full py-16 bg-white border-y border-slate-200">
-          <div className="container px-4 md:px-8">
-            <div className="grid lg:grid-cols-12 gap-8">
-              
-              {/* Latest Sermon Card */}
-              <div className="lg:col-span-5 bg-slate-900 rounded-2xl overflow-hidden shadow-lg border border-slate-800 text-white flex flex-col">
-                <div className="relative w-full h-48 bg-slate-800">
-                  <Image 
-                    src="/photo3.jpg" 
-                    alt="Sermon Thumbnail" 
-                    fill 
-                    className="object-cover opacity-80"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent flex items-center justify-center">
-                    <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/40 cursor-pointer hover:scale-110 transition-transform">
-                      <Play className="w-6 h-6 fill-current ml-0.5" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-6 space-y-4 flex-1 flex flex-col justify-between">
-                  <div>
-                    <span className="text-[11px] font-extrabold tracking-widest text-amber-400 uppercase">
-                      {t.sermonBadge}
-                    </span>
-                    <h3 className="text-2xl font-bold text-white mt-1">
-                      {t.sermonTitle}
-                    </h3>
-                    <p className="text-xs font-medium text-slate-300 mt-2">
-                      {t.sermonSpeaker}
-                    </p>
-                    <p className="text-xs font-medium text-slate-400 mt-0.5">
-                      {t.sermonDate}
-                    </p>
-                  </div>
-
-                  <Button asChild className="w-full bg-white hover:bg-slate-100 text-slate-950 font-bold rounded-lg mt-4">
-                    <Link href="/sermons" className="flex items-center justify-center gap-2">
-                      <Play className="w-4 h-4 fill-current" />
-                      {t.watchSermon}
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-
-              {/* Ministries Grid */}
-              <div className="lg:col-span-7 space-y-6">
-                <div>
-                  <span className="text-xs font-extrabold tracking-widest text-blue-800 uppercase">
-                    {t.ministriesBadge}
-                  </span>
-                  <h2 className="text-2xl md:text-3xl font-black text-slate-900 mt-1">
-                    Connect & Serve
-                  </h2>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  {ministryList.map((m, idx) => {
-                    const Icon = m.icon
-                    return (
-                      <Link key={idx} href="/ministries" className="group p-4 bg-slate-50 hover:bg-blue-50 border border-slate-200/80 hover:border-blue-200 rounded-xl transition-all text-center flex flex-col items-center justify-center">
-                        <div className={cn("p-3 rounded-full mb-2 transition-transform group-hover:scale-110", m.color)}>
-                          <Icon className="w-5 h-5" />
-                        </div>
-                        <span className="text-xs font-bold text-slate-800 group-hover:text-blue-900">
-                          {m.name}
-                        </span>
-                      </Link>
-                    )
-                  })}
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </section>
-
-        {/* 5. UPCOMING EVENTS & GALLERY PREVIEW */}
-        <section className="w-full py-16 bg-slate-50">
-          <div className="container px-4 md:px-8 space-y-12">
             
-            {/* Upcoming Events */}
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
-                <div>
-                  <span className="text-xs font-extrabold tracking-widest text-blue-800 uppercase">
-                    {t.eventsBadge}
-                  </span>
-                  <h2 className="text-2xl md:text-3xl font-black text-slate-900 mt-1">
-                    Upcoming Events
-                  </h2>
-                </div>
-                <Button variant="ghost" asChild className="text-blue-900 hover:text-blue-700 font-bold self-start sm:self-auto p-0">
-                  <Link href="/events" className="flex items-center gap-1">
-                    {t.viewAllUpdates}
-                    <ChevronRight className="w-4 h-4" />
-                  </Link>
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {upcomingEvents.map((ev) => (
-                  <div key={ev.id} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-start gap-4">
-                    <div className="bg-blue-50 border border-blue-100 rounded-lg p-2.5 text-center shrink-0 min-w-[56px]">
-                      <span className="block text-lg font-black text-blue-900 leading-none">{ev.day}</span>
-                      <span className="block text-[10px] font-bold text-blue-600 tracking-wider uppercase mt-1">{ev.month}</span>
-                    </div>
-                    <div className="space-y-1 min-w-0">
-                      <h4 className="text-sm font-bold text-slate-900 truncate">{ev.title}</h4>
-                      <p className="text-xs text-slate-500 flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5" />
-                        {ev.time}
-                      </p>
-                      <p className="text-xs text-slate-500 flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5" />
-                        {ev.location}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Church Gallery Preview */}
-            <div className="space-y-6 pt-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
-                <div>
-                  <span className="text-xs font-extrabold tracking-widest text-blue-800 uppercase">
-                    {t.galleryBadge}
-                  </span>
-                  <h2 className="text-2xl md:text-3xl font-black text-slate-900 mt-1">
-                    Recent Moments
-                  </h2>
-                </div>
-                <Button variant="ghost" asChild className="text-blue-900 hover:text-blue-700 font-bold self-start sm:self-auto p-0">
-                  <Link href="/gallery" className="flex items-center gap-1">
-                    {t.viewGallery}
-                    <ChevronRight className="w-4 h-4" />
-                  </Link>
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                {["/photo1.jpg", "/photo2.jpg", "/photo3.jpg", "/photo4.jpg", "/photo1.jpg"].map((src, i) => (
-                  <div key={i} className="relative h-36 rounded-xl overflow-hidden group shadow-sm">
-                    <Image 
-                      src={src} 
-                      alt={`Gallery photo ${i + 1}`} 
-                      fill 
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/0 transition-colors" />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-          </div>
-        </section>
-
-      </main>
-
-      {/* 6. FOOTER SECTION */}
-      <footer className="w-full bg-slate-950 text-slate-300 border-t border-slate-800 pt-16 pb-8">
-        <div className="container px-4 md:px-8 space-y-12">
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 items-start">
-            
-            {/* Column 1: Logo & Church Name & Description */}
-            <div className="lg:col-span-4 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="relative w-12 h-12 rounded-full overflow-hidden border border-white/20 bg-white/10 shrink-0">
-                  <Image 
-                    src="/photo1.jpg" 
-                    alt="ASA UNIK-RP NGOMA Logo" 
-                    fill 
-                    className="object-cover"
-                  />
-                </div>
-                <div>
-                  <h3 className="text-lg font-black text-white tracking-tight leading-tight">{t.churchName}</h3>
-                  <p className="text-xs text-amber-400 font-medium">{t.sdaSub}</p>
-                </div>
-              </div>
-
-              <p className="text-sm text-slate-400 leading-relaxed max-w-sm">
-                {t.footerDesc}
+            <div className="space-y-2">
+              <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight leading-none">
+                {t.churchName}
+              </h1>
+              <p className="text-xl md:text-2xl font-semibold text-blue-200">
+                {t.sdaSub}
               </p>
+            </div>
 
-              {/* Social Media Links */}
-              <div className="flex items-center gap-3 pt-2">
-                <a 
-                  href="https://facebook.com" 
-                  target="_blank" 
-                  rel="noreferrer" 
-                  className="p-2.5 rounded-full bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-blue-600 hover:border-blue-500 transition-colors"
-                  aria-label="Facebook"
-                >
-                  <Facebook className="w-4 h-4" />
-                </a>
-                <a 
-                  href="https://youtube.com" 
-                  target="_blank" 
-                  rel="noreferrer" 
-                  className="p-2.5 rounded-full bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-red-600 hover:border-red-500 transition-colors"
-                  aria-label="YouTube"
-                >
-                  <Youtube className="w-4 h-4" />
-                </a>
-                <a 
-                  href="https://instagram.com" 
-                  target="_blank" 
-                  rel="noreferrer" 
-                  className="p-2.5 rounded-full bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-pink-600 hover:border-pink-500 transition-colors"
-                  aria-label="Instagram"
-                >
-                  <Instagram className="w-4 h-4" />
-                </a>
-                <a 
-                  href="https://twitter.com" 
-                  target="_blank" 
-                  rel="noreferrer" 
-                  className="p-2.5 rounded-full bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-sky-500 hover:border-sky-400 transition-colors"
-                  aria-label="Twitter"
-                >
-                  <Twitter className="w-4 h-4" />
-                </a>
+            <div className="space-y-2 max-w-2xl">
+              <h2 className="text-2xl md:text-3xl font-extrabold text-amber-300 italic">
+                {t.mottoTitle}
+              </h2>
+              <p className="text-base md:text-lg text-slate-200 leading-relaxed font-medium">
+                {t.mottoDesc}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-4 pt-2">
+              <Button asChild size="lg" className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-full px-6 shadow-lg border-none">
+                <Link href="/events" className="flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  {t.joinSabbath}
+                  <ArrowRight className="w-4 h-4 ml-1" />
+                </Link>
+              </Button>
+              <Button variant="outline" size="lg" asChild className="border-2 border-white/80 bg-white/10 hover:bg-white/20 text-white font-bold rounded-full px-6 backdrop-blur-sm">
+                <Link href="/sermons" className="flex items-center gap-2">
+                  <Play className="w-5 h-5 fill-current" />
+                  {t.watchOnline}
+                </Link>
+              </Button>
+            </div>
+          </div>
+
+          <div className="lg:col-span-4 hidden lg:block">
+            <div className="p-6 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white space-y-4 shadow-2xl">
+              <p className="text-lg italic font-serif leading-relaxed text-slate-100">
+                {t.heroQuote}
+              </p>
+              <p className="text-sm font-bold text-amber-300 text-right">
+                — {t.heroVerse}
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 2. WORSHIP WITH US SECTION */}
+      <section className="w-full bg-white border-b border-slate-200 shadow-sm py-8">
+        <div className="container px-4 md:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 items-center">
+            
+            <div className="md:col-span-1 flex items-center gap-4 pr-4 border-b md:border-b-0 md:border-r border-slate-200 pb-4 md:pb-0">
+              <div className="p-3 bg-blue-50 text-blue-900 rounded-xl">
+                <Calendar className="w-8 h-8" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">{t.worshipHeader}</h3>
+                <p className="text-xs text-slate-500 leading-snug mt-0.5">{t.worshipSub}</p>
               </div>
             </div>
 
-            {/* Column 2: Quick Links */}
-            <div className="lg:col-span-2 space-y-4">
-              <h4 className="text-sm font-bold text-white uppercase tracking-wider">{t.quickLinks}</h4>
-              <ul className="space-y-2.5 text-sm">
-                <li>
-                  <Link href="/" className="hover:text-amber-400 transition-colors flex items-center gap-1.5">
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
-                    {t.home}
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/about" className="hover:text-amber-400 transition-colors flex items-center gap-1.5">
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
-                    {t.about}
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/sermons" className="hover:text-amber-400 transition-colors flex items-center gap-1.5">
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
-                    {t.sermons}
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/ministries" className="hover:text-amber-400 transition-colors flex items-center gap-1.5">
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
-                    {t.ministries}
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/events" className="hover:text-amber-400 transition-colors flex items-center gap-1.5">
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
-                    {t.events}
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/gallery" className="hover:text-amber-400 transition-colors flex items-center gap-1.5">
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
-                    {t.gallery}
-                  </Link>
-                </li>
-              </ul>
+            <div className="md:col-span-4 grid grid-cols-2 lg:grid-cols-4 gap-4 text-center">
+              <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 flex flex-col items-center justify-center">
+                <Calendar className="w-5 h-5 text-blue-600 mb-1" />
+                <span className="text-xs font-bold text-slate-900">{t.sabbathWorship}</span>
+                <span className="text-[11px] font-medium text-slate-600 mt-0.5">{t.sabbathTime}</span>
+              </div>
+
+              <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 flex flex-col items-center justify-center">
+                <BookOpen className="w-5 h-5 text-blue-600 mb-1" />
+                <span className="text-xs font-bold text-slate-900">{t.bibleStudy}</span>
+                <span className="text-[11px] font-medium text-slate-600 mt-0.5">{t.bibleStudyTime}</span>
+              </div>
+
+              <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 flex flex-col items-center justify-center">
+                <HeartHandshake className="w-5 h-5 text-blue-600 mb-1" />
+                <span className="text-xs font-bold text-slate-900">{t.prayerMeeting}</span>
+                <span className="text-[11px] font-medium text-slate-600 mt-0.5">{t.prayerTime}</span>
+              </div>
+
+              <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 flex flex-col items-center justify-center">
+                <MapPin className="w-5 h-5 text-blue-600 mb-1" />
+                <span className="text-xs font-bold text-slate-900">{t.ourLocation}</span>
+                <span className="text-[11px] font-medium text-slate-600 mt-0.5">{t.locationDesc}</span>
+              </div>
             </div>
 
-            {/* Column 3: Contact Info */}
-            <div className="lg:col-span-3 space-y-4">
-              <h4 className="text-sm font-bold text-white uppercase tracking-wider">{t.contactUs}</h4>
-              <ul className="space-y-3 text-sm">
-                <li className="flex items-start gap-3">
-                  <MapPin className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-                  <span className="text-slate-300">RP Ngoma Campus, Kibungo, Eastern Province, Rwanda</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Phone className="w-5 h-5 text-amber-400 shrink-0" />
-                  <a href="tel:+250780000000" className="text-slate-300 hover:text-amber-400 transition-colors">+250 780 000 000</a>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Mail className="w-5 h-5 text-amber-400 shrink-0" />
-                  <a href="mailto:info@asaunikrpngoma.org" className="text-slate-300 hover:text-amber-400 transition-colors">info@asaunikrpngoma.org</a>
-                </li>
-              </ul>
-            </div>
+          </div>
+        </div>
+      </section>
 
-            {/* Column 4: Google Map */}
-            <div className="lg:col-span-3 space-y-4">
-              <h4 className="text-sm font-bold text-white uppercase tracking-wider">{t.findUs}</h4>
-              <div className="relative w-full h-40 rounded-xl overflow-hidden border border-slate-800 shadow-inner">
-                <iframe 
-                  title="RP Ngoma Church Location Map"
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15948.33783777551!2d30.54013!3d-2.15833!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x19c52224c6dd06b9%3A0x6fb837bbfae69e4a!2sRP%20IPRC%20Ngoma!5e0!3m2!1sen!2srw!4v1700000000000!5m2!1sen!2srw"
-                  width="100%" 
-                  height="100%" 
-                  style={{ border: 0 }} 
-                  allowFullScreen={false} 
-                  loading="lazy" 
-                  referrerPolicy="no-referrer-when-downgrade"
-                  className="filter grayscale contrast-125 opacity-80 hover:opacity-100 hover:grayscale-0 transition-all duration-300"
+      {/* 3. WELCOME & BIBLE VERSE SECTION */}
+      <section className="w-full py-16 bg-slate-50">
+        <div className="container px-4 md:px-8">
+          <div className="grid lg:grid-cols-12 gap-8 items-stretch">
+            
+            {/* Left: About Church Card */}
+            <div className="lg:col-span-7 bg-white rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm flex flex-col md:flex-row gap-6 items-center">
+              <div className="relative w-full md:w-1/2 h-56 md:h-full min-h-[220px] rounded-xl overflow-hidden shrink-0">
+                <Image 
+                  src="/photo2.jpg" 
+                  alt="Church Building" 
+                  fill 
+                  className="object-cover"
                 />
               </div>
+              <div className="space-y-4 flex-1">
+                <span className="text-xs font-extrabold tracking-widest text-blue-800 uppercase">
+                  {t.aboutBadge}
+                </span>
+                <h2 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight">
+                  {t.aboutTitle}
+                </h2>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  {t.aboutDesc}
+                </p>
+                <Button asChild size="sm" className="bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-full px-5">
+                  <Link href="/about" className="flex items-center gap-1.5">
+                    {t.learnAboutUs}
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+
+            {/* Right: Bible Verse Card */}
+            <div className="lg:col-span-5 bg-gradient-to-br from-blue-900 to-slate-900 rounded-2xl p-6 md:p-8 text-white flex flex-col justify-between relative overflow-hidden shadow-md">
+              <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+                <BookOpen className="w-40 h-40" />
+              </div>
+              <div className="space-y-4 relative z-10">
+                <div className="flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-amber-400" />
+                  <span className="text-xs font-extrabold tracking-widest text-amber-400 uppercase">
+                    {t.verseBadge}
+                  </span>
+                </div>
+                <p className="text-lg md:text-xl font-serif italic text-slate-100 leading-relaxed pt-2">
+                  {t.verseText}
+                </p>
+              </div>
+              <div className="pt-6 relative z-10 text-right">
+                <span className="text-sm font-bold text-amber-300">
+                  — {t.verseRef}
+                </span>
+              </div>
             </div>
 
           </div>
+        </div>
+      </section>
 
-          {/* Bottom Copyright */}
-          <div className="border-t border-slate-800/80 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-            <p>© {new Date().getFullYear()} {t.churchName}. {t.copyright}</p>
-            <p className="text-slate-500">Seventh-day Adventist Church</p>
+      {/* 4. LATEST SERMON & MINISTRIES SECTION */}
+      <section className="w-full py-16 bg-white border-y border-slate-200">
+        <div className="container px-4 md:px-8">
+          <div className="grid lg:grid-cols-12 gap-8">
+            
+            {/* Latest Sermon Card */}
+            <div className="lg:col-span-5 bg-slate-900 rounded-2xl overflow-hidden shadow-lg border border-slate-800 text-white flex flex-col">
+              <div className="relative w-full h-48 bg-slate-800">
+                <Image 
+                  src="/photo3.jpg" 
+                  alt="Sermon Thumbnail" 
+                  fill 
+                  className="object-cover opacity-80"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/40 cursor-pointer hover:scale-110 transition-transform">
+                    <Play className="w-6 h-6 fill-current ml-0.5" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-4 flex-1 flex flex-col justify-between">
+                <div>
+                  <span className="text-[11px] font-extrabold tracking-widest text-amber-400 uppercase">
+                    {t.sermonBadge}
+                  </span>
+                  <h3 className="text-2xl font-bold text-white mt-1">
+                    {t.sermonTitle}
+                  </h3>
+                  <p className="text-xs font-medium text-slate-300 mt-2">
+                    {t.sermonSpeaker}
+                  </p>
+                  <p className="text-xs font-medium text-slate-400 mt-0.5">
+                    {t.sermonDate}
+                  </p>
+                </div>
+
+                <Button asChild className="w-full bg-white hover:bg-slate-100 text-slate-950 font-bold rounded-lg mt-4">
+                  <Link href="/sermons" className="flex items-center justify-center gap-2">
+                    <Play className="w-4 h-4 fill-current" />
+                    {t.watchSermon}
+                  </Link>
+                </Button>
+              </div>
+            </div>
+
+            {/* Ministries Grid */}
+            <div className="lg:col-span-7 space-y-6">
+              <div>
+                <span className="text-xs font-extrabold tracking-widest text-blue-800 uppercase">
+                  {t.ministriesBadge}
+                </span>
+                <h2 className="text-2xl md:text-3xl font-black text-slate-900 mt-1">
+                  Connect & Serve
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {ministryList.map((m, idx) => {
+                  const Icon = m.icon
+                  return (
+                    <Link key={idx} href="/ministries" className="group p-4 bg-slate-50 hover:bg-blue-50 border border-slate-200/80 hover:border-blue-200 rounded-xl transition-all text-center flex flex-col items-center justify-center">
+                      <div className={cn("p-3 rounded-full mb-2 transition-transform group-hover:scale-110", m.color)}>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <span className="text-xs font-bold text-slate-800 group-hover:text-blue-900">
+                        {m.name}
+                      </span>
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* 5. UPCOMING EVENTS & GALLERY PREVIEW */}
+      <section className="w-full py-16 bg-slate-50">
+        <div className="container px-4 md:px-8 space-y-12">
+          
+          {/* Upcoming Events */}
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+              <div>
+                <span className="text-xs font-extrabold tracking-widest text-blue-800 uppercase">
+                  {t.eventsBadge}
+                </span>
+                <h2 className="text-2xl md:text-3xl font-black text-slate-900 mt-1">
+                  Upcoming Events
+                </h2>
+              </div>
+              <Button variant="ghost" asChild className="text-blue-900 hover:text-blue-700 font-bold self-start sm:self-auto p-0">
+                <Link href="/events" className="flex items-center gap-1">
+                  {t.viewAllUpdates}
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {upcomingEvents.map((ev) => (
+                <div key={ev.id} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-start gap-4">
+                  <div className="bg-blue-50 border border-blue-100 rounded-lg p-2.5 text-center shrink-0 min-w-[56px]">
+                    <span className="block text-lg font-black text-blue-900 leading-none">{ev.day}</span>
+                    <span className="block text-[10px] font-bold text-blue-600 tracking-wider uppercase mt-1">{ev.month}</span>
+                  </div>
+                  <div className="space-y-1 min-w-0">
+                    <h4 className="text-sm font-bold text-slate-900 truncate">{ev.title}</h4>
+                    <p className="text-xs text-slate-500 flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5" />
+                      {ev.time}
+                    </p>
+                    <p className="text-xs text-slate-500 flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5" />
+                      {ev.location}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Church Gallery Preview */}
+          <div className="space-y-6 pt-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+              <div>
+                <span className="text-xs font-extrabold tracking-widest text-blue-800 uppercase">
+                  {t.galleryBadge}
+                </span>
+                <h2 className="text-2xl md:text-3xl font-black text-slate-900 mt-1">
+                  Recent Moments
+                </h2>
+              </div>
+              <Button variant="ghost" asChild className="text-blue-900 hover:text-blue-700 font-bold self-start sm:self-auto p-0">
+                <Link href="/gallery" className="flex items-center gap-1">
+                  {t.viewGallery}
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+              {["/photo1.jpg", "/photo2.jpg", "/photo3.jpg", "/photo4.jpg", "/photo1.jpg"].map((src, i) => (
+                <div key={i} className="relative h-36 rounded-xl overflow-hidden group shadow-sm">
+                  <Image 
+                    src={src} 
+                    alt={`Gallery photo ${i + 1}`} 
+                    fill 
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/0 transition-colors" />
+                </div>
+              ))}
+            </div>
           </div>
 
         </div>
-      </footer>
-    </div>
+      </section>
+
+    </main>
   )
 }
