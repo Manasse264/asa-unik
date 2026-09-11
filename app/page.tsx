@@ -1,252 +1,581 @@
 "use client"
 
 import * as React from "react"
-import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import Image from "next/image"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs"
+  Calendar,
+  Clock,
+  MapPin,
+  Play,
+  Users,
+  BookOpen,
+  HeartHandshake,
+  Music,
+  ArrowRight,
+  Sparkles,
+  ChevronRight,
+  Compass
+} from "lucide-react"
 
 const translations = {
   en: {
-    marqueeText: "Welcome to ASA RP Ngoma College",
-    welcome: "ASA RP Ngoma College",
-    description: "The platform for everything you need. Empowering students and the community.",
-    getStarted: "Get Started",
-    learnMore: "Learn More",
-    eduTitle: "Spiritual Growth",
-    eduDesc: "Strengthening faith through Bible study, prayer, and Christian fellowship.",
-    comTitle: "Unity in Christ",
-    comDesc: "Encouraging spiritual growth, friendship, and service among students.",
-    secTitle: "Security",
-    secDesc: "Your data is safe and secure with us.",
-    updatesSectionTitle: "Latest Updates",
-    newsTitle: "News",
-    newsDesc: "Stay informed with the latest happenings at ASA RP Ngoma.",
-    annTitle: "Announcements",
-    annDesc: "Important notices and announcements for the community.",
-    latestAnnouncements: "Latest Announcements"
+    welcomeSub: "WELCOME TO",
+    churchName: "ASA UNIK-RP NGOMA",
+    sdaSub: "A Seventh-day Adventist Church",
+    mottoTitle: "A Place to Worship. A Place to Belong. A Place to Grow.",
+    mottoDesc: "Together in Christ, we seek to know God, grow in faith, and serve our community.",
+    joinSabbath: "Join Us This Sabbath",
+    watchOnline: "Watch Online",
+    heroQuote: "“For where two or three gather in my name, there am I with them.”",
+    heroVerse: "Matthew 18:20",
+
+    worshipHeader: "WORSHIP WITH US",
+    worshipSub: "Come and experience God's love with us this Sabbath and throughout the week.",
+    sabbathWorship: "Sabbath Worship",
+    sabbathTime: "9:00 AM – 12:00 PM",
+    bibleStudy: "Bible Study",
+    bibleStudyTime: "Wednesday • 5:00 PM",
+    prayerMeeting: "Prayer Meeting",
+    prayerTime: "Friday • 5:00 PM",
+    ourLocation: "Our Location",
+    locationDesc: "RP Ngoma, Rwanda",
+
+    aboutBadge: "ABOUT OUR CHURCH",
+    aboutTitle: "You Are Welcome Here",
+    aboutDesc: "We are a family of believers, united by Christ's love, seeking to know God, grow in faith, serve others, and share hope with our community. Whether you are visiting for the first time or looking for a church family, there is a place for you here.",
+    learnAboutUs: "Learn About Us",
+
+    verseBadge: "BIBLE VERSE OF THE WEEK",
+    verseText: "“Come to me, all you who are weary and burdened, and I will give you rest.”",
+    verseRef: "Matthew 11:28",
+
+    sermonBadge: "LATEST SERMON",
+    sermonTitle: "Walking by Faith",
+    sermonSpeaker: "Speaker: Pastor Jean Bosco Niyongabo",
+    sermonDate: "September 7, 2026",
+    watchSermon: "Watch Sermon",
+
+    ministriesBadge: "OUR MINISTRIES",
+    youthMin: "Youth Ministry",
+    childrenMin: "Children's Ministry",
+    womenMin: "Women's Ministry",
+    menMin: "Men's Ministry",
+    choirMin: "Choir & Music",
+    bibleMin: "Bible Study",
+    prayerMin: "Prayer Ministry",
+    outreachMin: "Community Outreach",
+
+    eventsBadge: "UPCOMING EVENTS",
+    viewAllUpdates: "View All Updates",
+
+    galleryBadge: "CHURCH GALLERY",
+    viewGallery: "View Gallery"
+  },
+  rw: {
+    welcomeSub: "MURA KAZA NEZA KURI",
+    churchName: "ASA UNIK-RP NGOMA",
+    sdaSub: "Itorero ry'Abadiventisti b'Umunsi wa Karindwi",
+    mottoTitle: "Aho Gusengera. Aho Kuba Umuryango. Aho Gukurira.",
+    mottoDesc: "Turi hamwe muli Kristo, tushaka kumenya Imana, gukura mu kwizera, no gukorera umuryango wacu.",
+    joinSabbath: "Sangana Nayo Isabato",
+    watchOnline: "Kurikirana Online",
+    heroQuote: "“Kuko aho babiri cyangwa batatu bateraniye mu izina ryanjye, mba ndi hagati yabo.”",
+    heroVerse: "Matayo 18:20",
+
+    worshipHeader: "SENGANA NASI",
+    worshipSub: "Naza wishimire urukundo rw'Imana hamwe natwe kuri iyi Sabato no mu cyumweru cyose.",
+    sabbathWorship: "Gusenga Kuri Isabato",
+    sabbathTime: "9:00 AM – 12:00 PM",
+    bibleStudy: "Kwiga Bibiliya",
+    bibleStudyTime: "Ku Wagatatu • 5:00 PM",
+    prayerMeeting: "Gusenga",
+    prayerTime: "Ku Wagatanu • 5:00 PM",
+    ourLocation: "Aho Turi",
+    locationDesc: "RP Ngoma, Rwanda",
+
+    aboutBadge: "IBYEREKEYE ITORERO WACU",
+    aboutTitle: "Murakaza Neza Hano",
+    aboutDesc: "Turi umuryango w'abizera, bunze ubumwe mu rukundo rwa Kristo, bashaka kumenya Imana, gukura mu kwizera, gukorera abandi, no gusangira icyizere n'umuryango wacu.",
+    learnAboutUs: "Mumenye Byinshi",
+
+    verseBadge: "ICYO BIBLE YIGISHA MU CYUMWERU",
+    verseText: "“Nimuze gukorera aho muri hose mwese abafite umutwaro uremerewe, nanjye nzabaruhura.”",
+    verseRef: "Matayo 11:28",
+
+    sermonBadge: "INYIGISHO Y'IBIHUZO",
+    sermonTitle: "Kugenda Mu Kwizera",
+    sermonSpeaker: "Umwigisha: Pastor Jean Bosco Niyongabo",
+    sermonDate: "7 Nzeri 2026",
+    watchSermon: "Reba Inyigisho",
+
+    ministriesBadge: "MINISITIRI ZACU",
+    youthMin: "Urubyiruko",
+    childrenMin: "Abana",
+    womenMin: "Abagore",
+    menMin: "Abagabo",
+    choirMin: "Korali no Kuririmba",
+    bibleMin: "Kwiga Bibiliya",
+    prayerMin: "Isengesho",
+    outreachMin: "Gukorera Umuryango",
+
+    eventsBadge: "IBYAKORWA BIRI IMBERE",
+    viewAllUpdates: "Reba Amakuru Yose",
+
+    galleryBadge: "AMAFOTO Y'ITORERO",
+    viewGallery: "Reba Amafoto"
   },
   fr: {
-    marqueeText: "Bienvenue à l'ASA RP Ngoma College",
-    welcome: "ASA RP Ngoma College",
-    description: "La plateforme pour tout ce dont vous avez besoin. Autonomiser les étudiants et la communauté.",
-    getStarted: "Commencer",
-    learnMore: "En savoir plus",
-    eduTitle: "Croissance Spirituelle",
-    eduDesc: "Renforcer la foi par l'étude de la Bible, la prière et la fraternité chrétienne.",
-    comTitle: "Unité en Christ",
-    comDesc: "Encourager la croissance spirituelle, l'amitié et le service parmi les étudiants.",
-    secTitle: "Sécurité",
-    secDesc: "Vos données sont en sécurité avec nous.",
-    updatesSectionTitle: "Dernières Mises à jour",
-    newsTitle: "Nouvelles",
-    newsDesc: "Restez informé des derniers événements à l'ASA RP Ngoma.",
-    annTitle: "Annonces",
-    annDesc: "Avis et annonces importants pour la communauté.",
-    latestAnnouncements: "Dernières annonces"
+    welcomeSub: "BIENVENUE À",
+    churchName: "ASA UNIK-RP NGOMA",
+    sdaSub: "Église Adventiste du Septième Jour",
+    mottoTitle: "Un lieu pour adorer. Un lieu pour appartenir. Un lieu pour grandir.",
+    mottoDesc: "Ensemble en Christ, nous cherchons à connaître Dieu, à grandir dans la foi et à servir notre communauté.",
+    joinSabbath: "Rejoignez-nous ce Sabbat",
+    watchOnline: "Regarder en direct",
+    heroQuote: "« Car là où deux ou trois sont assemblés en mon nom, je suis au milieu d'eux. »",
+    heroVerse: "Matthieu 18:20",
+
+    worshipHeader: "ADOREZ AVEC NOUS",
+    worshipSub: "Venez expérimenter l'amour de Dieu avec nous ce sabbat et tout au long de la semaine.",
+    sabbathWorship: "Culte du Sabbat",
+    sabbathTime: "9:00 AM – 12:00 PM",
+    bibleStudy: "Étude Biblique",
+    bibleStudyTime: "Mercredi • 5:00 PM",
+    prayerMeeting: "Réunion de Prière",
+    prayerTime: "Vendredi • 5:00 PM",
+    ourLocation: "Notre Emplacement",
+    locationDesc: "RP Ngoma, Rwanda",
+
+    aboutBadge: "À PROPOS DE NOTRE ÉGLISE",
+    aboutTitle: "Vous Êtes les Bienvenus Ici",
+    aboutDesc: "Nous sommes une famille de croyants, unis par l'amour du Christ, cherchant à connaître Dieu, à grandir dans la foi, à servir les autres et à partager l'espoir avec notre communauté.",
+    learnAboutUs: "En Savoir Plus",
+
+    verseBadge: "VERSET BIBLIQUE DE LA SEMAINE",
+    verseText: "« Venez à moi, vous tous qui êtes fatigués et chargés, et je vous donnerai du repos. »",
+    verseRef: "Matthieu 11:28",
+
+    sermonBadge: "DERNIER SERMON",
+    sermonTitle: "Marcher par la Foi",
+    sermonSpeaker: "Prédicateur: Pasteur Jean Bosco Niyongabo",
+    sermonDate: "7 Septembre 2026",
+    watchSermon: "Regarder le Sermon",
+
+    ministriesBadge: "NOS MINISTÈRES",
+    youthMin: "Ministère des Jeunes",
+    childrenMin: "Ministère des Enfants",
+    womenMin: "Ministère des Femmes",
+    menMin: "Ministère des Hommes",
+    choirMin: "Chœur & Musique",
+    bibleMin: "Étude Biblique",
+    prayerMin: "Ministère de Prière",
+    outreachMin: "Action Communautaire",
+
+    eventsBadge: "ÉVÉNEMENTS À VENIR",
+    viewAllUpdates: "Voir Toutes les Mises à Jour",
+
+    galleryBadge: "GALERIE DE L'ÉGLISE",
+    viewGallery: "Voir la Galerie"
   }
 }
 
+const upcomingEvents = [
+  {
+    id: 1,
+    day: "13",
+    month: "SEP",
+    title: "Prayer Night",
+    time: "5:00 PM – 7:00 PM",
+    location: "Church Hall"
+  },
+  {
+    id: 2,
+    day: "17",
+    month: "SEP",
+    title: "Youth Fellowship",
+    time: "5:00 PM – 7:00 PM",
+    location: "Church Hall"
+  },
+  {
+    id: 3,
+    day: "20",
+    month: "SEP",
+    title: "Community Outreach",
+    time: "8:00 AM – 12:00 PM",
+    location: "Ngoma Community"
+  },
+  {
+    id: 4,
+    day: "27",
+    month: "SEP",
+    title: "Family Worship",
+    time: "9:00 AM – 12:00 PM",
+    location: "Main Sanctuary"
+  }
+]
+
 export default function Page() {
   const [lang, setLang] = React.useState<"en" | "rw" | "fr">("en")
-  const [announcements, setAnnouncements] = React.useState<any[]>([])
-
-  const loadAnnouncements = () => {
-    const saved = localStorage.getItem("church_announcements")
-    if (saved) {
-      const parsed = JSON.parse(saved)
-      // Only show published ones
-      setAnnouncements(parsed.filter((a: any) => a.published))
-    }
-  }
 
   React.useEffect(() => {
     const updateLang = () => {
       const savedLang = (localStorage.getItem("app_lang") || "en") as "en" | "rw" | "fr"
       setLang(savedLang)
     }
-
     updateLang()
-    loadAnnouncements()
 
     window.addEventListener("lang-change", updateLang)
-    window.addEventListener("announcements-updated", loadAnnouncements)
-    window.addEventListener("storage", loadAnnouncements)
-
-    return () => {
-      window.removeEventListener("lang-change", updateLang)
-      window.removeEventListener("announcements-updated", loadAnnouncements)
-      window.removeEventListener("storage", loadAnnouncements)
-    }
+    return () => window.removeEventListener("lang-change", updateLang)
   }, [])
 
-  const t = translations[lang === "rw" ? "en" : lang]
+  const t = translations[lang]
+
+  const ministryList = [
+    { name: t.youthMin, icon: Users, color: "bg-blue-500 text-white" },
+    { name: t.childrenMin, icon: HeartHandshake, color: "bg-emerald-500 text-white" },
+    { name: t.womenMin, icon: Sparkles, color: "bg-pink-500 text-white" },
+    { name: t.menMin, icon: Compass, color: "bg-amber-500 text-white" },
+    { name: t.choirMin, icon: Music, color: "bg-purple-500 text-white" },
+    { name: t.bibleMin, icon: BookOpen, color: "bg-cyan-500 text-white" },
+    { name: t.prayerMin, icon: HeartHandshake, color: "bg-red-500 text-white" },
+    { name: t.outreachMin, icon: Users, color: "bg-teal-500 text-white" },
+  ]
 
   return (
-    <main className="relative flex-1 min-h-[calc(100vh-64px)] overflow-hidden">
-      {/* Global Background Images with Zoom and Fade Animation */}
-      <div 
-        className="absolute inset-0 z-0 bg-cover bg-center animate-background-zoom animate-slide-fade"
-        style={{ backgroundImage: "url('/photo1.jpg')" }}
-      />
-      <div 
-        className="absolute inset-0 z-0 bg-cover bg-center animate-background-zoom animate-slide-fade"
-        style={{ backgroundImage: "url('/photo2.jpg')", animationDelay: "-10s, -10s" }}
-      />
-      <div 
-        className="absolute inset-0 z-0 bg-cover bg-center animate-background-zoom animate-slide-fade"
-        style={{ backgroundImage: "url('/photo3.jpg')", animationDelay: "-20s, -20s" }}
-      />
-      <div 
-        className="absolute inset-0 z-0 bg-cover bg-center animate-background-zoom animate-slide-fade"
-        style={{ backgroundImage: "url('/photo4.jpg')", animationDelay: "-30s, -30s" }}
-      />
-      {/* Overlay to ensure text readability */}
-      <div className="absolute inset-0 z-10 bg-black/60" />
+    <main className="flex-1 w-full bg-slate-50 overflow-x-hidden">
+      
+      {/* 1. HERO SECTION */}
+      <section className="relative w-full min-h-[580px] lg:min-h-[640px] flex items-center justify-center overflow-hidden bg-slate-900 py-16">
+        <div 
+          className="absolute inset-0 z-0 bg-cover bg-center opacity-40 scale-105 transition-transform duration-1000"
+          style={{ backgroundImage: "url('/photo1.jpg')" }}
+        />
+        <div className="absolute inset-0 z-10 bg-gradient-to-r from-slate-950/80 via-slate-900/60 to-transparent" />
 
-      {/* Page Content */}
-      <div className="relative z-20 flex flex-col min-h-full">
-        <div className="w-full bg-white/10 backdrop-blur-sm border-b border-white/20 overflow-hidden py-3">
-          <h1 className="animate-marquee whitespace-nowrap text-lg font-bold tracking-tight text-white inline-block">
-            {t.marqueeText}
-          </h1>
+        <div className="container relative z-20 px-4 md:px-8 grid lg:grid-cols-12 gap-8 items-center">
+          <div className="lg:col-span-8 space-y-6 text-left">
+            <div className="inline-block px-3 py-1 bg-white/10 backdrop-blur-md rounded-md border border-white/20 text-xs font-bold tracking-widest text-white uppercase">
+              {t.welcomeSub}
+            </div>
+            
+            <div className="space-y-2">
+              <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight leading-none">
+                {t.churchName}
+              </h1>
+              <p className="text-xl md:text-2xl font-semibold text-blue-200">
+                {t.sdaSub}
+              </p>
+            </div>
+
+            <div className="space-y-2 max-w-2xl">
+              <h2 className="text-2xl md:text-3xl font-extrabold text-amber-300 italic">
+                {t.mottoTitle}
+              </h2>
+              <p className="text-base md:text-lg text-slate-200 leading-relaxed font-medium">
+                {t.mottoDesc}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-4 pt-2">
+              <Button asChild size="lg" className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-full px-6 shadow-lg border-none">
+                <Link href="/events" className="flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  {t.joinSabbath}
+                  <ArrowRight className="w-4 h-4 ml-1" />
+                </Link>
+              </Button>
+              <Button variant="outline" size="lg" asChild className="border-2 border-white/80 bg-white/10 hover:bg-white/20 text-white font-bold rounded-full px-6 backdrop-blur-sm">
+                <Link href="/sermons" className="flex items-center gap-2">
+                  <Play className="w-5 h-5 fill-current" />
+                  {t.watchOnline}
+                </Link>
+              </Button>
+            </div>
+          </div>
+
+          <div className="lg:col-span-4 hidden lg:block">
+            <div className="p-6 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white space-y-4 shadow-2xl">
+              <p className="text-lg italic font-serif leading-relaxed text-slate-100">
+                {t.heroQuote}
+              </p>
+              <p className="text-sm font-bold text-amber-300 text-right">
+                — {t.heroVerse}
+              </p>
+            </div>
+          </div>
         </div>
-        
-        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center space-y-4 text-center">
-              <div className="space-y-2 w-full">
-                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none text-white">
-                  {t.welcome}
-                </h1>
-                <p className="mx-auto max-w-[700px] text-gray-200 md:text-xl">
-                  {t.description}
+      </section>
+
+      {/* 2. WORSHIP WITH US SECTION */}
+      <section className="w-full bg-white border-b border-slate-200 shadow-sm py-8">
+        <div className="container px-4 md:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 items-center">
+            
+            <div className="md:col-span-1 flex items-center gap-4 pr-4 border-b md:border-b-0 md:border-r border-slate-200 pb-4 md:pb-0">
+              <div className="p-3 bg-blue-50 text-blue-900 rounded-xl">
+                <Calendar className="w-8 h-8" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">{t.worshipHeader}</h3>
+                <p className="text-xs text-slate-500 leading-snug mt-0.5">{t.worshipSub}</p>
+              </div>
+            </div>
+
+            <div className="md:col-span-4 grid grid-cols-2 lg:grid-cols-4 gap-4 text-center">
+              <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 flex flex-col items-center justify-center">
+                <Calendar className="w-5 h-5 text-blue-600 mb-1" />
+                <span className="text-xs font-bold text-slate-900">{t.sabbathWorship}</span>
+                <span className="text-[11px] font-medium text-slate-600 mt-0.5">{t.sabbathTime}</span>
+              </div>
+
+              <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 flex flex-col items-center justify-center">
+                <BookOpen className="w-5 h-5 text-blue-600 mb-1" />
+                <span className="text-xs font-bold text-slate-900">{t.bibleStudy}</span>
+                <span className="text-[11px] font-medium text-slate-600 mt-0.5">{t.bibleStudyTime}</span>
+              </div>
+
+              <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 flex flex-col items-center justify-center">
+                <HeartHandshake className="w-5 h-5 text-blue-600 mb-1" />
+                <span className="text-xs font-bold text-slate-900">{t.prayerMeeting}</span>
+                <span className="text-[11px] font-medium text-slate-600 mt-0.5">{t.prayerTime}</span>
+              </div>
+
+              <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 flex flex-col items-center justify-center">
+                <MapPin className="w-5 h-5 text-blue-600 mb-1" />
+                <span className="text-xs font-bold text-slate-900">{t.ourLocation}</span>
+                <span className="text-[11px] font-medium text-slate-600 mt-0.5">{t.locationDesc}</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* 3. WELCOME & BIBLE VERSE SECTION */}
+      <section className="w-full py-16 bg-slate-50">
+        <div className="container px-4 md:px-8">
+          <div className="grid lg:grid-cols-12 gap-8 items-stretch">
+            
+            {/* Left: About Church Card */}
+            <div className="lg:col-span-7 bg-white rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm flex flex-col md:flex-row gap-6 items-center">
+              <div className="relative w-full md:w-1/2 h-56 md:h-full min-h-[220px] rounded-xl overflow-hidden shrink-0">
+                <Image 
+                  src="/photo2.jpg" 
+                  alt="Church Building" 
+                  fill 
+                  className="object-cover"
+                />
+              </div>
+              <div className="space-y-4 flex-1">
+                <span className="text-xs font-extrabold tracking-widest text-blue-800 uppercase">
+                  {t.aboutBadge}
+                </span>
+                <h2 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight">
+                  {t.aboutTitle}
+                </h2>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  {t.aboutDesc}
+                </p>
+                <Button asChild size="sm" className="bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-full px-5">
+                  <Link href="/about" className="flex items-center gap-1.5">
+                    {t.learnAboutUs}
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+
+            {/* Right: Bible Verse Card */}
+            <div className="lg:col-span-5 bg-gradient-to-br from-blue-900 to-slate-900 rounded-2xl p-6 md:p-8 text-white flex flex-col justify-between relative overflow-hidden shadow-md">
+              <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+                <BookOpen className="w-40 h-40" />
+              </div>
+              <div className="space-y-4 relative z-10">
+                <div className="flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-amber-400" />
+                  <span className="text-xs font-extrabold tracking-widest text-amber-400 uppercase">
+                    {t.verseBadge}
+                  </span>
+                </div>
+                <p className="text-lg md:text-xl font-serif italic text-slate-100 leading-relaxed pt-2">
+                  {t.verseText}
                 </p>
               </div>
-              <div className="space-x-4">
-                <Button asChild size="lg">
-                  <Link href="/register">{t.getStarted}</Link>
-                </Button>
-                <Button variant="outline" size="lg" asChild className="text-white border-white hover:bg-white/20">
-                  <Link href="/about">{t.learnMore}</Link>
+              <div className="pt-6 relative z-10 text-right">
+                <span className="text-sm font-bold text-amber-300">
+                  — {t.verseRef}
+                </span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* 4. LATEST SERMON & MINISTRIES SECTION */}
+      <section className="w-full py-16 bg-white border-y border-slate-200">
+        <div className="container px-4 md:px-8">
+          <div className="grid lg:grid-cols-12 gap-8">
+            
+            {/* Latest Sermon Card */}
+            <div className="lg:col-span-5 bg-slate-900 rounded-2xl overflow-hidden shadow-lg border border-slate-800 text-white flex flex-col">
+              <div className="relative w-full h-48 bg-slate-800">
+                <Image 
+                  src="/photo3.jpg" 
+                  alt="Sermon Thumbnail" 
+                  fill 
+                  className="object-cover opacity-80"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/40 cursor-pointer hover:scale-110 transition-transform">
+                    <Play className="w-6 h-6 fill-current ml-0.5" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-4 flex-1 flex flex-col justify-between">
+                <div>
+                  <span className="text-[11px] font-extrabold tracking-widest text-amber-400 uppercase">
+                    {t.sermonBadge}
+                  </span>
+                  <h3 className="text-2xl font-bold text-white mt-1">
+                    {t.sermonTitle}
+                  </h3>
+                  <p className="text-xs font-medium text-slate-300 mt-2">
+                    {t.sermonSpeaker}
+                  </p>
+                  <p className="text-xs font-medium text-slate-400 mt-0.5">
+                    {t.sermonDate}
+                  </p>
+                </div>
+
+                <Button asChild className="w-full bg-white hover:bg-slate-100 text-slate-950 font-bold rounded-lg mt-4">
+                  <Link href="/sermons" className="flex items-center justify-center gap-2">
+                    <Play className="w-4 h-4 fill-current" />
+                    {t.watchSermon}
+                  </Link>
                 </Button>
               </div>
+            </div>
+
+            {/* Ministries Grid */}
+            <div className="lg:col-span-7 space-y-6">
+              <div>
+                <span className="text-xs font-extrabold tracking-widest text-blue-800 uppercase">
+                  {t.ministriesBadge}
+                </span>
+                <h2 className="text-2xl md:text-3xl font-black text-slate-900 mt-1">
+                  Connect & Serve
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {ministryList.map((m, idx) => {
+                  const Icon = m.icon
+                  return (
+                    <Link key={idx} href="/ministries" className="group p-4 bg-slate-50 hover:bg-blue-50 border border-slate-200/80 hover:border-blue-200 rounded-xl transition-all text-center flex flex-col items-center justify-center">
+                      <div className={cn("p-3 rounded-full mb-2 transition-transform group-hover:scale-110", m.color)}>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <span className="text-xs font-bold text-slate-800 group-hover:text-blue-900">
+                        {m.name}
+                      </span>
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* 5. UPCOMING EVENTS & GALLERY PREVIEW */}
+      <section className="w-full py-16 bg-slate-50">
+        <div className="container px-4 md:px-8 space-y-12">
+          
+          {/* Upcoming Events */}
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+              <div>
+                <span className="text-xs font-extrabold tracking-widest text-blue-800 uppercase">
+                  {t.eventsBadge}
+                </span>
+                <h2 className="text-2xl md:text-3xl font-black text-slate-900 mt-1">
+                  Upcoming Events
+                </h2>
+              </div>
+              <Button variant="ghost" asChild className="text-blue-900 hover:text-blue-700 font-bold self-start sm:self-auto p-0">
+                <Link href="/events" className="flex items-center gap-1">
+                  {t.viewAllUpdates}
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {upcomingEvents.map((ev) => (
+                <div key={ev.id} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-start gap-4">
+                  <div className="bg-blue-50 border border-blue-100 rounded-lg p-2.5 text-center shrink-0 min-w-[56px]">
+                    <span className="block text-lg font-black text-blue-900 leading-none">{ev.day}</span>
+                    <span className="block text-[10px] font-bold text-blue-600 tracking-wider uppercase mt-1">{ev.month}</span>
+                  </div>
+                  <div className="space-y-1 min-w-0">
+                    <h4 className="text-sm font-bold text-slate-900 truncate">{ev.title}</h4>
+                    <p className="text-xs text-slate-500 flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5" />
+                      {ev.time}
+                    </p>
+                    <p className="text-xs text-slate-500 flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5" />
+                      {ev.location}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        </section>
-        
-        <section className="w-full py-12 md:py-24 lg:py-32">
-          <div className="container px-4 md:px-6">
-            <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
-              <div className="flex flex-col items-center space-y-4 text-center">
-                <div className="rounded-full bg-primary p-4 text-primary-foreground">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" /></svg>
-                </div>
-                <h3 className="text-xl font-bold text-white">{t.eduTitle}</h3>
-                <p className="text-gray-200">{t.eduDesc}</p>
+
+          {/* Church Gallery Preview */}
+          <div className="space-y-6 pt-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+              <div>
+                <span className="text-xs font-extrabold tracking-widest text-blue-800 uppercase">
+                  {t.galleryBadge}
+                </span>
+                <h2 className="text-2xl md:text-3xl font-black text-slate-900 mt-1">
+                  Recent Moments
+                </h2>
               </div>
-              <div className="flex flex-col items-center space-y-4 text-center">
-                <div className="rounded-full bg-primary p-4 text-primary-foreground">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+              <Button variant="ghost" asChild className="text-blue-900 hover:text-blue-700 font-bold self-start sm:self-auto p-0">
+                <Link href="/gallery" className="flex items-center gap-1">
+                  {t.viewGallery}
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+              {["/photo1.jpg", "/photo2.jpg", "/photo3.jpg", "/photo4.jpg", "/photo1.jpg"].map((src, i) => (
+                <div key={i} className="relative h-36 rounded-xl overflow-hidden group shadow-sm">
+                  <Image 
+                    src={src} 
+                    alt={`Gallery photo ${i + 1}`} 
+                    fill 
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/0 transition-colors" />
                 </div>
-                <h3 className="text-xl font-bold text-white">{t.comTitle}</h3>
-                <p className="text-gray-200">{t.comDesc}</p>
-              </div>
-              <div className="flex flex-col items-center space-y-4 text-center">
-                <div className="rounded-full bg-primary p-4 text-primary-foreground">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" /></svg>
-                </div>
-                <h3 className="text-xl font-bold text-white">{t.secTitle}</h3>
-                <p className="text-gray-200">{t.secDesc}</p>
-              </div>
+              ))}
             </div>
           </div>
-        </section>
 
-        {announcements.length > 0 && (
-          <section className="w-full py-12 md:py-24 bg-white/5 backdrop-blur-sm border-t border-white/10">
-            <div className="container px-4 md:px-6">
-              <div className="flex flex-col items-center justify-center space-y-4 text-center mb-10">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl text-white">{t.updatesSectionTitle}</h2>
-                <div className="h-1 w-20 bg-primary rounded-full" />
-              </div>
+        </div>
+      </section>
 
-              <Tabs defaultValue="announcements" className="w-full">
-                <div className="flex justify-center mb-8">
-                  <TabsList className="bg-white/10 border border-white/20">
-                    <TabsTrigger value="announcements" className="data-[state=active]:bg-primary text-white">
-                      {t.annTitle}
-                    </TabsTrigger>
-                    <TabsTrigger value="news" className="data-[state=active]:bg-primary text-white">
-                      {t.newsTitle}
-                    </TabsTrigger>
-                  </TabsList>
-                </div>
-
-                <TabsContent value="announcements">
-                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {announcements.filter(a => a.type === "Announcement" || a.type === "Event").length > 0 ? (
-                      announcements.filter(a => a.type === "Announcement" || a.type === "Event").map((a) => (
-                        <div key={a.id} className="group relative overflow-hidden rounded-xl border border-white/20 bg-white/5 p-6 hover:bg-white/10 transition-all">
-                          <div className="flex items-center justify-between mb-4">
-                            <span className={cn(
-                              "px-2 py-1 rounded text-[10px] font-bold uppercase",
-                              a.type === "Event" ? "bg-purple-500/20 text-purple-300 border border-purple-500/30" : "bg-blue-500/20 text-blue-300 border border-blue-500/30"
-                            )}>
-                              {a.type}
-                            </span>
-                            <span className="text-xs text-gray-400">{a.date}</span>
-                          </div>
-                          <h3 className="text-xl font-bold text-white mb-2 group-hover:text-primary transition-colors">{a.title}</h3>
-                          <p className="text-gray-300 text-sm line-clamp-3 mb-4">{a.content}</p>
-                          {a.fileName && (
-                            <div className="flex items-center gap-2 text-xs text-primary bg-primary/10 w-fit px-2 py-1 rounded">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-                              {a.fileName}
-                            </div>
-                          )}
-                        </div>
-                      ))
-                    ) : (
-                      <div className="col-span-full py-10 text-center text-gray-400">
-                        No announcements yet.
-                      </div>
-                    )}
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="news">
-                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {announcements.filter(a => a.type === "News").map((a) => (
-                      <div key={a.id} className="group relative overflow-hidden rounded-xl border border-white/20 bg-white/5 p-6 hover:bg-white/10 transition-all">
-                        <div className="flex items-center justify-between mb-4">
-                          <span className="px-2 py-1 rounded text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                            {a.type}
-                          </span>
-                          <span className="text-xs text-gray-400">{a.date}</span>
-                        </div>
-                        <h3 className="text-xl font-bold text-white mb-2 group-hover:text-primary transition-colors">{a.title}</h3>
-                        <p className="text-gray-300 text-sm line-clamp-3 mb-4">{a.content}</p>
-                        {a.fileName && (
-                          <div className="flex items-center gap-2 text-xs text-primary bg-primary/10 w-fit px-2 py-1 rounded">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-                            {a.fileName}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </div>
-          </section>
-        )}
-      </div>
     </main>
   )
 }
