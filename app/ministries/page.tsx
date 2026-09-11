@@ -21,7 +21,6 @@ import {
   ArrowRight
 } from "lucide-react"
 
-// Types definition for Ministries
 interface Ministry {
   id: string
   name: string
@@ -223,15 +222,9 @@ export default function MinistriesPage() {
       <div className="relative z-20 container mx-auto px-4 py-12 md:py-20 text-white">
         <div className="max-w-6xl mx-auto space-y-12">
 
-          {/* Section Header */}
-          <div className="text-center space-y-4 max-w-3xl mx-auto">
-            <span className="inline-block px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-full text-xs font-bold tracking-widest uppercase">
-              ASA UNIK-RP NGOMA
-            </span>
-            <h1 className="text-4xl md:text-5xl font-black tracking-tight text-white">
-              Church Ministries
-            </h1>
-            <p className="text-base md:text-lg text-slate-300">
+          {/* Section Introduction */}
+          <div className="text-center max-w-3xl mx-auto">
+            <p className="text-base md:text-xl text-slate-200 leading-relaxed font-medium">
               Discover where you can grow, connect, and serve. Every ministry at ASA UNIK-RP NGOMA is dedicated to glorifying God and empowering our campus community.
             </p>
           </div>
