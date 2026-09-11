@@ -50,10 +50,9 @@ export default function AboutPage() {
       <div className="relative z-20 container mx-auto px-4 py-12 md:py-20 text-white">
         <div className="max-w-5xl mx-auto space-y-16">
           
-          {/* 1. HERO / INTRODUCTION */}
-          <div className="space-y-4 text-center max-w-3xl mx-auto">
-           
-            <p className="text-lg md:text-xl text-slate-300 leading-relaxed font-medium">
+          {/* 1. INTRODUCTION */}
+          <div className="text-center max-w-3xl mx-auto">
+            <p className="text-lg md:text-2xl text-slate-200 leading-relaxed font-medium">
               <strong className="text-amber-400">ASA UNIK-RP NGOMA</strong> (Adventist Students Association) is a vibrant Seventh-day Adventist campus church and fellowship based at the Rwanda Polytechnic (RP) Ngoma Campus in Kibungo, Eastern Province, Rwanda.
             </p>
           </div>
