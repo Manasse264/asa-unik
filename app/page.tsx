@@ -25,7 +25,9 @@ const translations = {
     welcomeSub: "WELCOME TO",
     churchName: "ASA UNIK-RP NGOMA",
     sdaSub: "A Seventh-day Adventist Church",
-    mottoTitle: "A Place to Worship. A Place to Belong. A Place to Grow.",
+    mottoTitle: "A Place to Worship. "
+                 "A Place to Belong. "
+                 "A Place to Grow.",
     mottoDesc: "Together in Christ, we seek to know God, grow in faith, and serve our community.",
     joinSabbath: "Join Us This Sabbath",
     watchOnline: "Watch Online",
