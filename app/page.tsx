@@ -732,7 +732,7 @@ export default function Page() {
               </ul>
             </div>
 
-            {/* Column 3: Contact Info (Address, Phone, Email) */}
+            {/* Column 3: Contact Info */}
             <div className="lg:col-span-3 space-y-4">
               <h4 className="text-sm font-bold text-white uppercase tracking-wider">{t.contactUs}</h4>
               <ul className="space-y-3 text-sm">
@@ -751,7 +751,7 @@ export default function Page() {
               </ul>
             </div>
 
-            {/* Column 4: Embedded Google Map */}
+            {/* Column 4: Google Map */}
             <div className="lg:col-span-3 space-y-4">
               <h4 className="text-sm font-bold text-white uppercase tracking-wider">{t.findUs}</h4>
               <div className="relative w-full h-40 rounded-xl overflow-hidden border border-slate-800 shadow-inner">
@@ -771,7 +771,7 @@ export default function Page() {
 
           </div>
 
-          {/* Bottom Copyright Bar */}
+          {/* Bottom Copyright */}
           <div className="border-t border-slate-800/80 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
             <p>© {new Date().getFullYear()} {t.churchName}. {t.copyright}</p>
             <p className="text-slate-500">Seventh-day Adventist Church</p>
