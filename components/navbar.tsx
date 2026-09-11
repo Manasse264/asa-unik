@@ -8,19 +8,34 @@ import { Button } from "@/components/ui/button"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { getSystemConfig } from "@/lib/actions"
 
-import { Check, ChevronDown, Globe } from "lucide-react"
+import { 
+  Check, 
+  ChevronDown, 
+  Globe, 
+  Heart, 
+  Key, 
+  LogOut, 
+  Sparkles, 
+  User 
+} from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const navTranslations = {
   en: { 
     home: "Home", 
-    about: "About", 
+    about: "About Us", 
+    ministries: "Ministries",
+    sermons: "Sermons",
+    events: "Events",
+    gallery: "Gallery",
     updates: "Updates",
     news: "News",
     announcements: "Announcements",
+    account: "Account",
     login: "Login", 
     register: "Register", 
     logout: "Logout",
+    give: "Give",
     selectYear: "Select Year",
     yearRequired: "Please select a church year to continue.",
     mustSelectYear: "Year Selection Required",
@@ -30,12 +45,18 @@ const navTranslations = {
   rw: { 
     home: "Ahabanza", 
     about: "Ibyerekeye", 
+    ministries: "Minisitiri",
+    sermons: "Inyigisho",
+    events: "Ibyakorwa",
+    gallery: "Amafoto",
     updates: "Amakuru Mashya",
     news: "Amakuru",
     announcements: "Amatangazo",
+    account: "Konte",
     login: "Injira", 
     register: "Kwiyandikisha", 
     logout: "Sohoka",
+    give: "Tanga",
     selectYear: "Hitamo Umwaka",
     yearRequired: "Nyamuneka hitamo umwaka w'itorero kugira ngo ukomeze.",
     mustSelectYear: "Guhitamo Umwaka Ni Ngombwa",
@@ -45,12 +66,18 @@ const navTranslations = {
   fr: { 
     home: "Accueil", 
     about: "À propos", 
+    ministries: "Ministères",
+    sermons: "Sermons",
+    events: "Événements",
+    gallery: "Galerie",
     updates: "Mises à jour",
     news: "Nouvelles",
     announcements: "Annonces",
+    account: "Compte",
     login: "Connexion", 
     register: "S'inscrire", 
     logout: "Déconnexion",
+    give: "Donner",
     selectYear: "Choisir l'année",
     yearRequired: "Veuillez sélectionner une année d'église pour continuer.",
     mustSelectYear: "Sélection de l'année requise",
@@ -67,26 +94,30 @@ export function Navbar() {
   const [restrictOld, setRestrictOld] = React.useState(false)
   const [blockedYears, setBlockedYears] = React.useState<string[]>([])
   const [lang, setLang] = React.useState<"en" | "rw" | "fr">("en")
-  const [showSubtabs, setShowSubtabs] = React.useState(false)
   const [availableYears, setAvailableYears] = React.useState<string[]>([])
   const [selectedYear, setSelectedYear] = React.useState<string>("")
+  const [isAccountOpen, setIsAccountOpen] = React.useState(false)
+
   const router = useRouter()
   const pathname = usePathname()
+  const accountMenuRef = React.useRef<HTMLDivElement>(null)
 
-  const isHomePage = pathname === "/"
   const isDashboard = pathname.startsWith("/dashboard")
   const isUpdatesSection = pathname.startsWith("/updates") || pathname.startsWith("/news") || pathname.startsWith("/announcements")
 
+  // Close account dropdown on outside click
   React.useEffect(() => {
-    // Hide subtabs on navigation if not in updates section
-    if (!isUpdatesSection) {
-      setShowSubtabs(false)
+    const handleClickOutside = (event: MouseEvent) => {
+      if (accountMenuRef.current && !accountMenuRef.current.contains(event.target as Node)) {
+        setIsAccountOpen(false)
+      }
     }
-  }, [pathname, isUpdatesSection])
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   const applyYearConfig = (config: any) => {
     if (!config) return
-
     const years = Array.isArray(config.availableYears) ? config.availableYears : []
     setAvailableYears(years)
     setRestrictNew(!!config.restrictNewAccounts)
@@ -119,7 +150,6 @@ export function Navbar() {
   }
 
   React.useEffect(() => {
-    // Check if user is logged in on mount
     const user = localStorage.getItem("user_role")
     setIsLoggedIn(!!user)
     setUserRole(user || "")
@@ -159,6 +189,7 @@ export function Navbar() {
     localStorage.removeItem("user_role")
     setIsLoggedIn(false)
     setUserRole("")
+    setIsAccountOpen(false)
     router.push("/")
     window.dispatchEvent(new Event("auth-change"))
   }
@@ -167,7 +198,6 @@ export function Navbar() {
     const year = e.target.value
     setSelectedYear(year)
     localStorage.setItem("selected_year", year)
-    // Trigger event so dashboards can react if needed
     window.dispatchEvent(new Event("year-changed"))
   }
 
@@ -180,12 +210,10 @@ export function Navbar() {
     if (regIndex === -1) return filtered
 
     if (restrictNew) {
-      // Block access to years BEFORE registration
       filtered = filtered.filter((year) => availableYears.indexOf(year) >= regIndex)
     }
 
     if (restrictOld) {
-      // Block access to years AFTER registration
       filtered = filtered.filter((year) => availableYears.indexOf(year) <= regIndex)
     }
 
@@ -200,6 +228,16 @@ export function Navbar() {
     }
   }, [filteredYearsList, selectedYear])
 
+  const navLinks = [
+    { href: "/", label: t.home },
+    { href: "/about", label: t.about },
+    { href: "/ministries", label: t.ministries },
+    { href: "/sermons", label: t.sermons },
+    { href: "/events", label: t.events },
+    { href: "/gallery", label: t.gallery },
+    { href: "/updates", label: t.updates, isUpdates: true },
+  ]
+
   return (
     <div className="sticky top-0 z-50 w-full">
       {isDashboard && !selectedYear && (
@@ -207,80 +245,123 @@ export function Navbar() {
           {t.yearRequired}
         </div>
       )}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link href="/" className="flex items-center space-x-2">
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
+        <div className="container flex h-20 items-center justify-between px-4 md:px-8">
+          
+          {/* Logo Section */}
+          <div className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-3 group">
               <Image 
                 src="/logo.jpeg" 
                 alt="ASA-UNIK Logo" 
-                width={32} 
-                height={32} 
-                className="rounded-full object-cover"
+                width={48} 
+                height={48} 
+                className="rounded-full object-cover transition-transform group-hover:scale-105"
               />
-              <span className="text-xl font-bold tracking-tight">ASA-UNIK</span>
+              <div className="flex flex-col">
+                <span className="text-xl font-black tracking-tight text-slate-900 leading-none">
+                  ASA UNIK-RP NGOMA
+                </span>
+                <span className="text-[11px] font-semibold text-slate-600 mt-1">
+                  Seventh-day Adventist Church
+                </span>
+                <span className="text-[9px] font-medium text-slate-500 tracking-wider">
+                  Know God • Grow Together • Serve Others
+                </span>
+              </div>
             </Link>
           </div>
 
-          <div className="flex items-center gap-8">
-            {!isDashboard && (
-              <nav className="hidden md:flex items-center gap-6">
-                <Link 
-                  href="/" 
-                  className={cn(
-                    "text-sm font-medium transition-colors hover:text-primary",
-                    pathname === "/" ? "text-primary" : "text-muted-foreground"
-                  )}
-                >
-                  {t.home}
-                </Link>
-                <Link 
-                  href="/about" 
-                  className={cn(
-                    "text-sm font-medium transition-colors hover:text-primary",
-                    pathname === "/about" ? "text-primary" : "text-muted-foreground"
-                  )}
-                >
-                  {t.about}
-                </Link>
-                <Link 
-                  href="/updates"
-                  className={cn(
-                    "text-sm font-medium transition-colors hover:text-primary",
-                    isUpdatesSection ? "text-primary font-bold" : "text-muted-foreground"
-                  )}
-                >
-                  {t.updates}
-                </Link>
-              </nav>
-            )}
+          {/* Navigation Links */}
+          {!isDashboard && (
+            <nav className="hidden xl:flex items-center gap-7">
+              {navLinks.map((link) => {
+                const isActive = link.isUpdates ? isUpdatesSection : pathname === link.href
+                return (
+                  <Link 
+                    key={link.href}
+                    href={link.href} 
+                    className={cn(
+                      "text-sm font-semibold transition-colors hover:text-primary relative py-1",
+                      isActive ? "text-primary border-b-2 border-primary font-bold" : "text-slate-700"
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                )
+              })}
+            </nav>
+          )}
 
-            <div className="flex items-center gap-4">
-              <div className="hidden md:flex items-center gap-2">
-                {!isLoggedIn ? (
-                  <>
-                    <Button variant="ghost" asChild>
-                      <Link href="/login">{t.login}</Link>
-                    </Button>
-                    <Button asChild>
-                      <Link href="/register">{t.register}</Link>
-                    </Button>
-                  </>
-                ) : (
-                  <Button variant="outline" onClick={handleLogout}>
-                    {t.logout}
-                  </Button>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                 <LanguageSwitcher />
-              </div>
+          {/* Right Section Actions */}
+          <div className="flex items-center gap-3">
+            
+            {/* Account Dropdown */}
+            <div className="relative" ref={accountMenuRef}>
+              <button
+                onClick={() => setIsAccountOpen(!isAccountOpen)}
+                className="flex items-center gap-2 bg-[#0d3b66] hover:bg-[#0a2e52] text-white px-4 py-2 rounded-full text-sm font-medium shadow-sm transition-all"
+              >
+                <User className="w-4 h-4" />
+                <span>{t.account}</span>
+                <ChevronDown className={cn("w-4 h-4 transition-transform duration-200", isAccountOpen && "rotate-180")} />
+              </button>
+
+              {isAccountOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-100 rounded-xl shadow-xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                  {!isLoggedIn ? (
+                    <>
+                      <Link
+                        href="/login"
+                        onClick={() => setIsAccountOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                      >
+                        <Key className="w-4 h-4 text-slate-500" />
+                        {t.login}
+                      </Link>
+                      <Link
+                        href="/register"
+                        onClick={() => setIsAccountOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                      >
+                        <Sparkles className="w-4 h-4 text-slate-500" />
+                        {t.register}
+                      </Link>
+                    </>
+                  ) : (
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors text-left"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      {t.logout}
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
+
+            {/* Language Switcher */}
+            <div className="flex items-center">
+              <LanguageSwitcher />
+            </div>
+
+            {/* Give Button */}
+            <Button 
+              asChild
+              className="bg-[#f4a261] hover:bg-[#e76f51] text-white font-bold px-5 py-2 rounded-full flex items-center gap-1.5 shadow-sm border-none transition-all"
+            >
+              <Link href="/give">
+                <Heart className="w-4 h-4 fill-current" />
+                {t.give}
+              </Link>
+            </Button>
           </div>
+
         </div>
       </header>
 
-      {/* Subtabs positioned below the header bar on the right side - Clean links without a container bar */}
+      {/* Updates / News / Announcements Subtabs */}
       {isUpdatesSection && (
         <div className="container flex justify-end mt-1 px-4 md:px-6 pointer-events-none">
           <div className="pointer-events-auto flex items-center gap-6 py-2">
@@ -348,7 +429,7 @@ export function Navbar() {
                       <option key={year} value={year}>{year}</option>
                     ))
                   ) : (
-                    <option value="2026">2026</option> // Fallback if no years defined
+                    <option value="2026">2026</option>
                   )}
                 </select>
               </div>
@@ -358,7 +439,6 @@ export function Navbar() {
                 disabled={!selectedYear}
                 onClick={() => {
                   if (selectedYear) {
-                    // Force refresh or just let state handle it
                     window.dispatchEvent(new Event("year-changed"))
                   }
                 }}
