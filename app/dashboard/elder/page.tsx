@@ -315,7 +315,7 @@ export default function ElderDashboardClient() {
       setBlockedYears(config.blockedYears || [])
     }
 
-    const savedWebsitePages = localStorage.getItem(`website_pages_${year}`)
+    const savedWebsitePages = localStorage.getItem(`website_pages_${year}`) || localStorage.getItem("website_pages")
     if (savedWebsitePages) {
       try {
         const parsed = JSON.parse(savedWebsitePages)
@@ -336,11 +336,13 @@ export default function ElderDashboardClient() {
     loadData()
     window.addEventListener("storage", loadData)
     window.addEventListener("year-changed", loadData)
+    window.addEventListener("website-pages-changed", loadData)
     return () => {
       window.removeEventListener("storage", loadData)
       window.removeEventListener("year-changed", loadData)
+      window.removeEventListener("website-pages-changed", loadData)
     }
-  }, [])
+  }, [selectedWebsitePageId])
 
   const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -584,7 +586,12 @@ export default function ElderDashboardClient() {
     )
     setWebsitePages(updatedPages)
     localStorage.setItem(`website_pages_${year}`, JSON.stringify(updatedPages))
-    alert(`${websiteFormData.page} management details saved.`)
+    localStorage.setItem("website_pages", JSON.stringify(updatedPages))
+    
+    window.dispatchEvent(new Event("website-pages-changed"))
+    window.dispatchEvent(new Event("storage"))
+    
+    alert(`${websiteFormData.page} management details saved and synced live!`)
   }
 
   const handleResetWebsitePages = () => {
@@ -594,6 +601,10 @@ export default function ElderDashboardClient() {
     setSelectedWebsitePageId("home")
     setWebsiteFormData(DEFAULT_WEBSITE_PAGES[0])
     localStorage.setItem(`website_pages_${year}`, JSON.stringify(DEFAULT_WEBSITE_PAGES))
+    localStorage.setItem("website_pages", JSON.stringify(DEFAULT_WEBSITE_PAGES))
+    
+    window.dispatchEvent(new Event("website-pages-changed"))
+    window.dispatchEvent(new Event("storage"))
   }
 
   // System Config Handlers
@@ -836,15 +847,15 @@ export default function ElderDashboardClient() {
               <div key={r.id} className="border p-4 rounded-xl space-y-2 bg-background shadow-sm">
                 <h3 className="font-bold text-lg">{r.title}</h3>
                 <Button 
-      variant="destructive" 
-      onClick={() => {
-        if (confirm("Are you sure you want to delete all reports?")) {
-          setReports([])
-        }
-      }}
-    >
-      <Trash2 className="mr-2 h-4 w-4" /> Delete All
-    </Button>
+                  variant="destructive" 
+                  onClick={() => {
+                    if (confirm("Are you sure you want to delete all reports?")) {
+                      setReports([])
+                    }
+                  }}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" /> Delete All
+                </Button>
                 <p className="text-sm text-muted-foreground">Date: {r.date}</p>
                 <p className="text-sm font-medium">Total Attendance: {r.total}</p>
                 <Button
