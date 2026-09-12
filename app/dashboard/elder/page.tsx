@@ -129,6 +129,19 @@ interface WebsitePageSection {
   headline: string
   summary: string
   keyItems: string
+  // Specific custom manual fields
+  speaker?: string
+  date?: string
+  scripture?: string
+  schedules?: string
+  leadership?: string
+  location?: string
+  organizer?: string
+  contactPhone?: string
+  address?: string
+  email?: string
+  officeHours?: string
+  websiteUrl?: string
 }
 
 const DEFAULT_WEBSITE_PAGES: WebsitePageSection[] = [
@@ -156,8 +169,10 @@ const DEFAULT_WEBSITE_PAGES: WebsitePageSection[] = [
     route: "/ministries",
     status: "Visible",
     headline: "Church Ministries",
-    summary: "Manage ministry cards for Youth, Children, Women, Men, Choir and Music, Prayer, Bible Study, and Community Outreach.",
-    keyItems: "Ministry name, icon, photo, description, objectives, activities, meeting schedule, leader, contact, learn more button",
+    summary: "Sabbath Worship 9:00 AM – 12:00 PM | Bible Study Wednesday • 5:00 PM | Prayer Meeting Friday • 5:00 PM",
+    keyItems: "Youth, Children, Women, Men, Choir and Music, Prayer, Bible Study, and Community Outreach",
+    schedules: "Fridays at 5:00 PM & Saturdays at 1:30 PM\nSabbath Worship: 9:00 AM – 12:00 PM\nBible Study: Wednesday • 5:00 PM\nPrayer Meeting: Friday • 5:00 PM",
+    leadership: "Music Director"
   },
   {
     id: "sermons",
@@ -167,6 +182,9 @@ const DEFAULT_WEBSITE_PAGES: WebsitePageSection[] = [
     headline: "Sermon Library",
     summary: "Manage featured sermon details, sermon library entries, audio/video links, download options, categories, and filters.",
     keyItems: "Featured sermon, title, speaker, date, Bible text, description, video, audio, categories, search filters",
+    speaker: "Pastor",
+    date: "2026-09-05",
+    scripture: "Revelation 14:6-12"
   },
   {
     id: "events",
@@ -174,8 +192,14 @@ const DEFAULT_WEBSITE_PAGES: WebsitePageSection[] = [
     route: "/events",
     status: "Visible",
     headline: "Church Events",
-    summary: "Manage upcoming activities, event categories, calendar entries, registration notes, and past event highlights.",
-    keyItems: "Event title, date, start time, end time, location, image, description, speaker, organizer, contact, register/join action, past photos and videos",
+    summary: "Every Saturday 9:00 AM - 12:00 PM at Main Sanctuary",
+    keyItems: "Event title, date, start time, end time, location, image, description, speaker, organizer, contact, register/join action",
+    date: "Every Saturday",
+    schedules: "9:00 AM - 12:00 PM",
+    location: "Main Sanctuary",
+    speaker: "Church Pastor",
+    organizer: "Church Board",
+    contactPhone: "+250 780 000 000"
   },
   {
     id: "gallery",
@@ -191,9 +215,14 @@ const DEFAULT_WEBSITE_PAGES: WebsitePageSection[] = [
     page: "Contact",
     route: "/contact",
     status: "Visible",
-    headline: "Contact the Church",
-    summary: "Manage contact information, message form labels, prayer request fields, location map, directions, and social media links.",
+    headline: "Contact Information",
+    summary: "RP Ngoma Campus, Kibungo, Eastern Province, Rwanda",
     keyItems: "Address, phone number, email, website, office hours, contact form, prayer request form, map, directions, social media",
+    address: "RP Ngoma Campus, Kibungo, Eastern Province, Rwanda",
+    contactPhone: "+250 780 000 000",
+    email: "info@asaunikrpngoma.org",
+    officeHours: "Mon-Fri, 9:00 AM - 5:00 PM",
+    websiteUrl: "asaunikrpngoma.org"
   },
   {
     id: "give",
@@ -1312,7 +1341,7 @@ export default function ElderDashboardClient() {
                   <Globe className="h-5 w-5 text-primary" /> Public Website Pages
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  Manage nav pages except Updates and Account. Updates remain in Announcements; Account remains in User Accounts.
+                  Select a page to edit its title, summary, and specific custom information manually.
                 </p>
               </div>
 
@@ -1349,7 +1378,7 @@ export default function ElderDashboardClient() {
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <h3 className="flex items-center gap-2 text-xl font-bold">
-                      <Edit className="h-5 w-5 text-primary" /> Manage {websiteFormData.page}
+                      <Edit className="h-5 w-5 text-primary" /> Manage {websiteFormData.page} Details
                     </h3>
                     <p className="text-sm text-muted-foreground">
                       Route: {websiteFormData.route}
@@ -1401,20 +1430,182 @@ export default function ElderDashboardClient() {
                   <textarea
                     value={websiteFormData.summary}
                     onChange={(e) => setWebsiteFormData({ ...websiteFormData, summary: e.target.value })}
-                    className="min-h-28 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    className="min-h-20 rounded-md border border-input bg-background px-3 py-2 text-sm"
                     required
                   />
                 </div>
 
                 <div className="grid gap-2">
-                  <Label>Managed Content Items</Label>
+                  <Label>Managed Key Items / Categories</Label>
                   <textarea
                     value={websiteFormData.keyItems}
                     onChange={(e) => setWebsiteFormData({ ...websiteFormData, keyItems: e.target.value })}
-                    className="min-h-32 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    className="min-h-20 rounded-md border border-input bg-background px-3 py-2 text-sm"
                     required
                   />
                 </div>
+
+                {/* Dynamic Content Custom Fields Based on Selected Page */}
+                {websiteFormData.id === "sermons" && (
+                  <div className="p-4 border rounded-lg bg-muted/20 space-y-4">
+                    <h4 className="font-bold text-sm text-primary">Sermon Details Manual Input</h4>
+                    <div className="grid gap-4 md:grid-cols-3">
+                      <div className="grid gap-2">
+                        <Label>Speaker</Label>
+                        <Input
+                          placeholder="e.g. Pastor"
+                          value={websiteFormData.speaker || ""}
+                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, speaker: e.target.value })}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label>Date</Label>
+                        <Input
+                          type="date"
+                          value={websiteFormData.date || ""}
+                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, date: e.target.value })}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label>Scripture</Label>
+                        <Input
+                          placeholder="e.g. Revelation 14:6-12"
+                          value={websiteFormData.scripture || ""}
+                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, scripture: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {websiteFormData.id === "ministries" && (
+                  <div className="p-4 border rounded-lg bg-muted/20 space-y-4">
+                    <h4 className="font-bold text-sm text-primary">Ministries Details Manual Input</h4>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="grid gap-2">
+                        <Label>Schedules / Times</Label>
+                        <textarea
+                          placeholder="e.g. Fridays at 5:00 PM & Saturdays at 1:30 PM..."
+                          value={websiteFormData.schedules || ""}
+                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, schedules: e.target.value })}
+                          className="min-h-24 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label>Leadership Roles / Positions</Label>
+                        <Input
+                          placeholder="e.g. Music Director"
+                          value={websiteFormData.leadership || ""}
+                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, leadership: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {websiteFormData.id === "events" && (
+                  <div className="p-4 border rounded-lg bg-muted/20 space-y-4">
+                    <h4 className="font-bold text-sm text-primary">Events Details Manual Input</h4>
+                    <div className="grid gap-4 md:grid-cols-3">
+                      <div className="grid gap-2">
+                        <Label>Frequency / Day</Label>
+                        <Input
+                          placeholder="e.g. Every Saturday"
+                          value={websiteFormData.date || ""}
+                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, date: e.target.value })}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label>Time Schedule</Label>
+                        <Input
+                          placeholder="e.g. 9:00 AM - 12:00 PM"
+                          value={websiteFormData.schedules || ""}
+                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, schedules: e.target.value })}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label>Location</Label>
+                        <Input
+                          placeholder="e.g. Main Sanctuary"
+                          value={websiteFormData.location || ""}
+                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, location: e.target.value })}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label>Speaker</Label>
+                        <Input
+                          placeholder="e.g. Church Pastor"
+                          value={websiteFormData.speaker || ""}
+                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, speaker: e.target.value })}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label>Organizer</Label>
+                        <Input
+                          placeholder="e.g. Church Board"
+                          value={websiteFormData.organizer || ""}
+                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, organizer: e.target.value })}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label>Contact Number</Label>
+                        <Input
+                          placeholder="e.g. +250 780 000 000"
+                          value={websiteFormData.contactPhone || ""}
+                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, contactPhone: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {websiteFormData.id === "contact" && (
+                  <div className="p-4 border rounded-lg bg-muted/20 space-y-4">
+                    <h4 className="font-bold text-sm text-primary">Contact Information Manual Input</h4>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="grid gap-2">
+                        <Label>Address</Label>
+                        <Input
+                          placeholder="e.g. RP Ngoma Campus, Kibungo..."
+                          value={websiteFormData.address || ""}
+                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, address: e.target.value })}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label>Phone Number</Label>
+                        <Input
+                          placeholder="e.g. +250 780 000 000"
+                          value={websiteFormData.contactPhone || ""}
+                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, contactPhone: e.target.value })}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label>Email Address</Label>
+                        <Input
+                          placeholder="e.g. info@asaunikrpngoma.org"
+                          value={websiteFormData.email || ""}
+                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, email: e.target.value })}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label>Office Hours</Label>
+                        <Input
+                          placeholder="e.g. Mon-Fri, 9:00 AM - 5:00 PM"
+                          value={websiteFormData.officeHours || ""}
+                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, officeHours: e.target.value })}
+                        />
+                      </div>
+                      <div className="grid gap-2 md:col-span-2">
+                        <Label>Website URL</Label>
+                        <Input
+                          placeholder="e.g. asaunikrpngoma.org"
+                          value={websiteFormData.websiteUrl || ""}
+                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, websiteUrl: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex flex-col gap-2 sm:flex-row">
                   <Button type="submit">
@@ -1428,13 +1619,16 @@ export default function ElderDashboardClient() {
 
               <div className="rounded-xl border bg-muted/30 p-4">
                 <h4 className="mb-3 flex items-center gap-2 font-bold">
-                  <FileText className="h-4 w-4 text-primary" /> Management Coverage
+                  <FileText className="h-4 w-4 text-primary" /> Management Coverage Preview
                 </h4>
                 <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                   {websitePages.map((page) => (
-                    <div key={page.id} className="rounded-lg border bg-background p-3">
+                    <div key={page.id} className="rounded-lg border bg-background p-3 space-y-1">
                       <p className="truncate text-sm font-bold">{page.page}</p>
-                      <p className="mt-1 line-clamp-3 text-xs leading-5 text-muted-foreground">{page.keyItems}</p>
+                      <p className="line-clamp-2 text-xs leading-5 text-muted-foreground">{page.summary}</p>
+                      {page.speaker && <p className="text-[11px] font-medium text-primary">Speaker: {page.speaker}</p>}
+                      {page.scripture && <p className="text-[11px] text-muted-foreground">Text: {page.scripture}</p>}
+                      {page.contactPhone && <p className="text-[11px] text-muted-foreground">Contact: {page.contactPhone}</p>}
                     </div>
                   ))}
                 </div>
