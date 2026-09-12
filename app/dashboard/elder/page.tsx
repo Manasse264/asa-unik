@@ -121,6 +121,91 @@ interface Announcement {
   fileData?: string | null
 }
 
+interface WebsitePageSection {
+  id: string
+  page: string
+  route: string
+  status: "Visible" | "Draft"
+  headline: string
+  summary: string
+  keyItems: string
+}
+
+const DEFAULT_WEBSITE_PAGES: WebsitePageSection[] = [
+  {
+    id: "home",
+    page: "Home",
+    route: "/",
+    status: "Visible",
+    headline: "Welcome to ASA UNIK-RP NGOMA",
+    summary: "Manage the welcome message, worship times, Bible verse, latest sermon, ministries preview, upcoming events, gallery preview, and footer identity.",
+    keyItems: "Hero message, Sabbath worship, Bible study, prayer meeting, church location, verse of the week, latest sermon, ministries, events, gallery preview",
+  },
+  {
+    id: "about",
+    page: "About Us",
+    route: "/about",
+    status: "Visible",
+    headline: "Who ASA UNIK-RP NGOMA Is",
+    summary: "Manage the church introduction, history, vision, mission, values, beliefs, leadership, and location details.",
+    keyItems: "Full church name, type of church, location, short history, milestones, vision, mission, values, beliefs, leadership contacts, map directions",
+  },
+  {
+    id: "ministries",
+    page: "Ministries",
+    route: "/ministries",
+    status: "Visible",
+    headline: "Church Ministries",
+    summary: "Manage ministry cards for Youth, Children, Women, Men, Choir and Music, Prayer, Bible Study, and Community Outreach.",
+    keyItems: "Ministry name, icon, photo, description, objectives, activities, meeting schedule, leader, contact, learn more button",
+  },
+  {
+    id: "sermons",
+    page: "Sermons",
+    route: "/sermons",
+    status: "Visible",
+    headline: "Sermon Library",
+    summary: "Manage featured sermon details, sermon library entries, audio/video links, download options, categories, and filters.",
+    keyItems: "Featured sermon, title, speaker, date, Bible text, description, video, audio, categories, search filters",
+  },
+  {
+    id: "events",
+    page: "Events",
+    route: "/events",
+    status: "Visible",
+    headline: "Church Events",
+    summary: "Manage upcoming activities, event categories, calendar entries, registration notes, and past event highlights.",
+    keyItems: "Event title, date, start time, end time, location, image, description, speaker, organizer, contact, register/join action, past photos and videos",
+  },
+  {
+    id: "gallery",
+    page: "Gallery",
+    route: "/gallery",
+    status: "Visible",
+    headline: "Church Gallery",
+    summary: "Manage photo and video gallery categories, captions, dates, and event labels.",
+    keyItems: "Worship services, Sabbath School, youth, children, women, men, choir, baptism, evangelism, community outreach, special events, videos",
+  },
+  {
+    id: "contact",
+    page: "Contact",
+    route: "/contact",
+    status: "Visible",
+    headline: "Contact the Church",
+    summary: "Manage contact information, message form labels, prayer request fields, location map, directions, and social media links.",
+    keyItems: "Address, phone number, email, website, office hours, contact form, prayer request form, map, directions, social media",
+  },
+  {
+    id: "give",
+    page: "Give",
+    route: "/give",
+    status: "Visible",
+    headline: "Support God's Work",
+    summary: "Manage giving introduction, giving options, verified payment information, instructions, and thank-you confirmation.",
+    keyItems: "Tithe, offering, development fund, youth ministry, community outreach, other donations, bank details, mobile money, payment instructions",
+  },
+]
+
 export default function ElderDashboardClient() {
   const [members, setMembers] = React.useState<Member[]>([])
   const [councilMembers, setCouncilMembers] = React.useState<any[]>([])
@@ -164,6 +249,9 @@ export default function ElderDashboardClient() {
   const [choirFormData, setChoirFormData] = React.useState({ name: "", leaderName: "" })
 
   const [generatedResetLink, setGeneratedResetLink] = React.useState<string | null>(null)
+  const [websitePages, setWebsitePages] = React.useState<WebsitePageSection[]>(DEFAULT_WEBSITE_PAGES)
+  const [selectedWebsitePageId, setSelectedWebsitePageId] = React.useState("home")
+  const [websiteFormData, setWebsiteFormData] = React.useState<WebsitePageSection>(DEFAULT_WEBSITE_PAGES[0])
 
   const [formData, setFormData] = React.useState({
     name: "",
@@ -225,6 +313,22 @@ export default function ElderDashboardClient() {
       setRestrictOldAccounts(!!config.restrictOldAccounts)
       setAvailableYears(config.availableYears || ["2024-2025"])
       setBlockedYears(config.blockedYears || [])
+    }
+
+    const savedWebsitePages = localStorage.getItem(`website_pages_${year}`)
+    if (savedWebsitePages) {
+      try {
+        const parsed = JSON.parse(savedWebsitePages)
+        if (Array.isArray(parsed)) {
+          setWebsitePages(parsed)
+          setWebsiteFormData(parsed.find((page: WebsitePageSection) => page.id === selectedWebsitePageId) || parsed[0] || DEFAULT_WEBSITE_PAGES[0])
+        }
+      } catch (error) {
+        console.error("Error loading website page management data", error)
+      }
+    } else {
+      setWebsitePages(DEFAULT_WEBSITE_PAGES)
+      setWebsiteFormData(DEFAULT_WEBSITE_PAGES.find((page) => page.id === selectedWebsitePageId) || DEFAULT_WEBSITE_PAGES[0])
     }
   }
 
@@ -465,6 +569,33 @@ export default function ElderDashboardClient() {
     doc.save("weekly_choir_schedule.pdf")
   }
 
+  const handleSelectWebsitePage = (pageId: string) => {
+    const page = websitePages.find((item) => item.id === pageId)
+    if (!page) return
+    setSelectedWebsitePageId(pageId)
+    setWebsiteFormData(page)
+  }
+
+  const handleSaveWebsitePage = (e: React.FormEvent) => {
+    e.preventDefault()
+    const year = localStorage.getItem("selected_year") || new Date().getFullYear().toString()
+    const updatedPages = websitePages.map((page) =>
+      page.id === websiteFormData.id ? websiteFormData : page
+    )
+    setWebsitePages(updatedPages)
+    localStorage.setItem(`website_pages_${year}`, JSON.stringify(updatedPages))
+    alert(`${websiteFormData.page} management details saved.`)
+  }
+
+  const handleResetWebsitePages = () => {
+    if (!confirm("Reset website page management details to the default structure?")) return
+    const year = localStorage.getItem("selected_year") || new Date().getFullYear().toString()
+    setWebsitePages(DEFAULT_WEBSITE_PAGES)
+    setSelectedWebsitePageId("home")
+    setWebsiteFormData(DEFAULT_WEBSITE_PAGES[0])
+    localStorage.setItem(`website_pages_${year}`, JSON.stringify(DEFAULT_WEBSITE_PAGES))
+  }
+
   // System Config Handlers
   const handleAddYear = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -512,12 +643,13 @@ export default function ElderDashboardClient() {
       </div>
 
       <Tabs defaultValue="members" className="space-y-4">
-        <TabsList>
+        <TabsList className="h-auto flex-wrap justify-start">
           <TabsTrigger value="members">Baptized Members</TabsTrigger>
           <TabsTrigger value="council">Church Council</TabsTrigger>
           <TabsTrigger value="users">User Accounts</TabsTrigger>
           <TabsTrigger value="evangelism">Evangelism Dept</TabsTrigger>
           <TabsTrigger value="announcements">Announcements</TabsTrigger>
+          <TabsTrigger value="website-pages">Website Pages</TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
           <TabsTrigger value="system">System Config</TabsTrigger>
         </TabsList>
@@ -1155,6 +1287,145 @@ export default function ElderDashboardClient() {
                       ))}
                     </TableBody>
                   </Table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="website-pages" className="space-y-6">
+          <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+            <div className="space-y-4 rounded-xl border bg-background p-4 shadow-sm">
+              <div className="space-y-1">
+                <h3 className="flex items-center gap-2 text-xl font-bold">
+                  <Globe className="h-5 w-5 text-primary" /> Public Website Pages
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Manage nav pages except Updates and Account. Updates remain in Announcements; Account remains in User Accounts.
+                </p>
+              </div>
+
+              <div className="grid gap-2">
+                {websitePages.map((page) => (
+                  <button
+                    key={page.id}
+                    type="button"
+                    onClick={() => handleSelectWebsitePage(page.id)}
+                    className={cn(
+                      "flex items-center justify-between gap-3 rounded-lg border p-3 text-left transition-colors",
+                      selectedWebsitePageId === page.id
+                        ? "border-primary bg-primary/10"
+                        : "border-border hover:bg-muted/50"
+                    )}
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-bold">{page.page}</span>
+                      <span className="block truncate text-xs text-muted-foreground">{page.route}</span>
+                    </span>
+                    <span className={cn(
+                      "shrink-0 rounded-full px-2 py-1 text-[10px] font-bold",
+                      page.status === "Visible" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                    )}>
+                      {page.status}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <form onSubmit={handleSaveWebsitePage} className="space-y-5 rounded-xl border bg-background p-4 shadow-sm md:p-6">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <h3 className="flex items-center gap-2 text-xl font-bold">
+                      <Edit className="h-5 w-5 text-primary" /> Manage {websiteFormData.page}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Route: {websiteFormData.route}
+                    </p>
+                  </div>
+                  <a
+                    href={websiteFormData.route}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center justify-center gap-2 rounded-md border px-3 py-2 text-sm font-semibold hover:bg-muted"
+                  >
+                    <Eye className="h-4 w-4" /> Preview
+                  </a>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="grid gap-2">
+                    <Label>Page Name</Label>
+                    <Input
+                      value={websiteFormData.page}
+                      onChange={(e) => setWebsiteFormData({ ...websiteFormData, page: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Status</Label>
+                    <select
+                      value={websiteFormData.status}
+                      onChange={(e) => setWebsiteFormData({ ...websiteFormData, status: e.target.value as "Visible" | "Draft" })}
+                      className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    >
+                      <option value="Visible">Visible</option>
+                      <option value="Draft">Draft</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label>Main Headline</Label>
+                  <Input
+                    value={websiteFormData.headline}
+                    onChange={(e) => setWebsiteFormData({ ...websiteFormData, headline: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label>Page Summary</Label>
+                  <textarea
+                    value={websiteFormData.summary}
+                    onChange={(e) => setWebsiteFormData({ ...websiteFormData, summary: e.target.value })}
+                    className="min-h-28 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    required
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label>Managed Content Items</Label>
+                  <textarea
+                    value={websiteFormData.keyItems}
+                    onChange={(e) => setWebsiteFormData({ ...websiteFormData, keyItems: e.target.value })}
+                    className="min-h-32 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    required
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <Button type="submit">
+                    <CheckCircle2 className="mr-2 h-4 w-4" /> Save Page Details
+                  </Button>
+                  <Button type="button" variant="outline" onClick={handleResetWebsitePages}>
+                    Reset Defaults
+                  </Button>
+                </div>
+              </form>
+
+              <div className="rounded-xl border bg-muted/30 p-4">
+                <h4 className="mb-3 flex items-center gap-2 font-bold">
+                  <FileText className="h-4 w-4 text-primary" /> Management Coverage
+                </h4>
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  {websitePages.map((page) => (
+                    <div key={page.id} className="rounded-lg border bg-background p-3">
+                      <p className="truncate text-sm font-bold">{page.page}</p>
+                      <p className="mt-1 line-clamp-3 text-xs leading-5 text-muted-foreground">{page.keyItems}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

@@ -15,8 +15,10 @@ import {
   Heart, 
   Key, 
   LogOut, 
+  Menu,
   Sparkles, 
-  User 
+  User,
+  X
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -29,6 +31,7 @@ const navTranslations = {
     events: "Events",
     gallery: "Gallery",
     updates: "Updates",
+    contact: "Contact",
     news: "News",
     announcements: "Announcements",
     account: "Account",
@@ -50,6 +53,7 @@ const navTranslations = {
     events: "Ibyakorwa",
     gallery: "Amafoto",
     updates: "Amakuru Mashya",
+    contact: "Twandikire",
     news: "Amakuru",
     announcements: "Amatangazo",
     account: "Konte",
@@ -71,6 +75,7 @@ const navTranslations = {
     events: "Événements",
     gallery: "Galerie",
     updates: "Mises à jour",
+    contact: "Contact",
     news: "Nouvelles",
     announcements: "Annonces",
     account: "Compte",
@@ -97,6 +102,7 @@ export function Navbar() {
   const [availableYears, setAvailableYears] = React.useState<string[]>([])
   const [selectedYear, setSelectedYear] = React.useState<string>("")
   const [isAccountOpen, setIsAccountOpen] = React.useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
 
   const router = useRouter()
   const pathname = usePathname()
@@ -236,6 +242,7 @@ export function Navbar() {
     { href: "/events", label: t.events },
     { href: "/gallery", label: t.gallery },
     { href: "/updates", label: t.updates, isUpdates: true },
+    { href: "/contact", label: t.contact },
   ]
 
   return (
@@ -246,26 +253,26 @@ export function Navbar() {
         </div>
       )}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
-        <div className="container flex h-20 items-center justify-between px-4 md:px-8">
+        <div className="container flex min-h-20 items-center justify-between gap-3 px-3 py-3 md:px-8">
           
           {/* Logo Section */}
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-3 group">
+          <div className="flex min-w-0 items-center gap-3">
+            <Link href="/" className="flex min-w-0 items-center gap-2 sm:gap-3 group">
               <Image 
                 src="/logo.jpeg" 
                 alt="ASA-UNIK Logo" 
                 width={48} 
                 height={48} 
-                className="rounded-full object-cover transition-transform group-hover:scale-105"
+                className="h-11 w-11 rounded-full object-cover transition-transform group-hover:scale-105 sm:h-12 sm:w-12"
               />
-              <div className="flex flex-col">
-                <span className="text-xl font-black tracking-tight text-slate-900 leading-none">
+              <div className="flex min-w-0 flex-col">
+                <span className="truncate text-base font-black tracking-tight text-slate-900 leading-none sm:text-xl">
                   ASA UNIK-RP NGOMA
                 </span>
-                <span className="text-[11px] font-semibold text-slate-600 mt-1">
+                <span className="truncate text-[10px] font-semibold text-slate-600 mt-1 sm:text-[11px]">
                   Seventh-day Adventist Church
                 </span>
-                <span className="text-[9px] font-medium text-slate-500 tracking-wider">
+                <span className="hidden text-[9px] font-medium text-slate-500 tracking-wider sm:block">
                   Know God • Grow Together • Serve Others
                 </span>
               </div>
@@ -274,7 +281,7 @@ export function Navbar() {
 
           {/* Navigation Links */}
           {!isDashboard && (
-            <nav className="hidden xl:flex items-center gap-7">
+            <nav className="hidden xl:flex items-center gap-5 2xl:gap-7">
               {navLinks.map((link) => {
                 const isActive = link.isUpdates ? isUpdatesSection : pathname === link.href
                 return (
@@ -294,16 +301,27 @@ export function Navbar() {
           )}
 
           {/* Right Section Actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+            {!isDashboard && (
+              <button
+                type="button"
+                aria-label="Open navigation menu"
+                aria-expanded={isMobileMenuOpen}
+                onClick={() => setIsMobileMenuOpen((open) => !open)}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-800 shadow-sm transition-colors hover:bg-slate-50 xl:hidden"
+              >
+                {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
+            )}
             
             {/* Account Dropdown */}
             <div className="relative" ref={accountMenuRef}>
               <button
                 onClick={() => setIsAccountOpen(!isAccountOpen)}
-                className="flex items-center gap-2 bg-[#0d3b66] hover:bg-[#0a2e52] text-white px-4 py-2 rounded-full text-sm font-medium shadow-sm transition-all"
+                className="flex items-center gap-2 bg-[#0d3b66] hover:bg-[#0a2e52] text-white px-3 py-2 rounded-full text-sm font-medium shadow-sm transition-all sm:px-4"
               >
                 <User className="w-4 h-4" />
-                <span>{t.account}</span>
+                <span className="hidden sm:inline">{t.account}</span>
                 <ChevronDown className={cn("w-4 h-4 transition-transform duration-200", isAccountOpen && "rotate-180")} />
               </button>
 
@@ -342,14 +360,14 @@ export function Navbar() {
             </div>
 
             {/* Language Switcher */}
-            <div className="flex items-center">
+            <div className="hidden items-center sm:flex">
               <LanguageSwitcher />
             </div>
 
             {/* Give Button */}
             <Button 
               asChild
-              className="bg-[#f4a261] hover:bg-[#e76f51] text-white font-bold px-5 py-2 rounded-full flex items-center gap-1.5 shadow-sm border-none transition-all"
+              className="hidden bg-[#f4a261] hover:bg-[#e76f51] text-white font-bold px-5 py-2 rounded-full items-center gap-1.5 shadow-sm border-none transition-all sm:flex"
             >
               <Link href="/give">
                 <Heart className="w-4 h-4 fill-current" />
@@ -360,6 +378,43 @@ export function Navbar() {
 
         </div>
       </header>
+
+      {!isDashboard && isMobileMenuOpen && (
+        <div className="border-b bg-white shadow-sm xl:hidden">
+          <div className="container px-4 py-4">
+            <nav className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {navLinks.map((link) => {
+                const isActive = link.isUpdates ? isUpdatesSection : pathname === link.href
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={cn(
+                      "rounded-lg border px-3 py-2 text-sm font-semibold transition-colors",
+                      isActive
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-slate-200 text-slate-700 hover:bg-slate-50"
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                )
+              })}
+              <Link
+                href="/give"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-bold text-amber-800"
+              >
+                {t.give}
+              </Link>
+              <div className="col-span-2 flex items-center rounded-lg border border-slate-200 px-3 py-2 sm:col-span-1">
+                <LanguageSwitcher />
+              </div>
+            </nav>
+          </div>
+        </div>
+      )}
 
       {/* Updates / News / Announcements Subtabs */}
       {isUpdatesSection && (
