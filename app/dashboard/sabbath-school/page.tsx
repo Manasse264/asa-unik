@@ -790,7 +790,7 @@ export default function SabbathSchoolDashboard() {
               {/* Families Performance Table */}
               <div className="space-y-3">
                 <h3 className="text-lg font-bold flex items-center gap-2">
-                  <Users2 className="h-5 w-5 text-primary" /> {t.families} attendance                </h3>
+                  <Users2 className="h-5 w-5 text-primary" /> {t.families} Attendance                </h3>
                 <div className="rounded-md border bg-card overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="border-b bg-muted/50">
