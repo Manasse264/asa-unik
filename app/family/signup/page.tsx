@@ -179,12 +179,12 @@ export default function FamilySignupPage() {
               >
                 {years.map((y) => (
                   <option key={y} value={y}>
-                    Church Year: {y}
+                     {y}
                   </option>
                 ))}
               </select>
               <p className="text-[11px] text-slate-500 mt-1">
-                Connected to Sabbath School Leader account for this established year.
+            
               </p>
             </div>
 
@@ -192,7 +192,7 @@ export default function FamilySignupPage() {
             <div>
               <Label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
                 <Home className="w-3.5 h-3.5 text-indigo-600" />
-                Family (Selection)
+                Family 
               </Label>
               <select
                 value={selectedFamilyId}
@@ -223,7 +223,7 @@ export default function FamilySignupPage() {
                 </Label>
                 <Input
                   type="text"
-                  placeholder="e.g. Jean Damascene"
+                  
                   value={pereName}
                   onChange={(e) => setPereName(e.target.value)}
                   required
@@ -237,7 +237,7 @@ export default function FamilySignupPage() {
                 </Label>
                 <Input
                   type="text"
-                  placeholder="e.g. Marie Claire"
+                  
                   value={mereName}
                   onChange={(e) => setMereName(e.target.value)}
                   required
