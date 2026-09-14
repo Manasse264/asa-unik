@@ -357,14 +357,7 @@ export function FamilyAttendanceForm({
             </span>
           </div>
         </div>
-
-        {/* Metadata Details */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm border-b border-slate-200 pb-4">
-          <div className="space-y-1">
-            
-          </div>
-        </div>
-
+        
         {/* 5 Things to Consider Section */}
         <div className="bg-slate-50/80 rounded-xl p-4 border border-slate-200/80">
           <p className="text-xs font-black text-slate-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
