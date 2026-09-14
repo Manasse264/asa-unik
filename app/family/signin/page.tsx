@@ -112,7 +112,7 @@ export default function FamilySigninPage() {
             Family Management System
           </h2>
           <p className="text-sm text-slate-600">
-            Sign in to your family portal (Pere / Mere)
+            Sign in to your family portal
           </p>
         </div>
       </div>
@@ -131,7 +131,7 @@ export default function FamilySigninPage() {
             <div>
               <Label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
                 <Calendar className="w-3.5 h-3.5 text-indigo-600" />
-                Established Church Year
+                Church Year
               </Label>
               <select
                 value={selectedYear}

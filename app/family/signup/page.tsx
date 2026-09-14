@@ -170,7 +170,7 @@ export default function FamilySignupPage() {
             <div>
               <Label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
                 <Calendar className="w-3.5 h-3.5 text-indigo-600" />
-                Established Church Year
+                Church Year
               </Label>
               <select
                 value={selectedYear}
@@ -192,7 +192,7 @@ export default function FamilySignupPage() {
             <div>
               <Label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
                 <Home className="w-3.5 h-3.5 text-indigo-600" />
-                Family Name (Selection)
+                Family (Selection)
               </Label>
               <select
                 value={selectedFamilyId}
