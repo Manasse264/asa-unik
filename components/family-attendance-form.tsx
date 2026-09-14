@@ -546,7 +546,7 @@ export function FamilyAttendanceForm({
 
         {/* Footer info from docx */}
         <div className="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
-          <bottom><p>ASA UNIK-RP NGOMA • Official Sabbath School Quarter Record Sheet</p></bottom>
+          <p>ASA UNIK-RP NGOMA • Official Sabbath School Quarter Record Sheet</p>
           
         </div>
       </div>
