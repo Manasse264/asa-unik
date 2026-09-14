@@ -278,16 +278,7 @@ export function FamilyAttendanceForm({
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handlePrint}
-            className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-100 gap-1.5"
-          >
-            <Printer className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Print / Export</span>
-          </Button>
+          
 
           {!readOnly && (
             <>
@@ -352,13 +343,13 @@ export function FamilyAttendanceForm({
         {/* Document Header */}
         <div className="border-b border-slate-300 pb-5 text-center space-y-1">
           <h1 className="text-base sm:text-lg font-black tracking-wider text-slate-900 uppercase">
-            7th DAY ADVENTIST CHURCH
+            SEVENTH DAY ADVENTIST CHURCH
           </h1>
           <h2 className="text-xs sm:text-sm font-bold tracking-widest text-slate-700 uppercase">
             RWANDA UNION MISSION • SOUTH EAST RWANDA FIELD
           </h2>
           <h3 className="text-xs sm:text-sm font-extrabold text-indigo-700 tracking-wider uppercase">
-            ASA UNIK-IPRC NGOMA
+            ASA UNIK-RP NGOMA
           </h3>
           <div className="pt-2">
             <span className="inline-block bg-slate-900 text-white text-xs sm:text-sm font-black px-4 py-1 tracking-widest uppercase rounded">
@@ -370,32 +361,9 @@ export function FamilyAttendanceForm({
         {/* Metadata Details */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm border-b border-slate-200 pb-4">
           <div className="space-y-1">
-            <p>
-              <span className="font-bold text-slate-700">Family leader:</span>{" "}
-              <span className="underline font-semibold decoration-slate-400 underline-offset-4">
-                {family.pere || "………………………"}
-              </span>{" "}
-              &{" "}
-              <span className="underline font-semibold decoration-slate-400 underline-offset-4">
-                {family.mere || "………………………"}
-              </span>
-            </p>
+            
           </div>
-          <div className="sm:text-right space-y-1">
-            <p>
-              <span className="font-bold text-slate-700">Family of:</span>{" "}
-              <span className="underline font-semibold decoration-slate-400 underline-offset-4">
-                {family.name || "………………………"}
-              </span>{" "}
-              <span className="ml-2 font-bold text-slate-700">Quarter:</span>{" "}
-              <span className="underline font-semibold decoration-slate-400 underline-offset-4">
-                {selectedQuarter}
-              </span>{" "}
-              /{" "}
-              <span className="underline font-semibold decoration-slate-400 underline-offset-4">
-                {family.year}
-              </span>
-            </p>
+          <div className="sm:text-right space-y-1">         
           </div>
         </div>
 
@@ -438,7 +406,7 @@ export function FamilyAttendanceForm({
             </span>
           </div>
           <span className="text-[11px] text-slate-500 italic">
-            💡 Click on any week cell to cycle: P → A → S → Clear
+            💡 Click on cell to cycle: P → A → S → Clear
           </span>
         </div>
 
@@ -531,11 +499,11 @@ export function FamilyAttendanceForm({
               {/* SUMMARY ROWS (MANUAL NUMBERS / AUTO COUNTS FROM DOCX) */}
               <tr className="bg-slate-200/80 border-t-2 border-b border-slate-300 font-extrabold text-slate-800 text-[11px]">
                 <td colSpan={2} className="py-2 px-3 border-r border-slate-300 uppercase">
-                  WEEKLY SUMMARY INDICATORS
+                  INDICATORS
                 </td>
                 {WEEKS.map((w) => (
                   <td key={w} className="py-2 px-1 border-r border-slate-300 text-center font-black">
-                    W{w}
+                    S{w}
                   </td>
                 ))}
               </tr>
@@ -578,10 +546,8 @@ export function FamilyAttendanceForm({
 
         {/* Footer info from docx */}
         <div className="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
-          <p>ASA UNIK-RP NGOMA • Official Sabbath School Quarter Record Sheet</p>
-          <p className="font-semibold text-slate-700">
-            Status: {isPublished ? "PUBLISHED TO SABBATH SCHOOL LEADER" : "DRAFT (IN PROGRESS)"}
-          </p>
+          <bottom><p>ASA UNIK-RP NGOMA • Official Sabbath School Quarter Record Sheet</p></bottom>
+          
         </div>
       </div>
     </div>

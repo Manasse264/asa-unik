@@ -310,7 +310,7 @@ export default function FamilyDashboardPage() {
             </h1>
             <p className="text-indigo-200 text-sm max-w-2xl leading-relaxed">
               Family leaders: <strong className="text-white">{familyData?.pere}</strong> &amp;{" "}
-              <strong className="text-white">{familyData?.mere}</strong>. Track attendance for every Sabbath of the quarter and publish to your Sabbath School Leader.
+              <strong className="text-white">{familyData?.mere}</strong>. 
             </p>
           </div>
 
@@ -321,7 +321,7 @@ export default function FamilyDashboardPage() {
             </div>
             <div className="text-center px-3">
               <span className="block text-2xl font-black">14</span>
-              <span className="text-[11px] text-indigo-200 uppercase font-semibold">Sabbaths/Q</span>
+              <span className="text-[11px] text-indigo-200 uppercase font-semibold">Sabbaths</span>
             </div>
           </div>
         </div>
@@ -355,16 +355,7 @@ export default function FamilyDashboardPage() {
             </button>
           </div>
 
-          {activeTab === "members" && (
-            <Button
-              size="sm"
-              onClick={handleOpenAddMember}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold gap-1.5 shadow-sm shadow-indigo-600/20"
-            >
-              <UserPlus className="w-3.5 h-3.5" />
-              <span>Add Member</span>
-            </Button>
-          )}
+         
         </div>
 
         {/* TAB 1: ATTENDANCE SHEET */}
@@ -523,11 +514,9 @@ export default function FamilyDashboardPage() {
                   onChange={(e) => setMemberRole(e.target.value)}
                   className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-800 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 >
-                  <option value="Pere">Pere (Father / Head)</option>
-                  <option value="Mere">Mere (Mother)</option>
-                  <option value="Youth">Youth / Teenager</option>
-                  <option value="Child">Child</option>
-                  <option value="Member">General Member</option>
+                  <option value="Pere">Pere (Father)</option>
+                  <option value="Mere">Mere (Mother)</option>                  
+                  <option value="Child">Child</option>                 
                   <option value="Visitor">Regular Visitor</option>
                 </select>
               </div>

@@ -958,7 +958,7 @@ export default function SabbathSchoolDashboard() {
                 <div>
                   <h3 className="font-bold text-lg text-foreground flex items-center gap-2">
                     <FileSpreadsheet className="w-5 h-5 text-indigo-600" />
-                    Sabbath School Attendance Lists by Family
+                    Sabbath School Attendance Lists 
                   </h3>
                   <p className="text-xs text-muted-foreground">
                     Click on any family to view and edit specifically their published quarter attendance lists.
