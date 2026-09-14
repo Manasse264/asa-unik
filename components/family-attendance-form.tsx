@@ -363,8 +363,6 @@ export function FamilyAttendanceForm({
           <div className="space-y-1">
             
           </div>
-          <div className="sm:text-right space-y-1">         
-          </div>
         </div>
 
         {/* 5 Things to Consider Section */}
