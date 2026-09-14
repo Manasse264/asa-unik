@@ -148,17 +148,7 @@ function FamilySigninForm() {
           </div>
           {availableFamilies.length > 0 && (
             <div className="mt-1 flex flex-wrap gap-1">
-              <span className="text-[11px] text-slate-500">Quick select:</span>
-              {availableFamilies.slice(0, 4).map((f) => (
-                <button
-                  type="button"
-                  key={f.id}
-                  onClick={() => setFamilyName(f.name)}
-                  className="text-[11px] text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded-md transition-colors"
-                >
-                  {f.name}
-                </button>
-              ))}
+     
             </div>
           )}
         </div>
