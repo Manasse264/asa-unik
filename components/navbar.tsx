@@ -18,6 +18,7 @@ import {
   Menu,
   Sparkles, 
   User,
+  Users,
   X
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -344,6 +345,15 @@ export function Navbar() {
                       >
                         <Sparkles className="w-4 h-4 text-slate-500" />
                         {t.register}
+                      </Link>
+                      <div className="border-t border-slate-100 my-1" />
+                      <Link
+                        href="/family/signin"
+                        onClick={() => setIsAccountOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-indigo-700 hover:bg-indigo-50 transition-colors"
+                      >
+                        <Users className="w-4 h-4 text-indigo-600" />
+                        Family Portal
                       </Link>
                     </>
                   ) : (

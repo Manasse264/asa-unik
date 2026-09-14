@@ -20,13 +20,20 @@ import {
   saveChoir,
   deleteChoir
 } from "@/lib/actions"
+import { 
+  getSabbathSchoolAttendanceOverview, 
+  getFamilyDetails, 
+  updateAttendanceListByLeader 
+} from "@/lib/family-actions"
+import { FamilyAttendanceForm, AttendanceFormData, FamilyMemberItem } from "@/components/family-attendance-form"
+import { ArrowLeft, CheckCircle2, AlertCircle, Eye, FileSpreadsheet } from "lucide-react"
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
 
 const sslTranslations = {
   en: {
     title: "Sabbath School Leader", subtitle: "Attendance Officer", addFamily: "Register Family",
-    genPDF: "Generate Daily Report", tabFamily: "Family Management", tabChoir: "Choir Management", tabAtt: "Record Attendance", tabRep: "Weekly Report",
+    genPDF: "Generate Daily Report", tabFamily: "Family Management", tabChoir: "Choir Management", tabAtt: "Record Attendance", tabFamilyAttendance: "Sabbath School Attendance List", tabRep: "Weekly Report",
     selDate: "Select Date", total: "Total", families: "Families", choirs: "Choirs",
     famName: "Family Name", pere: "Pere (Father)", mere: "Mere (Mother)", maxMem: "Members",
     att: "Attended", summary: "Attendance Summary", actions: "Actions",
@@ -43,7 +50,7 @@ const sslTranslations = {
   },
   fr: {
     title: "Responsable École du Sabbat", subtitle: "Officier de Présence", addFamily: "Enregistrer Famille",
-    genPDF: "Générer Rapport Journalier", tabFamily: "Gestion des Familles", tabChoir: "Gestion des Chorales", tabAtt: "Noter la Présence", tabRep: "Enregistrer",
+    genPDF: "Générer Rapport Journalier", tabFamily: "Gestion des Familles", tabChoir: "Gestion des Chorales", tabAtt: "Noter la Présence", tabFamilyAttendance: "Liste de Présence École du Sabbat", tabRep: "Enregistrer",
     selDate: "Choisir Date", total: "Total", families: "Familles", choirs: "Chorales",
     famName: "Nom Famille", pere: "Père", mere: "Mère", maxMem: "Membres Max",
     att: "Présents", summary: "Résumé des Présences", actions: "Actions",
@@ -60,7 +67,7 @@ const sslTranslations = {
   },
   rw: {
     title: "Umuyobozi w'Ishuri ryo ku Isabato", subtitle: "Ushinzwe Imyitwarire n'Abaramukwa", addFamily: "Andika Umuryango",
-    genPDF: "Sohora Raporo y'Umunsi", tabFamily: "Cunga Imiryango", tabChoir: "Cunga Amakorali", tabAtt: "Andika Abaramukwa", tabRep: "Raporo y'Icyumweru",
+    genPDF: "Sohora Raporo y'Umunsi", tabFamily: "Cunga Imiryango", tabChoir: "Cunga Amakorali", tabAtt: "Andika Abaramukwa", tabFamilyAttendance: "Urutonde rw'Abaramukwa b'Ishuri", tabRep: "Raporo y'Icyumweru",
     selDate: "Hitamo Itariki", total: "Igiteranyo", families: "Imiryango", choirs: "Amakorali",
     famName: "Izina ry'Umuryango", pere: "Data", mere: "Mama", maxMem: "Abanyamuryango",
     att: "Abejejwe", summary: "Inshamake y'Abitabiye", actions: "Ibikorwa",
@@ -93,13 +100,22 @@ interface Choir {
 
 export default function SabbathSchoolDashboard() {
   const [lang, setLang] = React.useState<"en" | "rw" | "fr">("en")
-  const [activeTab, setActiveTab] = React.useState<"families" | "choirs" | "attendance" | "reports" | "letters">("families")
+  const [activeTab, setActiveTab] = React.useState<"families" | "choirs" | "attendance" | "attendance-lists" | "reports" | "letters">("families")
   const [families, setFamilies] = React.useState<Family[]>([])
   const [choirs, setChoirs] = React.useState<Choir[]>([])
   const [attendance, setAttendance] = React.useState<AttendanceRecord[]>([])
   const [letters, setLetters] = React.useState<SabbathLetter[]>([])
   const [selectedDate, setSelectedDate] = React.useState(new Date().toISOString().split('T')[0])
   const [generatedDates, setGeneratedDates] = React.useState<string[]>([])
+
+  // Sabbath School Attendance Lists State
+  const [selectedQuarterForLeader, setSelectedQuarterForLeader] = React.useState<string>("Q1")
+  const [familyAttendanceOverview, setFamilyAttendanceOverview] = React.useState<any[]>([])
+  const [selectedFamilyForSheet, setSelectedFamilyForSheet] = React.useState<any | null>(null)
+  const [familySheetMembers, setFamilySheetMembers] = React.useState<FamilyMemberItem[]>([])
+  const [familySheetAttendance, setFamilySheetAttendance] = React.useState<AttendanceFormData | null>(null)
+  const [familySearchQuery, setFamilySearchQuery] = React.useState<string>("")
+  const [loadingFamilySheet, setLoadingFamilySheet] = React.useState(false)
 
   const [editingFamily, setEditingFamily] = React.useState<Family | null>(null)
   const [isFamilyModalOpen, setIsFamilyModalOpen] = React.useState(false)
@@ -122,6 +138,86 @@ export default function SabbathSchoolDashboard() {
 
   const generateId = () => Math.random().toString(36).substr(2, 9)
 
+  const loadFamilyAttendanceOverview = async (quarter = selectedQuarterForLeader) => {
+    const year = getYear()
+    try {
+      const overview = await getSabbathSchoolAttendanceOverview(year, quarter)
+      setFamilyAttendanceOverview(overview || [])
+    } catch (e) {
+      console.error("Error loading family attendance overview:", e)
+    }
+  }
+
+  const handleOpenFamilyAttendanceSheet = async (familyItem: any) => {
+    setLoadingFamilySheet(true)
+    try {
+      const famDetails = await getFamilyDetails(familyItem.id)
+      setSelectedFamilyForSheet(famDetails || familyItem)
+      setFamilySheetMembers(famDetails?.members || familyItem.members || [])
+      
+      const att = familyItem.attendanceList
+      if (att) {
+        setFamilySheetAttendance({
+          id: att.id,
+          familyId: att.familyId,
+          year: att.year,
+          quarter: att.quarter,
+          attendanceGrid: JSON.parse(att.attendanceGrid || "{}"),
+          summaryData: JSON.parse(att.summaryData || "{}"),
+          isPublished: att.isPublished,
+          publishedAt: att.publishedAt ? new Date(att.publishedAt).toISOString() : null,
+          publishedBy: att.publishedBy,
+        })
+      } else {
+        setFamilySheetAttendance({
+          familyId: familyItem.id,
+          year: getYear(),
+          quarter: selectedQuarterForLeader,
+          attendanceGrid: {},
+          summaryData: {},
+          isPublished: false,
+        })
+      }
+    } catch (e) {
+      console.error("Error opening family sheet:", e)
+    } finally {
+      setLoadingFamilySheet(false)
+    }
+  }
+
+  const handleSaveFamilyAttendanceByLeader = async (data: AttendanceFormData, isPublish: boolean) => {
+    if (!selectedFamilyForSheet) return { success: false, error: "No family selected" }
+    try {
+      const res = await updateAttendanceListByLeader({
+        familyId: selectedFamilyForSheet.id,
+        year: getYear(),
+        quarter: selectedQuarterForLeader,
+        attendanceGrid: JSON.stringify(data.attendanceGrid || {}),
+        summaryData: JSON.stringify(data.summaryData || {}),
+        isPublished: isPublish,
+      })
+
+      if (res.success && res.list) {
+        setFamilySheetAttendance({
+          id: res.list.id,
+          familyId: res.list.familyId,
+          year: res.list.year,
+          quarter: res.list.quarter,
+          attendanceGrid: JSON.parse(res.list.attendanceGrid || "{}"),
+          summaryData: JSON.parse(res.list.summaryData || "{}"),
+          isPublished: res.list.isPublished,
+          publishedAt: res.list.publishedAt ? new Date(res.list.publishedAt).toISOString() : null,
+          publishedBy: res.list.publishedBy,
+        })
+        await loadFamilyAttendanceOverview(selectedQuarterForLeader)
+        return { success: true }
+      }
+      return { success: false, error: res.error }
+    } catch (e: any) {
+      return { success: false, error: e.message }
+    }
+  }
+
   const loadData = async () => {
     const year = getYear()
     try {
@@ -136,6 +232,9 @@ export default function SabbathSchoolDashboard() {
 
       const dbChoirs = await getChoirs(year)
       setChoirs((dbChoirs as Choir[]) || [])
+
+      const overview = await getSabbathSchoolAttendanceOverview(year, selectedQuarterForLeader)
+      setFamilyAttendanceOverview(overview || [])
 
       if (typeof window !== "undefined") {
         const storedGenDates = localStorage.getItem(`generated_dates_${year}`)
@@ -569,9 +668,15 @@ export default function SabbathSchoolDashboard() {
       </div>
 
       <div className="flex border-b overflow-x-auto">
-        {["families", "choirs", "attendance", "reports", "letters"].map(tab => (
-          <button key={tab} className={cn("px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap", activeTab === tab ? "border-primary text-primary" : "border-transparent text-muted-foreground")} onClick={() => setActiveTab(tab as any)}>
-            {tab === "families" ? t.tabFamily : tab === "choirs" ? t.tabChoir : tab === "attendance" ? t.tabAtt : tab === "reports" ? t.tabRep : t.tabLetter}
+        {["families", "choirs", "attendance", "attendance-lists", "reports", "letters"].map(tab => (
+          <button key={tab} className={cn("px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap", activeTab === tab ? "border-primary text-primary" : "border-transparent text-muted-foreground")} onClick={() => {
+            setActiveTab(tab as any)
+            if (tab === "attendance-lists") {
+              setSelectedFamilyForSheet(null)
+              loadFamilyAttendanceOverview(selectedQuarterForLeader)
+            }
+          }}>
+            {tab === "families" ? t.tabFamily : tab === "choirs" ? t.tabChoir : tab === "attendance" ? t.tabAtt : tab === "attendance-lists" ? t.tabFamilyAttendance : tab === "reports" ? t.tabRep : t.tabLetter}
           </button>
         ))}
       </div>
@@ -800,6 +905,196 @@ export default function SabbathSchoolDashboard() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {activeTab === 'attendance-lists' && (
+        <div className="space-y-6">
+          {selectedFamilyForSheet ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedFamilyForSheet(null)}
+                  className="rounded-xl border-slate-300 text-slate-700 hover:bg-slate-100 gap-2 font-bold"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Back to All Families</span>
+                </Button>
+
+                <div className="text-right">
+                  <span className="text-xs text-muted-foreground uppercase font-semibold">Editing Published Attendance for:</span>
+                  <p className="font-extrabold text-sm text-primary">{selectedFamilyForSheet.name}</p>
+                </div>
+              </div>
+
+              {loadingFamilySheet ? (
+                <div className="p-12 text-center bg-card rounded-2xl border">
+                  <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                  <p className="text-xs text-muted-foreground">Loading Family Attendance Sheet...</p>
+                </div>
+              ) : (
+                <FamilyAttendanceForm
+                  family={{
+                    id: selectedFamilyForSheet.id,
+                    name: selectedFamilyForSheet.name,
+                    pere: selectedFamilyForSheet.pere || "",
+                    mere: selectedFamilyForSheet.mere || "",
+                    year: selectedFamilyForSheet.year || getYear(),
+                  }}
+                  members={familySheetMembers}
+                  initialData={familySheetAttendance}
+                  onSave={handleSaveFamilyAttendanceByLeader}
+                  readOnly={false}
+                  isLeaderView={true}
+                />
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Header Filter Controls */}
+              <div className="bg-card border rounded-2xl p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="font-bold text-lg text-foreground flex items-center gap-2">
+                    <FileSpreadsheet className="w-5 h-5 text-indigo-600" />
+                    Sabbath School Attendance Lists by Family
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Click on any family to view and edit specifically their published quarter attendance lists.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                  {/* Quarter Selector */}
+                  <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-xl border">
+                    <span className="text-xs font-bold px-2 text-muted-foreground">Quarter:</span>
+                    {["Q1", "Q2", "Q3", "Q4"].map((q) => (
+                      <button
+                        key={q}
+                        type="button"
+                        onClick={() => {
+                          setSelectedQuarterForLeader(q)
+                          loadFamilyAttendanceOverview(q)
+                        }}
+                        className={cn(
+                          "px-3 py-1 text-xs font-bold rounded-lg transition-all",
+                          selectedQuarterForLeader === q
+                            ? "bg-primary text-primary-foreground shadow-xs"
+                            : "text-muted-foreground hover:bg-background"
+                        )}
+                      >
+                        {q}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Search bar */}
+                  <div className="relative flex-1 sm:w-64">
+                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      type="text"
+                      placeholder="Search family or leaders..."
+                      value={familySearchQuery}
+                      onChange={(e) => setFamilySearchQuery(e.target.value)}
+                      className="pl-9 text-xs rounded-xl h-9"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Families Attendance Overview Table */}
+              <div className="rounded-2xl border bg-card overflow-hidden shadow-xs">
+                <table className="w-full text-xs text-left">
+                  <thead className="bg-muted/50 border-b text-muted-foreground font-bold uppercase text-[11px]">
+                    <tr>
+                      <th className="py-3.5 px-4 w-12 text-center">#</th>
+                      <th className="py-3.5 px-4">Family Name</th>
+                      <th className="py-3.5 px-4">Leaders (Pere & Mere)</th>
+                      <th className="py-3.5 px-4 text-center">Members</th>
+                      <th className="py-3.5 px-4 text-center">Quarter</th>
+                      <th className="py-3.5 px-4 text-center">Published Status</th>
+                      <th className="py-3.5 px-4 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {familyAttendanceOverview
+                      .filter((f) => {
+                        if (!familySearchQuery) return true
+                        const q = familySearchQuery.toLowerCase()
+                        return (
+                          f.name.toLowerCase().includes(q) ||
+                          f.pere?.toLowerCase().includes(q) ||
+                          f.mere?.toLowerCase().includes(q)
+                        )
+                      })
+                      .map((fam, idx) => {
+                        const isPub = fam.isPublished
+                        return (
+                          <tr key={fam.id} className="hover:bg-muted/40 transition-colors">
+                            <td className="py-3.5 px-4 text-center font-bold text-muted-foreground">{idx + 1}</td>
+                            <td className="py-3.5 px-4 font-bold text-sm text-foreground">
+                              {fam.name}
+                            </td>
+                            <td className="py-3.5 px-4 text-muted-foreground">
+                              <span className="font-semibold text-foreground">{fam.pere}</span> &amp;{" "}
+                              <span className="font-semibold text-foreground">{fam.mere}</span>
+                            </td>
+                            <td className="py-3.5 px-4 text-center">
+                              <span className="inline-block bg-muted px-2.5 py-0.5 rounded-full font-bold">
+                                {fam.memberCount} members
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4 text-center font-bold text-indigo-600">
+                              {selectedQuarterForLeader}
+                            </td>
+                            <td className="py-3.5 px-4 text-center">
+                              {isPub ? (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                  <span>Published</span>
+                                </span>
+                              ) : fam.attendanceList ? (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                                  <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                                  <span>Draft in Progress</span>
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                                  <span>Not Started</span>
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-3.5 px-4 text-right">
+                              <Button
+                                size="sm"
+                                onClick={() => handleOpenFamilyAttendanceSheet(fam)}
+                                className={cn(
+                                  "rounded-xl text-xs font-bold gap-1.5 shadow-xs transition-all",
+                                  isPub
+                                    ? "bg-indigo-600 hover:bg-indigo-700 text-white"
+                                    : "bg-slate-900 hover:bg-slate-800 text-white"
+                                )}
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                <span>{isPub ? "View / Edit Published" : "Open Attendance Form"}</span>
+                              </Button>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    {familyAttendanceOverview.length === 0 && (
+                      <tr>
+                        <td colSpan={7} className="py-12 text-center text-muted-foreground italic">
+                          No families found for the selected year.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

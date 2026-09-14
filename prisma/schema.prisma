@@ -20,13 +20,45 @@ model User {
 }
 
 model Family {
-  id          String   @id @default(cuid())
-  name        String
-  pere        String
-  mere        String
-  memberCount Int
-  year        String
-  createdAt   DateTime @default(now())
+  id              String                 @id @default(cuid())
+  name            String
+  pere            String
+  mere            String
+  memberCount     Int
+  year            String
+  password        String?
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @default(now()) @updatedAt
+  members         FamilyMember[]
+  attendanceLists FamilyAttendanceList[]
+}
+
+model FamilyMember {
+  id        String   @id @default(cuid())
+  familyId  String
+  family    Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  name      String
+  role      String?  @default("Member")
+  year      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FamilyAttendanceList {
+  id             String    @id @default(cuid())
+  familyId       String
+  family         Family    @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  year           String
+  quarter        String    @default("Q1")
+  attendanceGrid String    @default("{}")
+  summaryData    String    @default("{}")
+  isPublished    Boolean   @default(false)
+  publishedAt    DateTime?
+  publishedBy    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([familyId, year, quarter])
 }
 
 model Member {
