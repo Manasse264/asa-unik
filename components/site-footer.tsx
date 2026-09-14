@@ -44,8 +44,8 @@ export function SiteFooter() {
         <div>
           <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-white">Contact</h2>
           <div className="space-y-3 text-sm text-slate-400">
-            <p className="flex gap-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" /> RP Ngoma Campus, Kibungo, Eastern Province, Rwanda</p>
-            <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-amber-300" /> +250 780 000 000</p>
+            <p className="flex gap-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" /> RP Ngoma College, Kibungo, Eastern Province, Rwanda</p>
+            <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-amber-300" /> +250 790 673 150</p>
             <p className="flex items-center gap-2"><Mail className="h-4 w-4 text-amber-300" /> info@asaunikrpngoma.org</p>
           </div>
         </div>
@@ -70,10 +70,6 @@ export function SiteFooter() {
         </div>
       </div>
       <div className="border-t border-white/10 px-4 py-4 text-center text-xs text-slate-500">
-        <Link href="#" className="hover:text-slate-300">Privacy Policy</Link>
-        <span className="mx-2">|</span>
-        <Link href="#" className="hover:text-slate-300">Terms & Conditions</Link>
-        <span className="mx-2">|</span>
         &copy; 2026 ASA UNIK-RP NGOMA. All Rights Reserved.
       </div>
     </footer>
