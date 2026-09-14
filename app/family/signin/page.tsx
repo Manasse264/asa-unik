@@ -22,7 +22,7 @@ import {
   loginFamilyAccount 
 } from "@/lib/family-actions"
 
-export default function FamilySigninPage() {
+function FamilySigninForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   
@@ -83,7 +83,6 @@ export default function FamilySigninPage() {
       if (!res.success || !res.family) {
         setErrorMessage(res.error || "Invalid family name or password.")
       } else {
-        // Save family session
         localStorage.setItem("family_auth", JSON.stringify(res.family))
         localStorage.setItem("selected_year", res.family.year)
         window.dispatchEvent(new Event("family-auth-change"))
@@ -96,6 +95,129 @@ export default function FamilySigninPage() {
     }
   }
 
+  return (
+    <div className="bg-white py-8 px-6 sm:px-10 shadow-xl shadow-slate-200/50 rounded-2xl border border-slate-100">
+      <form onSubmit={handleLogin} className="space-y-5">
+        {errorMessage && (
+          <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl flex items-start gap-2.5 animate-in fade-in">
+            <AlertCircle className="w-5 h-5 shrink-0 text-red-500 mt-0.5" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
+        {/* Established Year */}
+        <div>
+          <Label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+            <Calendar className="w-3.5 h-3.5 text-indigo-600" />
+            Church Year
+          </Label>
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-800 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+          >
+            {years.map((y) => (
+              <option key={y} value={y}>
+                Church Year: {y}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Family Name */}
+        <div>
+          <Label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+            <Home className="w-3.5 h-3.5 text-indigo-600" />
+            Family Name
+          </Label>
+          <div className="relative">
+            <Input
+              type="text"
+              list="family-suggestions"
+              placeholder="e.g. Family of Joshua"
+              value={familyName}
+              onChange={(e) => setFamilyName(e.target.value)}
+              required
+              className="rounded-xl border-slate-200 py-2.5 text-sm"
+            />
+            <datalist id="family-suggestions">
+              {availableFamilies.map((f) => (
+                <option key={f.id} value={f.name} />
+              ))}
+            </datalist>
+          </div>
+          {availableFamilies.length > 0 && (
+            <div className="mt-1 flex flex-wrap gap-1">
+              <span className="text-[11px] text-slate-500">Quick select:</span>
+              {availableFamilies.slice(0, 4).map((f) => (
+                <button
+                  type="button"
+                  key={f.id}
+                  onClick={() => setFamilyName(f.name)}
+                  className="text-[11px] text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded-md transition-colors"
+                >
+                  {f.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Password */}
+        <div>
+          <Label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+            <Lock className="w-3.5 h-3.5 text-indigo-600" />
+            Password
+          </Label>
+          <div className="relative">
+            <Input
+              type={showPassword ? "text" : "password"}
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="rounded-xl border-slate-200 py-2.5 text-sm pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+            >
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+        </div>
+
+        <Button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-xl shadow-md shadow-indigo-600/20 transition-all flex items-center justify-center gap-2"
+        >
+          {loading ? (
+            "Signing In..."
+          ) : (
+            <>
+              <span>Sign In to Family Portal</span>
+              <ArrowRight className="w-4 h-4" />
+            </>
+          )}
+        </Button>
+      </form>
+
+      <div className="mt-6 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+        <span>First time here?</span>
+        <Link
+          href="/family/signup"
+          className="font-bold text-indigo-600 hover:text-indigo-800 transition-colors"
+        >
+          Sign Up Family Account →
+        </Link>
+      </div>
+    </div>
+  )
+}
+
+export default function FamilySigninPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/40 to-indigo-50/50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -118,124 +240,9 @@ export default function FamilySigninPage() {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-6 sm:px-10 shadow-xl shadow-slate-200/50 rounded-2xl border border-slate-100">
-          <form onSubmit={handleLogin} className="space-y-5">
-            {errorMessage && (
-              <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl flex items-start gap-2.5 animate-in fade-in">
-                <AlertCircle className="w-5 h-5 shrink-0 text-red-500 mt-0.5" />
-                <span>{errorMessage}</span>
-              </div>
-            )}
-
-            {/* Established Year */}
-            <div>
-              <Label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
-                <Calendar className="w-3.5 h-3.5 text-indigo-600" />
-                Church Year
-              </Label>
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-800 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
-              >
-                {years.map((y) => (
-                  <option key={y} value={y}>
-                    Church Year: {y}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Family Name */}
-            <div>
-              <Label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
-                <Home className="w-3.5 h-3.5 text-indigo-600" />
-                Family Name
-              </Label>
-              <div className="relative">
-                <Input
-                  type="text"
-                  list="family-suggestions"
-                  placeholder="e.g. Family of Joshua"
-                  value={familyName}
-                  onChange={(e) => setFamilyName(e.target.value)}
-                  required
-                  className="rounded-xl border-slate-200 py-2.5 text-sm"
-                />
-                <datalist id="family-suggestions">
-                  {availableFamilies.map((f) => (
-                    <option key={f.id} value={f.name} />
-                  ))}
-                </datalist>
-              </div>
-              {availableFamilies.length > 0 && (
-                <div className="mt-1 flex flex-wrap gap-1">
-                  <span className="text-[11px] text-slate-500">Quick select:</span>
-                  {availableFamilies.slice(0, 4).map((f) => (
-                    <button
-                      type="button"
-                      key={f.id}
-                      onClick={() => setFamilyName(f.name)}
-                      className="text-[11px] text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded-md transition-colors"
-                    >
-                      {f.name}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Password */}
-            <div>
-              <Label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
-                <Lock className="w-3.5 h-3.5 text-indigo-600" />
-                Password
-              </Label>
-              <div className="relative">
-                <Input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="rounded-xl border-slate-200 py-2.5 text-sm pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-xl shadow-md shadow-indigo-600/20 transition-all flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                "Signing In..."
-              ) : (
-                <>
-                  <span>Sign In to Family Portal</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </Button>
-          </form>
-
-          <div className="mt-6 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
-            <span>First time here?</span>
-            <Link
-              href="/family/signup"
-              className="font-bold text-indigo-600 hover:text-indigo-800 transition-colors"
-            >
-              Sign Up Family Account →
-            </Link>
-          </div>
-        </div>
+        <React.Suspense fallback={<div className="text-center py-8 text-sm text-slate-500">Loading portal...</div>}>
+          <FamilySigninForm />
+        </React.Suspense>
 
         <div className="mt-6 text-center text-xs text-slate-500">
           <Link href="/" className="hover:text-slate-800 underline underline-offset-4">
