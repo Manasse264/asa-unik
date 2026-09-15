@@ -790,7 +790,8 @@ export default function SabbathSchoolDashboard() {
               {/* Families Performance Table */}
               <div className="space-y-3">
                 <h3 className="text-lg font-bold flex items-center gap-2">
-                  <Users2 className="h-5 w-5 text-primary" /> {t.families} Attendance                </h3>
+                  <Users2 className="h-5 w-5 text-primary" /> {t.families} Attendance
+                </h3>
                 <div className="rounded-md border bg-card overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="border-b bg-muted/50">
@@ -923,7 +924,7 @@ export default function SabbathSchoolDashboard() {
                 </Button>
 
                 <div className="text-right">
-                  <span className="text-xs text-muted-foreground uppercase font-semibold">Editing Published Attendance for:</span>
+                  <span className="text-xs text-muted-foreground uppercase font-semibold">Viewing Attendance (Read-Only):</span>
                   <p className="font-extrabold text-sm text-primary">{selectedFamilyForSheet.name}</p>
                 </div>
               </div>
@@ -945,7 +946,7 @@ export default function SabbathSchoolDashboard() {
                   members={familySheetMembers}
                   initialData={familySheetAttendance}
                   onSave={handleSaveFamilyAttendanceByLeader}
-                  readOnly={false}
+                  readOnly={true}
                   isLeaderView={true}
                 />
               )}
@@ -960,7 +961,7 @@ export default function SabbathSchoolDashboard() {
                     Sabbath School Attendance Lists 
                   </h3>
                   <p className="text-xs text-muted-foreground">
-                    Click on any family to view and edit specifically their published quarter attendance lists.
+                    Click on any family to view their quarter attendance list.
                   </p>
                 </div>
 
@@ -1068,15 +1069,10 @@ export default function SabbathSchoolDashboard() {
                               <Button
                                 size="sm"
                                 onClick={() => handleOpenFamilyAttendanceSheet(fam)}
-                                className={cn(
-                                  "rounded-xl text-xs font-bold gap-1.5 shadow-xs transition-all",
-                                  isPub
-                                    ? "bg-indigo-600 hover:bg-indigo-700 text-white"
-                                    : "bg-slate-900 hover:bg-slate-800 text-white"
-                                )}
+                                className="rounded-xl text-xs font-bold gap-1.5 shadow-xs transition-all bg-indigo-600 hover:bg-indigo-700 text-white"
                               >
                                 <Eye className="w-3.5 h-3.5" />
-                                <span>{isPub ? "View / Edit Published" : "Open Attendance Form"}</span>
+                                <span>View Attendance</span>
                               </Button>
                             </td>
                           </tr>
