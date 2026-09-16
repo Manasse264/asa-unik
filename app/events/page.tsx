@@ -18,7 +18,7 @@ export default function EventsPage() {
         <div className="container grid gap-8 px-4 py-12 md:px-8 lg:grid-cols-2 lg:py-16">
           <div className="space-y-4">
             <p className="text-xs font-bold uppercase tracking-widest text-amber-300">Church Activities</p>
-            <h1 className="text-3xl font-black leading-tight sm:text-4xl">Events at ASA UNIK-RP NGOMA</h1>
+            <h1 className="text-3xl font-black leading-tight sm:text-4xl">ASA UNIK-RP NGOMA</h1>
             <p className="max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
               Follow upcoming worship services, prayer meetings, Bible studies, youth programs, evangelism, community outreach, and special church programs.
             </p>

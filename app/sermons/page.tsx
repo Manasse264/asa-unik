@@ -49,7 +49,7 @@ const SERMONS_DATA: Sermon[] = [
   {
     id: "sermon-1",
     title: "Standing Firm in End-Time Faith",
-    speaker: "Pastor John Doe",
+    speaker: "",
     date: "September 5, 2026",
     category: "Prophecy",
     bibleReference: "Revelation 14:6-12",
@@ -62,7 +62,7 @@ const SERMONS_DATA: Sermon[] = [
   {
     id: "sermon-2",
     title: "The Power of Persistent Prayer",
-    speaker: "Elder David Nkurunziza",
+    speaker: "",
     date: "August 29, 2026",
     category: "Prayer",
     bibleReference: "Luke 18:1-8",
@@ -74,7 +74,7 @@ const SERMONS_DATA: Sermon[] = [
   {
     id: "sermon-3",
     title: "Walking in Divine Purpose as Youth",
-    speaker: "Guest Evangelist Mark",
+    speaker: "",
     date: "August 22, 2026",
     category: "Youth",
     bibleReference: "1 Timothy 4:12",
@@ -86,7 +86,7 @@ const SERMONS_DATA: Sermon[] = [
   {
     id: "sermon-4",
     title: "The Sabbath: A Sanctuary in Time",
-    speaker: "Pastor John Doe",
+    speaker: "",
     date: "August 15, 2026",
     category: "Sabbath",
     bibleReference: "Genesis 2:1-3, Isaiah 58:13-14",
@@ -98,7 +98,7 @@ const SERMONS_DATA: Sermon[] = [
   {
     id: "sermon-5",
     title: "Building Strong Christian Families",
-    speaker: "Elder Sarah Mukamana",
+    speaker: "",
     date: "August 8, 2026",
     category: "Family",
     bibleReference: "Joshua 24:14-15",
@@ -110,7 +110,7 @@ const SERMONS_DATA: Sermon[] = [
   {
     id: "sermon-6",
     title: "Living Out Faith on Campus",
-    speaker: "Dr. Emmanuel Habimana",
+    speaker: "",
     date: "August 1, 2026",
     category: "Christian Living",
     bibleReference: "Matthew 5:13-16",

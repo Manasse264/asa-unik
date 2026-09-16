@@ -17,7 +17,7 @@ export default function GalleryPage() {
       <section className="container px-4 py-12 md:px-8">
         <div className="mb-8 max-w-3xl space-y-3">
           <p className="text-xs font-bold uppercase tracking-widest text-primary">Church Gallery</p>
-          <h1 className="text-3xl font-black text-slate-900 sm:text-4xl">Life at ASA UNIK-RP NGOMA</h1>
+          <h1 className="text-3xl font-black text-slate-900 sm:text-4xl">ASA UNIK-RP NGOMA</h1>
           <p className="text-sm leading-7 text-slate-600 sm:text-base">Photos and videos from worship services, Sabbath School, ministries, baptisms, evangelism, outreach, and special events.</p>
         </div>
 

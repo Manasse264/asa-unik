@@ -53,7 +53,7 @@ export default function AboutPage() {
           {/* 1. INTRODUCTION */}
           <div className="text-center max-w-3xl mx-auto">
             <p className="text-lg md:text-2xl text-slate-200 leading-relaxed font-medium">
-              <strong className="text-amber-400">ASA UNIK-RP NGOMA</strong> (Adventist Students Association) is a vibrant Seventh-day Adventist campus church and fellowship based at the Rwanda Polytechnic (RP) Ngoma Campus in Kibungo, Eastern Province, Rwanda.
+              <strong className="text-amber-400">ASA UNIK-RP NGOMA</strong> (Adventist Students Association) is a vibrant Seventh-day Adventist church and fellowship based at the Rwanda Polytechnic (RP) Ngoma College in Kibungo, Eastern Province, Rwanda.
             </p>
           </div>
 
@@ -199,13 +199,13 @@ export default function AboutPage() {
               </h2>
               <div className="space-y-3 text-sm text-slate-200">
                 <p>
-                  <strong>Physical Address:</strong> RP Ngoma Campus (IPRC Ngoma), Kibungo, Ngoma District, Eastern Province, Rwanda.
+                  <strong>Physical Address:</strong> ASA RP Ngoma College, Kibungo, Ngoma District, Eastern Province, Rwanda.
                 </p>
                 <p>
-                  <strong>Directions:</strong> From Kibungo town center, follow the main road towards RP Ngoma Campus. The ASA sanctuary is located within the campus grounds.
+                  <strong>Directions:</strong> From Kibungo town center, follow the main road towards RP Ngoma College. The ASA sanctuary is located within the campus grounds.
                 </p>
                 <div className="pt-2 space-y-1">
-                  <p className="flex items-center gap-2"><Phone className="w-4 h-4 text-amber-400" /> +250 780 000 000</p>
+                  <p className="flex items-center gap-2"><Phone className="w-4 h-4 text-amber-400" /> +250 790 673 150</p>
                   <p className="flex items-center gap-2"><Mail className="w-4 h-4 text-amber-400" /> info@asaunikrpngoma.org</p>
                 </div>
               </div>

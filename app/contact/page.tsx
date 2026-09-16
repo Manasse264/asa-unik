@@ -6,18 +6,16 @@ export default function ContactPage() {
       <section className="container px-4 py-12 md:px-8">
         <div className="mb-8 max-w-3xl space-y-3">
           <p className="text-xs font-bold uppercase tracking-widest text-primary">Contact</p>
-          <h1 className="text-3xl font-black text-slate-900 sm:text-4xl">Reach ASA UNIK-RP NGOMA</h1>
+          <h1 className="text-3xl font-black text-slate-900 sm:text-4xl">ASA UNIK-RP NGOMA</h1>
           <p className="text-sm leading-7 text-slate-600 sm:text-base">Send a message, request prayer, get directions, or connect with the church through official channels.</p>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="space-y-4 rounded-lg border bg-white p-5 shadow-sm">
             <h2 className="text-xl font-black text-slate-900">Contact Information</h2>
-            <p className="flex gap-2 text-sm text-slate-700"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" /> RP Ngoma Campus, Kibungo, Eastern Province, Rwanda</p>
-            <p className="flex items-center gap-2 text-sm text-slate-700"><Phone className="h-4 w-4 text-primary" /> +250 780 000 000</p>
+            <p className="flex gap-2 text-sm text-slate-700"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />ASA RP Ngoma College, Kibungo, Eastern Province, Rwanda</p>
+            <p className="flex items-center gap-2 text-sm text-slate-700"><Phone className="h-4 w-4 text-primary" /> +250 790 673 150</p>
             <p className="flex items-center gap-2 text-sm text-slate-700"><Mail className="h-4 w-4 text-primary" /> info@asaunikrpngoma.org</p>
-            <p className="flex items-center gap-2 text-sm text-slate-700"><Clock className="h-4 w-4 text-primary" /> Office hours: Mon-Fri, 9:00 AM - 5:00 PM</p>
-            <p className="text-sm font-semibold text-slate-900">Website: asaunikrpngoma.org</p>
             <div className="flex flex-wrap gap-2 pt-2">
               {["Facebook", "YouTube", "Instagram", "X"].map((name) => (
                 <a key={name} href="#" aria-label={name} className="rounded-full bg-slate-900 px-3 py-2 text-xs font-black text-white">
