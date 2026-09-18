@@ -23,6 +23,14 @@ const formatEventTime = (time: string | undefined) => {
   return `${displayHours}:${String(minutes).padStart(2, "0")} ${period}`
 }
 
+const parseEventDate = (value: string | undefined) => {
+  if (!value || value.toLowerCase().includes("every")) return null
+  const parsed = /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ? new Date(`${value}T00:00:00`)
+    : new Date(value)
+  return Number.isNaN(parsed.getTime()) ? null : parsed
+}
+
 const getPublishedEvents = () => {
   if (typeof window === "undefined") return DEFAULT_EVENTS
   try {
@@ -50,6 +58,23 @@ export default function EventsPage() {
       window.removeEventListener("year-changed", syncEvents)
     }
   }, [])
+
+  const calendarEventDates = events
+    .map((event) => parseEventDate(event.date))
+    .filter((date): date is Date => date !== null)
+    .sort((first, second) => first.getTime() - second.getTime())
+  const calendarDate = calendarEventDates[0] || new Date()
+  const calendarYear = calendarDate.getFullYear()
+  const calendarMonth = calendarDate.getMonth()
+  const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate()
+  const firstDayOfMonth = new Date(calendarYear, calendarMonth, 1).getDay()
+  const calendarCells = Math.ceil((firstDayOfMonth + daysInMonth) / 7) * 7
+  const eventDays = new Set(
+    calendarEventDates
+      .filter((date) => date.getFullYear() === calendarYear && date.getMonth() === calendarMonth)
+      .map((date) => date.getDate())
+  )
+  const calendarLabel = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(calendarDate)
 
   return (
     <main className="bg-slate-50">
@@ -100,15 +125,19 @@ export default function EventsPage() {
 
       <section className="container grid gap-6 px-4 pb-12 md:px-8 lg:grid-cols-2">
         <div className="rounded-lg border bg-white p-5 shadow-sm">
-          <h2 className="mb-4 text-xl font-black text-slate-900">Monthly Calendar</h2>
+          <h2 className="mb-4 text-xl font-black text-slate-900">Monthly Calendar - {calendarLabel}</h2>
           <div className="grid grid-cols-7 gap-1 text-center text-xs">
             {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => <div key={day} className="font-bold text-slate-500">{day}</div>)}
-            {Array.from({ length: 35 }, (_, index) => (
-              <div key={index} className="min-h-12 rounded-md border bg-slate-50 p-1 text-slate-700">
-                {index + 1 <= 30 ? index + 1 : ""}
-                {[5, 13, 17, 20, 27].includes(index + 1) && <span className="mx-auto mt-1 block h-1.5 w-1.5 rounded-full bg-amber-500" />}
-              </div>
-            ))}
+            {Array.from({ length: calendarCells }, (_, index) => {
+              const day = index - firstDayOfMonth + 1
+              const hasEvent = day > 0 && day <= daysInMonth && eventDays.has(day)
+              return (
+                <div key={index} className={`min-h-12 rounded-md border p-1 ${day > 0 && day <= daysInMonth ? "bg-slate-50 text-slate-700" : "bg-white text-transparent"}`}>
+                  {day > 0 && day <= daysInMonth ? day : ""}
+                  {hasEvent && <span className="mx-auto mt-1 block h-1.5 w-1.5 rounded-full bg-amber-500" />}
+                </div>
+              )
+            })}
           </div>
         </div>
         <div className="rounded-lg border bg-white p-5 shadow-sm">
