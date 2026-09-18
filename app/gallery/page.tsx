@@ -28,7 +28,7 @@ const getPublishedGallery = () => {
     const raw = localStorage.getItem("church_website_gallery")
     if (!raw) return DEFAULT_PHOTOS
     const parsed = JSON.parse(raw)
-    if (!Array.isArray(parsed) || !parsed.length) return DEFAULT_PHOTOS
+    if (!Array.isArray(parsed)) return DEFAULT_PHOTOS
 
     return parsed.map((photo) => ({
       ...photo,

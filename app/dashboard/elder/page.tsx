@@ -432,6 +432,14 @@ export default function ElderDashboardClient() {
     alert("Sermon published to the website.")
   }
 
+  const handleDeletePublishedSermon = (id: string) => {
+    if (!confirm("Delete this published sermon from the website?")) return
+    const updated = publishedSermons.filter((sermon) => sermon.id !== id)
+    setPublishedSermons(updated)
+    localStorage.setItem(WEBSITE_SERMONS_KEY, JSON.stringify(updated))
+    window.dispatchEvent(new Event("website-content-updated"))
+  }
+
   const handlePublishEvent = () => {
     const eventItem: WebsiteEvent = {
       id: `event-${Date.now()}`,
@@ -467,6 +475,14 @@ export default function ElderDashboardClient() {
     alert("Event published to the website.")
   }
 
+  const handleDeletePublishedEvent = (id: string) => {
+    if (!confirm("Delete this published event from the website?")) return
+    const updated = publishedEvents.filter((event) => event.id !== id)
+    setPublishedEvents(updated)
+    localStorage.setItem(WEBSITE_EVENTS_KEY, JSON.stringify(updated))
+    window.dispatchEvent(new Event("website-content-updated"))
+  }
+
   const handlePublishGalleryItem = () => {
     const galleryItem: WebsiteGalleryItem = {
       id: `gallery-${Date.now()}`,
@@ -496,6 +512,14 @@ export default function ElderDashboardClient() {
       type: "photo",
     })
     alert("Gallery item published to the website.")
+  }
+
+  const handleDeletePublishedGalleryItem = (id: string) => {
+    if (!confirm("Delete this published gallery item from the website?")) return
+    const updated = publishedGallery.filter((item) => item.id !== id)
+    setPublishedGallery(updated)
+    localStorage.setItem(WEBSITE_GALLERY_KEY, JSON.stringify(updated))
+    window.dispatchEvent(new Event("website-content-updated"))
   }
 
   const handleUploadFile = (file: File | undefined, type: "thumbnail" | "image" | "gallery" | "video" | "audio") => {
@@ -1084,19 +1108,40 @@ export default function ElderDashboardClient() {
             <div className="rounded-xl border bg-background p-4 shadow-sm">
               <h4 className="font-bold mb-2">Published Sermons</h4>
               <div className="space-y-2 text-sm text-muted-foreground">
-                {publishedSermons.length === 0 ? <p>No published sermons yet.</p> : publishedSermons.slice(0, 3).map((item) => <p key={item.id} className="truncate">• {item.title}</p>)}
+                {publishedSermons.length === 0 ? <p>No published sermons yet.</p> : publishedSermons.map((item) => (
+                  <div key={item.id} className="flex items-center justify-between gap-2">
+                    <p className="truncate">• {item.title}</p>
+                    <Button variant="ghost" size="icon" className="shrink-0 text-destructive" onClick={() => handleDeletePublishedSermon(item.id)} aria-label={`Delete ${item.title}`}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
               </div>
             </div>
             <div className="rounded-xl border bg-background p-4 shadow-sm">
               <h4 className="font-bold mb-2">Published Events</h4>
               <div className="space-y-2 text-sm text-muted-foreground">
-                {publishedEvents.length === 0 ? <p>No published events yet.</p> : publishedEvents.slice(0, 3).map((item) => <p key={item.id} className="truncate">• {item.title}</p>)}
+                {publishedEvents.length === 0 ? <p>No published events yet.</p> : publishedEvents.map((item) => (
+                  <div key={item.id} className="flex items-center justify-between gap-2">
+                    <p className="truncate">• {item.title}</p>
+                    <Button variant="ghost" size="icon" className="shrink-0 text-destructive" onClick={() => handleDeletePublishedEvent(item.id)} aria-label={`Delete ${item.title}`}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
               </div>
             </div>
             <div className="rounded-xl border bg-background p-4 shadow-sm">
               <h4 className="font-bold mb-2">Published Gallery</h4>
               <div className="space-y-2 text-sm text-muted-foreground">
-                {publishedGallery.length === 0 ? <p>No gallery items yet.</p> : publishedGallery.slice(0, 3).map((item) => <p key={item.id} className="truncate">• {item.title}</p>)}
+                {publishedGallery.length === 0 ? <p>No gallery items yet.</p> : publishedGallery.map((item) => (
+                  <div key={item.id} className="flex items-center justify-between gap-2">
+                    <p className="truncate">• {item.title}</p>
+                    <Button variant="ghost" size="icon" className="shrink-0 text-destructive" onClick={() => handleDeletePublishedGalleryItem(item.id)} aria-label={`Delete ${item.title}`}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

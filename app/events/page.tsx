@@ -20,7 +20,7 @@ const getPublishedEvents = () => {
     const raw = localStorage.getItem("church_website_events")
     if (!raw) return DEFAULT_EVENTS
     const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) && parsed.length ? parsed : DEFAULT_EVENTS
+    return Array.isArray(parsed) ? parsed : DEFAULT_EVENTS
   } catch {
     return DEFAULT_EVENTS
   }

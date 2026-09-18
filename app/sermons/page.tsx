@@ -127,7 +127,7 @@ const getPublishedSermons = () => {
     const raw = localStorage.getItem("church_website_sermons")
     if (!raw) return DEFAULT_SERMONS_DATA
     const parsed = JSON.parse(raw)
-    if (!Array.isArray(parsed) || !parsed.length) return DEFAULT_SERMONS_DATA
+    if (!Array.isArray(parsed)) return DEFAULT_SERMONS_DATA
 
     return parsed.map((sermon) => ({
       ...sermon,
