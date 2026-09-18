@@ -153,6 +153,7 @@ interface WebsiteGalleryItem {
   caption: string
   src: string
   type: "photo" | "video"
+  mimeType?: string
 }
 
 const WEBSITE_SERMONS_KEY = "church_website_sermons"
@@ -258,6 +259,8 @@ export default function ElderDashboardClient() {
     caption: "",
     src: "",
     type: "photo" as "photo" | "video",
+    mimeType: "",
+    fileSize: 0,
   })
 
   const loadWebsiteContent = () => {
@@ -492,6 +495,7 @@ export default function ElderDashboardClient() {
       caption: galleryFormData.caption.trim(),
       src: galleryFormData.src.trim() || "/photo1.jpg",
       type: galleryFormData.type,
+      mimeType: galleryFormData.mimeType,
     }
 
     if (!galleryItem.title || !galleryItem.caption) {
@@ -515,6 +519,8 @@ export default function ElderDashboardClient() {
       caption: "",
       src: "",
       type: "photo",
+      mimeType: "",
+      fileSize: 0,
     })
     alert("Gallery item published to the website.")
   }
@@ -534,7 +540,13 @@ export default function ElderDashboardClient() {
       const result = reader.result as string
       if (type === "thumbnail") setSermonFormData((prev) => ({ ...prev, thumbnail: result }))
       if (type === "image") setEventFormData((prev) => ({ ...prev, image: result }))
-      if (type === "gallery") setGalleryFormData((prev) => ({ ...prev, src: result }))
+      if (type === "gallery") setGalleryFormData((prev) => ({
+        ...prev,
+        src: result,
+        type: file.type.startsWith("video/") ? "video" : "photo",
+        mimeType: file.type,
+        fileSize: file.size,
+      }))
       if (type === "video") setSermonFormData((prev) => ({ ...prev, videoUrl: result }))
       if (type === "audio") setSermonFormData((prev) => ({ ...prev, audioUrl: result }))
     }
@@ -1102,7 +1114,12 @@ export default function ElderDashboardClient() {
                 <div className="grid gap-2">
                   <Label>Upload photo or video</Label>
                   <Input type="file" accept="image/*,video/*" onChange={(e) => handleUploadFile(e.target.files?.[0], "gallery")} />
-                  {galleryFormData.src && <img src={galleryFormData.src} alt="Gallery preview" className="h-20 w-full rounded-md object-cover" />}
+                  {galleryFormData.fileSize > 0 && <p className="text-xs text-muted-foreground">Original file size: {(galleryFormData.fileSize / (1024 * 1024)).toFixed(2)} MB</p>}
+                  {galleryFormData.src && galleryFormData.type === "video" ? (
+                    <video src={galleryFormData.src} controls className="h-32 w-full rounded-md object-contain bg-black" />
+                  ) : galleryFormData.src ? (
+                    <img src={galleryFormData.src} alt="Gallery preview" className="h-32 w-full rounded-md object-contain bg-muted" />
+                  ) : null}
                 </div>
                 <Button onClick={handlePublishGalleryItem}>Publish Gallery Item</Button>
               </div>
