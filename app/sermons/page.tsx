@@ -143,6 +143,25 @@ const getPublishedSermons = () => {
   }
 }
 
+const getYouTubeEmbedUrl = (url: string) => {
+  try {
+    const parsedUrl = new URL(url)
+    let videoId = ""
+
+    if (parsedUrl.hostname === "youtu.be") {
+      videoId = parsedUrl.pathname.slice(1)
+    } else if (parsedUrl.hostname.includes("youtube.com")) {
+      videoId = parsedUrl.pathname === "/watch"
+        ? parsedUrl.searchParams.get("v") || ""
+        : parsedUrl.pathname.split("/").filter(Boolean).pop() || ""
+    }
+
+    return videoId ? `https://www.youtube.com/embed/${videoId}` : null
+  } catch {
+    return null
+  }
+}
+
 export default function SermonsPage() {
   const [sermons, setSermons] = React.useState<Sermon[]>(DEFAULT_SERMONS_DATA)
   const [searchQuery, setSearchQuery] = React.useState("")
@@ -483,13 +502,19 @@ export default function SermonsPage() {
             {/* Player Element */}
             {activeMedia.type === "video" ? (
               <div className="aspect-video w-full rounded-xl overflow-hidden border border-white/10 bg-black">
-                <iframe
-                  src={activeMedia.sermon.videoUrl}
-                  title={activeMedia.sermon.title}
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
+                {getYouTubeEmbedUrl(activeMedia.sermon.videoUrl) || activeMedia.sermon.videoUrl.includes("youtube.com/embed/") ? (
+                  <iframe
+                    src={getYouTubeEmbedUrl(activeMedia.sermon.videoUrl) || activeMedia.sermon.videoUrl}
+                    title={activeMedia.sermon.title}
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                ) : (
+                  <video controls className="h-full w-full" src={activeMedia.sermon.videoUrl}>
+                    Your browser does not support video playback.
+                  </video>
+                )}
               </div>
             ) : (
               <div className="p-8 rounded-xl bg-slate-950 border border-white/10 space-y-6 text-center">
