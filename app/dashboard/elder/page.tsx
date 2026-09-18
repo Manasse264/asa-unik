@@ -48,6 +48,7 @@ import {
 } from "@/components/ui/tabs"
 import { YearSelector } from "@/components/year-selector"
 import { cn } from "@/lib/utils"
+import { getStoredGallery, saveStoredGallery } from "@/lib/website-gallery-storage"
 import { jsPDF } from "jspdf"
 import autoTable from "jspdf-autotable"
 
@@ -263,15 +264,15 @@ export default function ElderDashboardClient() {
     fileSize: 0,
   })
 
-  const loadWebsiteContent = () => {
+  const loadWebsiteContent = async () => {
     try {
       const storedSermons = localStorage.getItem(WEBSITE_SERMONS_KEY)
       const storedEvents = localStorage.getItem(WEBSITE_EVENTS_KEY)
-      const storedGallery = localStorage.getItem(WEBSITE_GALLERY_KEY)
+      const storedGallery = await getStoredGallery()
 
       setPublishedSermons(storedSermons ? JSON.parse(storedSermons) : [])
       setPublishedEvents(storedEvents ? JSON.parse(storedEvents) : [])
-      setPublishedGallery(storedGallery ? JSON.parse(storedGallery) : [])
+      setPublishedGallery(storedGallery || [])
     } catch (error) {
       console.error("Error loading published website content", error)
       setPublishedSermons([])
@@ -486,7 +487,7 @@ export default function ElderDashboardClient() {
     window.dispatchEvent(new Event("website-content-updated"))
   }
 
-  const handlePublishGalleryItem = () => {
+  const handlePublishGalleryItem = async () => {
     const galleryItem: WebsiteGalleryItem = {
       id: `gallery-${Date.now()}`,
       title: galleryFormData.title.trim(),
@@ -503,9 +504,14 @@ export default function ElderDashboardClient() {
       return
     }
 
+    if (galleryFormData.fileSize > 15 * 1024 * 1024) {
+      alert("Gallery files must be 15 MB or smaller.")
+      return
+    }
+
     const updated = [galleryItem, ...publishedGallery]
     try {
-      localStorage.setItem(WEBSITE_GALLERY_KEY, JSON.stringify(updated))
+      await saveStoredGallery(updated)
     } catch {
       alert("This gallery file is too large to publish in browser storage. Please choose a smaller file.")
       return
@@ -525,11 +531,11 @@ export default function ElderDashboardClient() {
     alert("Gallery item published to the website.")
   }
 
-  const handleDeletePublishedGalleryItem = (id: string) => {
+  const handleDeletePublishedGalleryItem = async (id: string) => {
     if (!confirm("Delete this published gallery item from the website?")) return
     const updated = publishedGallery.filter((item) => item.id !== id)
     setPublishedGallery(updated)
-    localStorage.setItem(WEBSITE_GALLERY_KEY, JSON.stringify(updated))
+    await saveStoredGallery(updated)
     window.dispatchEvent(new Event("website-content-updated"))
   }
 

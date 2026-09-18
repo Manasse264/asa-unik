@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { Camera, PlayCircle } from "lucide-react"
+import { getStoredGallery } from "@/lib/website-gallery-storage"
 
 const categories = ["Worship Services", "Sabbath School", "Youth", "Children", "Women's Ministry", "Men's Ministry", "Choir", "Baptism", "Evangelism", "Community Outreach", "Special Events"]
 interface GalleryPhoto {
@@ -23,17 +24,15 @@ const DEFAULT_PHOTOS: GalleryPhoto[] = [
   { src: "/photo2.jpg", title: "Special Program", date: "July 2026", event: "Special Events", caption: "A special church program for students and visitors." },
 ]
 
-const getPublishedGallery = () => {
+const getPublishedGallery = async (): Promise<GalleryPhoto[]> => {
   if (typeof window === "undefined") return DEFAULT_PHOTOS
   try {
-    const raw = localStorage.getItem("church_website_gallery")
-    if (!raw) return DEFAULT_PHOTOS
-    const parsed = JSON.parse(raw)
-    if (!Array.isArray(parsed)) return DEFAULT_PHOTOS
+    const parsed = await getStoredGallery()
+    if (!parsed) return DEFAULT_PHOTOS
 
     return parsed.map((photo) => ({
       ...photo,
-      event: photo.event ?? photo.category ?? "Church Event",
+      event: photo.category ?? "Church Event",
       caption: photo.caption ?? "",
       src: photo.src ?? "/photo1.jpg",
       type: photo.type ?? "photo",
@@ -47,7 +46,7 @@ export default function GalleryPage() {
   const [photos, setPhotos] = React.useState(DEFAULT_PHOTOS)
 
   React.useEffect(() => {
-    const syncGallery = () => setPhotos(getPublishedGallery())
+    const syncGallery = async () => setPhotos(await getPublishedGallery())
     syncGallery()
     window.addEventListener("website-content-updated", syncGallery)
     window.addEventListener("storage", syncGallery)
