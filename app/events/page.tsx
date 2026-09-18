@@ -1,3 +1,6 @@
+"use client"
+
+import * as React from "react"
 import Image from "next/image"
 import { CalendarDays, Clock, MapPin, Mic, Users } from "lucide-react"
 
