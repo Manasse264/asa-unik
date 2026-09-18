@@ -1,7 +1,7 @@
 import Image from "next/image"
 import { CalendarDays, Clock, MapPin, Mic, Users } from "lucide-react"
 
-const events = [
+const DEFAULT_EVENTS = [
   { title: "Sabbath Worship Service", date: "Every Saturday", start: "9:00 AM", end: "12:00 PM", location: "Main Sanctuary", category: "Worship", speaker: "Church Pastor", organizer: "Church Board", image: "/photo1.jpg", description: "Bible study, worship, music, prayer, and preaching for the whole church family." },
   { title: "Youth Fellowship", date: "September 17, 2026", start: "5:00 PM", end: "7:00 PM", location: "Church Hall", category: "Youth", speaker: "Youth Leader", organizer: "Youth Ministry", image: "/photo2.jpg", description: "A Christ-centered evening of Bible discussion, prayer, music, and friendship." },
   { title: "Community Outreach", date: "September 20, 2026", start: "8:00 AM", end: "12:00 PM", location: "Ngoma Community", category: "Community Outreach", speaker: "Outreach Team", organizer: "Community Outreach", image: "/photo3.jpg", description: "Service, evangelism, charity support, and practical care for our neighbors." },
@@ -11,7 +11,34 @@ const events = [
 const categories = ["Worship", "Prayer", "Youth", "Bible Study", "Evangelism", "Community Outreach", "Family", "Special Programs"]
 const pastEvents = ["Baptism Sabbath", "Choir Concert", "Health Program"]
 
+const getPublishedEvents = () => {
+  if (typeof window === "undefined") return DEFAULT_EVENTS
+  try {
+    const raw = localStorage.getItem("church_website_events")
+    if (!raw) return DEFAULT_EVENTS
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) && parsed.length ? parsed : DEFAULT_EVENTS
+  } catch {
+    return DEFAULT_EVENTS
+  }
+}
+
 export default function EventsPage() {
+  const [events, setEvents] = React.useState(getPublishedEvents)
+
+  React.useEffect(() => {
+    const syncEvents = () => setEvents(getPublishedEvents())
+    syncEvents()
+    window.addEventListener("website-content-updated", syncEvents)
+    window.addEventListener("storage", syncEvents)
+    window.addEventListener("year-changed", syncEvents)
+    return () => {
+      window.removeEventListener("website-content-updated", syncEvents)
+      window.removeEventListener("storage", syncEvents)
+      window.removeEventListener("year-changed", syncEvents)
+    }
+  }, [])
+
   return (
     <main className="bg-slate-50">
       <section className="bg-slate-950 text-white">

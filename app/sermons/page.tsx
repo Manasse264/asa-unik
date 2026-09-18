@@ -45,7 +45,7 @@ const CATEGORIES = [
   "Sabbath"
 ]
 
-const SERMONS_DATA: Sermon[] = [
+const DEFAULT_SERMONS_DATA: Sermon[] = [
   {
     id: "sermon-1",
     title: "Standing Firm in End-Time Faith",
@@ -121,15 +121,40 @@ const SERMONS_DATA: Sermon[] = [
   }
 ]
 
+const getPublishedSermons = () => {
+  if (typeof window === "undefined") return DEFAULT_SERMONS_DATA
+  try {
+    const raw = localStorage.getItem("church_website_sermons")
+    if (!raw) return DEFAULT_SERMONS_DATA
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) && parsed.length ? parsed : DEFAULT_SERMONS_DATA
+  } catch {
+    return DEFAULT_SERMONS_DATA
+  }
+}
+
 export default function SermonsPage() {
+  const [sermons, setSermons] = React.useState<Sermon[]>(getPublishedSermons)
   const [searchQuery, setSearchQuery] = React.useState("")
   const [selectedCategory, setSelectedCategory] = React.useState("All")
   const [activeMedia, setActiveMedia] = React.useState<{ sermon: Sermon; type: "video" | "audio" } | null>(null)
 
-  const featuredSermon = SERMONS_DATA.find((s) => s.featured) || SERMONS_DATA[0]
+  React.useEffect(() => {
+    const syncSermons = () => setSermons(getPublishedSermons())
+    syncSermons()
+    window.addEventListener("website-content-updated", syncSermons)
+    window.addEventListener("storage", syncSermons)
+    window.addEventListener("year-changed", syncSermons)
+    return () => {
+      window.removeEventListener("website-content-updated", syncSermons)
+      window.removeEventListener("storage", syncSermons)
+      window.removeEventListener("year-changed", syncSermons)
+    }
+  }, [])
 
-  // Filter logic
-  const filteredSermons = SERMONS_DATA.filter((sermon) => {
+  const featuredSermon = sermons.find((s) => s.featured) || sermons[0]
+
+  const filteredSermons = sermons.filter((sermon) => {
     const matchesSearch =
       sermon.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       sermon.speaker.toLowerCase().includes(searchQuery.toLowerCase()) ||

@@ -2,7 +2,7 @@ import Image from "next/image"
 import { Camera, PlayCircle } from "lucide-react"
 
 const categories = ["Worship Services", "Sabbath School", "Youth", "Children", "Women's Ministry", "Men's Ministry", "Choir", "Baptism", "Evangelism", "Community Outreach", "Special Events"]
-const photos = [
+const DEFAULT_PHOTOS = [
   { src: "/photo1.jpg", title: "Sabbath Worship", date: "September 2026", event: "Worship Services", caption: "The church family gathered for worship and Bible teaching." },
   { src: "/photo2.jpg", title: "Bible Study", date: "September 2026", event: "Sabbath School", caption: "Members studying Scripture together in small groups." },
   { src: "/photo3.jpg", title: "Youth Program", date: "August 2026", event: "Youth", caption: "Young people serving and growing in Christ." },
@@ -11,7 +11,34 @@ const photos = [
   { src: "/photo2.jpg", title: "Special Program", date: "July 2026", event: "Special Events", caption: "A special church program for students and visitors." },
 ]
 
+const getPublishedGallery = () => {
+  if (typeof window === "undefined") return DEFAULT_PHOTOS
+  try {
+    const raw = localStorage.getItem("church_website_gallery")
+    if (!raw) return DEFAULT_PHOTOS
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) && parsed.length ? parsed : DEFAULT_PHOTOS
+  } catch {
+    return DEFAULT_PHOTOS
+  }
+}
+
 export default function GalleryPage() {
+  const [photos, setPhotos] = React.useState(getPublishedGallery)
+
+  React.useEffect(() => {
+    const syncGallery = () => setPhotos(getPublishedGallery())
+    syncGallery()
+    window.addEventListener("website-content-updated", syncGallery)
+    window.addEventListener("storage", syncGallery)
+    window.addEventListener("year-changed", syncGallery)
+    return () => {
+      window.removeEventListener("website-content-updated", syncGallery)
+      window.removeEventListener("storage", syncGallery)
+      window.removeEventListener("year-changed", syncGallery)
+    }
+  }, [])
+
   return (
     <main className="bg-slate-50">
       <section className="container px-4 py-12 md:px-8">

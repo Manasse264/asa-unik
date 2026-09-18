@@ -119,6 +119,46 @@ interface Announcement {
   fileData?: string | null
 }
 
+interface WebsiteSermon {
+  id: string
+  title: string
+  speaker: string
+  date: string
+  category: string
+  scripture: string
+  description: string
+  videoUrl: string
+  audioUrl: string
+  thumbnail: string
+  featured?: boolean
+}
+
+interface WebsiteEvent {
+  id: string
+  title: string
+  description: string
+  category: "Worship" | "Prayer" | "Youth" | "Bible Study" | "Evangelism" | "Community Outreach" | "Family"
+  date: string
+  time: string
+  location: string
+  organizer: string
+  image: string
+}
+
+interface WebsiteGalleryItem {
+  id: string
+  title: string
+  date: string
+  category: string
+  caption: string
+  src: string
+  type: "photo" | "video"
+}
+
+const WEBSITE_SERMONS_KEY = "church_website_sermons"
+const WEBSITE_EVENTS_KEY = "church_website_events"
+const WEBSITE_GALLERY_KEY = "church_website_gallery"
+
 export default function ElderDashboardClient() {
   const [members, setMembers] = React.useState<Member[]>([])
   const [councilMembers, setCouncilMembers] = React.useState<any[]>([])
@@ -183,6 +223,60 @@ export default function ElderDashboardClient() {
     fileData: ""
   })
 
+  const [publishedSermons, setPublishedSermons] = React.useState<WebsiteSermon[]>([])
+  const [publishedEvents, setPublishedEvents] = React.useState<WebsiteEvent[]>([])
+  const [publishedGallery, setPublishedGallery] = React.useState<WebsiteGalleryItem[]>([])
+
+  const [sermonFormData, setSermonFormData] = React.useState({
+    title: "",
+    speaker: "",
+    date: new Date().toISOString().split('T')[0],
+    category: "Faith",
+    scripture: "",
+    description: "",
+    videoUrl: "",
+    audioUrl: "",
+    thumbnail: "",
+    featured: false,
+  })
+
+  const [eventFormData, setEventFormData] = React.useState({
+    title: "",
+    description: "",
+    category: "Worship" as WebsiteEvent["category"],
+    date: new Date().toISOString().split('T')[0],
+    time: "",
+    location: "",
+    organizer: "",
+    image: "",
+  })
+
+  const [galleryFormData, setGalleryFormData] = React.useState({
+    title: "",
+    date: new Date().toISOString().split('T')[0],
+    category: "Worship Services",
+    caption: "",
+    src: "",
+    type: "photo" as "photo" | "video",
+  })
+
+  const loadWebsiteContent = () => {
+    try {
+      const storedSermons = localStorage.getItem(WEBSITE_SERMONS_KEY)
+      const storedEvents = localStorage.getItem(WEBSITE_EVENTS_KEY)
+      const storedGallery = localStorage.getItem(WEBSITE_GALLERY_KEY)
+
+      setPublishedSermons(storedSermons ? JSON.parse(storedSermons) : [])
+      setPublishedEvents(storedEvents ? JSON.parse(storedEvents) : [])
+      setPublishedGallery(storedGallery ? JSON.parse(storedGallery) : [])
+    } catch (error) {
+      console.error("Error loading published website content", error)
+      setPublishedSermons([])
+      setPublishedEvents([])
+      setPublishedGallery([])
+    }
+  }
+
   const loadData = async () => {
     const year = localStorage.getItem('selected_year') || new Date().getFullYear().toString()
 
@@ -228,12 +322,15 @@ export default function ElderDashboardClient() {
   }
 
   React.useEffect(() => {
+    loadWebsiteContent()
     loadData()
     window.addEventListener("storage", loadData)
     window.addEventListener("year-changed", loadData)
+    window.addEventListener("website-content-updated", loadWebsiteContent)
     return () => {
       window.removeEventListener("storage", loadData)
       window.removeEventListener("year-changed", loadData)
+      window.removeEventListener("website-content-updated", loadWebsiteContent)
     }
   }, [])
 
@@ -294,6 +391,125 @@ export default function ElderDashboardClient() {
       await deleteMember(id)
       loadData()
     }
+  }
+
+  const handlePublishSermon = () => {
+    const sermon: WebsiteSermon = {
+      id: `sermon-${Date.now()}`,
+      title: sermonFormData.title.trim(),
+      speaker: sermonFormData.speaker.trim() || "Pastor",
+      date: sermonFormData.date,
+      category: sermonFormData.category,
+      scripture: sermonFormData.scripture.trim(),
+      description: sermonFormData.description.trim(),
+      videoUrl: sermonFormData.videoUrl.trim(),
+      audioUrl: sermonFormData.audioUrl.trim(),
+      thumbnail: sermonFormData.thumbnail.trim() || "/photo1.jpg",
+      featured: sermonFormData.featured,
+    }
+
+    if (!sermon.title || !sermon.description) {
+      alert("Please add a sermon title and description before publishing.")
+      return
+    }
+
+    const updated = [sermon, ...publishedSermons]
+    setPublishedSermons(updated)
+    localStorage.setItem(WEBSITE_SERMONS_KEY, JSON.stringify(updated))
+    window.dispatchEvent(new Event("website-content-updated"))
+    setSermonFormData({
+      title: "",
+      speaker: "",
+      date: new Date().toISOString().split('T')[0],
+      category: "Faith",
+      scripture: "",
+      description: "",
+      videoUrl: "",
+      audioUrl: "",
+      thumbnail: "",
+      featured: false,
+    })
+    alert("Sermon published to the website.")
+  }
+
+  const handlePublishEvent = () => {
+    const eventItem: WebsiteEvent = {
+      id: `event-${Date.now()}`,
+      title: eventFormData.title.trim(),
+      description: eventFormData.description.trim(),
+      category: eventFormData.category,
+      date: eventFormData.date,
+      time: eventFormData.time.trim(),
+      location: eventFormData.location.trim(),
+      organizer: eventFormData.organizer.trim() || "Church Team",
+      image: eventFormData.image.trim() || "/photo1.jpg",
+    }
+
+    if (!eventItem.title || !eventItem.description || !eventItem.location) {
+      alert("Please complete the event title, description, and location before publishing.")
+      return
+    }
+
+    const updated = [eventItem, ...publishedEvents]
+    setPublishedEvents(updated)
+    localStorage.setItem(WEBSITE_EVENTS_KEY, JSON.stringify(updated))
+    window.dispatchEvent(new Event("website-content-updated"))
+    setEventFormData({
+      title: "",
+      description: "",
+      category: "Worship",
+      date: new Date().toISOString().split('T')[0],
+      time: "",
+      location: "",
+      organizer: "",
+      image: "",
+    })
+    alert("Event published to the website.")
+  }
+
+  const handlePublishGalleryItem = () => {
+    const galleryItem: WebsiteGalleryItem = {
+      id: `gallery-${Date.now()}`,
+      title: galleryFormData.title.trim(),
+      date: galleryFormData.date,
+      category: galleryFormData.category,
+      caption: galleryFormData.caption.trim(),
+      src: galleryFormData.src.trim() || "/photo1.jpg",
+      type: galleryFormData.type,
+    }
+
+    if (!galleryItem.title || !galleryItem.caption) {
+      alert("Please add a gallery title and caption before publishing.")
+      return
+    }
+
+    const updated = [galleryItem, ...publishedGallery]
+    setPublishedGallery(updated)
+    localStorage.setItem(WEBSITE_GALLERY_KEY, JSON.stringify(updated))
+    window.dispatchEvent(new Event("website-content-updated"))
+    setGalleryFormData({
+      title: "",
+      date: new Date().toISOString().split('T')[0],
+      category: "Worship Services",
+      caption: "",
+      src: "",
+      type: "photo",
+    })
+    alert("Gallery item published to the website.")
+  }
+
+  const handleUploadFile = (file: File | undefined, type: "thumbnail" | "image" | "gallery" | "video" | "audio") => {
+    if (!file) return
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      const result = reader.result as string
+      if (type === "thumbnail") setSermonFormData((prev) => ({ ...prev, thumbnail: result }))
+      if (type === "image") setEventFormData((prev) => ({ ...prev, image: result }))
+      if (type === "gallery") setGalleryFormData((prev) => ({ ...prev, src: result }))
+      if (type === "video") setSermonFormData((prev) => ({ ...prev, videoUrl: result }))
+      if (type === "audio") setSermonFormData((prev) => ({ ...prev, audioUrl: result }))
+    }
+    reader.readAsDataURL(file)
   }
 
   const handleAddAnnouncement = async (e: React.FormEvent) => {
@@ -517,6 +733,7 @@ export default function ElderDashboardClient() {
           <TabsTrigger value="users">User Accounts</TabsTrigger>
           <TabsTrigger value="evangelism">Evangelism Dept</TabsTrigger>
           <TabsTrigger value="announcements">Announcements</TabsTrigger>
+          <TabsTrigger value="manage-webpage">Manage webpage</TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
           <TabsTrigger value="system">System Config</TabsTrigger>
         </TabsList>
@@ -694,6 +911,194 @@ export default function ElderDashboardClient() {
                 ))}
               </TableBody>
             </Table>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="manage-webpage" className="space-y-6">
+          <div className="grid gap-6 xl:grid-cols-3">
+            <div className="rounded-xl border bg-background p-4 shadow-sm space-y-4">
+              <div>
+                <h3 className="text-xl font-bold">Sermons</h3>
+                <p className="text-sm text-muted-foreground">Add sermon title, speaker, date, scripture, description, video, audio, and thumbnail.</p>
+              </div>
+              <div className="grid gap-3">
+                <div className="grid gap-2">
+                  <Label>Title</Label>
+                  <Input value={sermonFormData.title} onChange={(e) => setSermonFormData({ ...sermonFormData, title: e.target.value })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Speaker</Label>
+                  <Input value={sermonFormData.speaker} onChange={(e) => setSermonFormData({ ...sermonFormData, speaker: e.target.value })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Date</Label>
+                  <Input type="date" value={sermonFormData.date} onChange={(e) => setSermonFormData({ ...sermonFormData, date: e.target.value })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Category</Label>
+                  <select className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm" value={sermonFormData.category} onChange={(e) => setSermonFormData({ ...sermonFormData, category: e.target.value })}>
+                    <option>Faith</option>
+                    <option>Prayer</option>
+                    <option>Family</option>
+                    <option>Youth</option>
+                    <option>Prophecy</option>
+                    <option>Christian Living</option>
+                    <option>Evangelism</option>
+                    <option>Sabbath</option>
+                  </select>
+                </div>
+                <div className="grid gap-2">
+                  <Label>Scripture</Label>
+                  <Input value={sermonFormData.scripture} onChange={(e) => setSermonFormData({ ...sermonFormData, scripture: e.target.value })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Description</Label>
+                  <textarea className="min-h-[90px] rounded-md border border-input bg-background px-3 py-2 text-sm" value={sermonFormData.description} onChange={(e) => setSermonFormData({ ...sermonFormData, description: e.target.value })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Video URL or upload</Label>
+                  <Input value={sermonFormData.videoUrl} onChange={(e) => setSermonFormData({ ...sermonFormData, videoUrl: e.target.value })} placeholder="https://... or file upload" />
+                  <Input type="file" accept="video/*" onChange={(e) => handleUploadFile(e.target.files?.[0], "video")} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Audio URL or upload</Label>
+                  <Input value={sermonFormData.audioUrl} onChange={(e) => setSermonFormData({ ...sermonFormData, audioUrl: e.target.value })} placeholder="https://... or file upload" />
+                  <Input type="file" accept="audio/*" onChange={(e) => handleUploadFile(e.target.files?.[0], "audio")} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Thumbnail</Label>
+                  <Input type="file" accept="image/*" onChange={(e) => handleUploadFile(e.target.files?.[0], "thumbnail")} />
+                  {sermonFormData.thumbnail && <img src={sermonFormData.thumbnail} alt="Thumbnail preview" className="h-20 w-full rounded-md object-cover" />}
+                </div>
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={sermonFormData.featured} onChange={(e) => setSermonFormData({ ...sermonFormData, featured: e.target.checked })} />
+                  Set as featured sermon
+                </label>
+                <Button onClick={handlePublishSermon}>Publish Sermon</Button>
+              </div>
+            </div>
+
+            <div className="rounded-xl border bg-background p-4 shadow-sm space-y-4">
+              <div>
+                <h3 className="text-xl font-bold">Events</h3>
+                <p className="text-sm text-muted-foreground">Add event pictures, title, description, category, day, location, organizer, and time.</p>
+              </div>
+              <div className="grid gap-3">
+                <div className="grid gap-2">
+                  <Label>Title</Label>
+                  <Input value={eventFormData.title} onChange={(e) => setEventFormData({ ...eventFormData, title: e.target.value })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Description</Label>
+                  <textarea className="min-h-[90px] rounded-md border border-input bg-background px-3 py-2 text-sm" value={eventFormData.description} onChange={(e) => setEventFormData({ ...eventFormData, description: e.target.value })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Category</Label>
+                  <select className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm" value={eventFormData.category} onChange={(e) => setEventFormData({ ...eventFormData, category: e.target.value as WebsiteEvent["category"] })}>
+                    <option value="Worship">Worship</option>
+                    <option value="Prayer">Prayer</option>
+                    <option value="Youth">Youth</option>
+                    <option value="Bible Study">Bible Study</option>
+                    <option value="Evangelism">Evangelism</option>
+                    <option value="Community Outreach">Community Outreach</option>
+                    <option value="Family">Family</option>
+                  </select>
+                </div>
+                <div className="grid gap-2">
+                  <Label>Date</Label>
+                  <Input type="date" value={eventFormData.date} onChange={(e) => setEventFormData({ ...eventFormData, date: e.target.value })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Time / Hours</Label>
+                  <Input value={eventFormData.time} onChange={(e) => setEventFormData({ ...eventFormData, time: e.target.value })} placeholder="9:00 AM - 12:00 PM" />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Location</Label>
+                  <Input value={eventFormData.location} onChange={(e) => setEventFormData({ ...eventFormData, location: e.target.value })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Organizer / Coordinator</Label>
+                  <Input value={eventFormData.organizer} onChange={(e) => setEventFormData({ ...eventFormData, organizer: e.target.value })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Image</Label>
+                  <Input type="file" accept="image/*" onChange={(e) => handleUploadFile(e.target.files?.[0], "image")} />
+                  {eventFormData.image && <img src={eventFormData.image} alt="Event preview" className="h-20 w-full rounded-md object-cover" />}
+                </div>
+                <Button onClick={handlePublishEvent}>Publish Event</Button>
+              </div>
+            </div>
+
+            <div className="rounded-xl border bg-background p-4 shadow-sm space-y-4">
+              <div>
+                <h3 className="text-xl font-bold">Gallery</h3>
+                <p className="text-sm text-muted-foreground">Upload photos or videos from worship services, Sabbath School, ministries, baptisms, evangelism, outreach, and special events.</p>
+              </div>
+              <div className="grid gap-3">
+                <div className="grid gap-2">
+                  <Label>Title</Label>
+                  <Input value={galleryFormData.title} onChange={(e) => setGalleryFormData({ ...galleryFormData, title: e.target.value })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Date</Label>
+                  <Input type="date" value={galleryFormData.date} onChange={(e) => setGalleryFormData({ ...galleryFormData, date: e.target.value })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Category</Label>
+                  <select className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm" value={galleryFormData.category} onChange={(e) => setGalleryFormData({ ...galleryFormData, category: e.target.value })}>
+                    <option>Worship Services</option>
+                    <option>Sabbath School</option>
+                    <option>Youth</option>
+                    <option>Children</option>
+                    <option>Women's Ministry</option>
+                    <option>Men's Ministry</option>
+                    <option>Choir</option>
+                    <option>Baptism</option>
+                    <option>Evangelism</option>
+                    <option>Community Outreach</option>
+                    <option>Special Events</option>
+                  </select>
+                </div>
+                <div className="grid gap-2">
+                  <Label>Caption</Label>
+                  <textarea className="min-h-[90px] rounded-md border border-input bg-background px-3 py-2 text-sm" value={galleryFormData.caption} onChange={(e) => setGalleryFormData({ ...galleryFormData, caption: e.target.value })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Media Type</Label>
+                  <select className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm" value={galleryFormData.type} onChange={(e) => setGalleryFormData({ ...galleryFormData, type: e.target.value as "photo" | "video" })}>
+                    <option value="photo">Photo</option>
+                    <option value="video">Video</option>
+                  </select>
+                </div>
+                <div className="grid gap-2">
+                  <Label>Upload photo or video</Label>
+                  <Input type="file" accept="image/*,video/*" onChange={(e) => handleUploadFile(e.target.files?.[0], "gallery")} />
+                  {galleryFormData.src && <img src={galleryFormData.src} alt="Gallery preview" className="h-20 w-full rounded-md object-cover" />}
+                </div>
+                <Button onClick={handlePublishGalleryItem}>Publish Gallery Item</Button>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="rounded-xl border bg-background p-4 shadow-sm">
+              <h4 className="font-bold mb-2">Published Sermons</h4>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                {publishedSermons.length === 0 ? <p>No published sermons yet.</p> : publishedSermons.slice(0, 3).map((item) => <p key={item.id} className="truncate">• {item.title}</p>)}
+              </div>
+            </div>
+            <div className="rounded-xl border bg-background p-4 shadow-sm">
+              <h4 className="font-bold mb-2">Published Events</h4>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                {publishedEvents.length === 0 ? <p>No published events yet.</p> : publishedEvents.slice(0, 3).map((item) => <p key={item.id} className="truncate">• {item.title}</p>)}
+              </div>
+            </div>
+            <div className="rounded-xl border bg-background p-4 shadow-sm">
+              <h4 className="font-bold mb-2">Published Gallery</h4>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                {publishedGallery.length === 0 ? <p>No gallery items yet.</p> : publishedGallery.slice(0, 3).map((item) => <p key={item.id} className="truncate">• {item.title}</p>)}
+              </div>
+            </div>
           </div>
         </TabsContent>
 
