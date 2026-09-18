@@ -1,11 +1,19 @@
 "use client"
 
 import * as React from "react"
-import Image from "next/image"
 import { Camera, PlayCircle } from "lucide-react"
 
 const categories = ["Worship Services", "Sabbath School", "Youth", "Children", "Women's Ministry", "Men's Ministry", "Choir", "Baptism", "Evangelism", "Community Outreach", "Special Events"]
-const DEFAULT_PHOTOS = [
+interface GalleryPhoto {
+  src: string
+  title: string
+  date: string
+  event: string
+  caption: string
+  type?: "photo" | "video"
+}
+
+const DEFAULT_PHOTOS: GalleryPhoto[] = [
   { src: "/photo1.jpg", title: "Sabbath Worship", date: "September 2026", event: "Worship Services", caption: "The church family gathered for worship and Bible teaching." },
   { src: "/photo2.jpg", title: "Bible Study", date: "September 2026", event: "Sabbath School", caption: "Members studying Scripture together in small groups." },
   { src: "/photo3.jpg", title: "Youth Program", date: "August 2026", event: "Youth", caption: "Young people serving and growing in Christ." },
@@ -20,14 +28,22 @@ const getPublishedGallery = () => {
     const raw = localStorage.getItem("church_website_gallery")
     if (!raw) return DEFAULT_PHOTOS
     const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) && parsed.length ? parsed : DEFAULT_PHOTOS
+    if (!Array.isArray(parsed) || !parsed.length) return DEFAULT_PHOTOS
+
+    return parsed.map((photo) => ({
+      ...photo,
+      event: photo.event ?? photo.category ?? "Church Event",
+      caption: photo.caption ?? "",
+      src: photo.src ?? "/photo1.jpg",
+      type: photo.type ?? "photo",
+    }))
   } catch {
     return DEFAULT_PHOTOS
   }
 }
 
 export default function GalleryPage() {
-  const [photos, setPhotos] = React.useState(getPublishedGallery)
+  const [photos, setPhotos] = React.useState(DEFAULT_PHOTOS)
 
   React.useEffect(() => {
     const syncGallery = () => setPhotos(getPublishedGallery())
@@ -61,7 +77,11 @@ export default function GalleryPage() {
           {photos.map((photo) => (
             <article key={`${photo.title}-${photo.date}`} className="overflow-hidden rounded-lg border bg-white shadow-sm">
               <div className="relative aspect-[4/3]">
-                <Image src={photo.src} alt={photo.title} fill className="object-cover" />
+                {photo.type === "video" ? (
+                  <video src={photo.src} controls className="h-full w-full object-cover" />
+                ) : (
+                  <img src={photo.src} alt={photo.title} className="h-full w-full object-cover" />
+                )}
               </div>
               <div className="space-y-2 p-4">
                 <div className="flex items-center justify-between gap-3">
