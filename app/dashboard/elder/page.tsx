@@ -19,13 +19,11 @@ import {
   Megaphone,
   Bell,
   Upload,
-  Globe,
   UserPlus,
   Church,
   Download,
   Key,
-  Ban,
-  Eye
+  Ban
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -121,120 +119,6 @@ interface Announcement {
   fileData?: string | null
 }
 
-interface WebsitePageSection {
-  id: string
-  page: string
-  route: string
-  status: "Visible" | "Draft"
-  headline: string
-  summary: string
-  keyItems: string
-  // Specific custom manual fields
-  speaker?: string
-  date?: string
-  scripture?: string
-  schedules?: string
-  leadership?: string
-  location?: string
-  organizer?: string
-  contactPhone?: string
-  address?: string
-  email?: string
-  officeHours?: string
-  websiteUrl?: string
-}
-
-const DEFAULT_WEBSITE_PAGES: WebsitePageSection[] = [
-  {
-    id: "home",
-    page: "Home",
-    route: "/",
-    status: "Visible",
-    headline: "Welcome to ASA UNIK-RP NGOMA",
-    summary: "Manage the welcome message, worship times, Bible verse, latest sermon, ministries preview, upcoming events, gallery preview, and footer identity.",
-    keyItems: "Hero message, Sabbath worship, Bible study, prayer meeting, church location, verse of the week, latest sermon, ministries, events, gallery preview",
-  },
-  {
-    id: "about",
-    page: "About Us",
-    route: "/about",
-    status: "Visible",
-    headline: "Who ASA UNIK-RP NGOMA Is",
-    summary: "Manage the church introduction, history, vision, mission, values, beliefs, leadership, and location details.",
-    keyItems: "Full church name, type of church, location, short history, milestones, vision, mission, values, beliefs, leadership contacts, map directions",
-  },
-  {
-    id: "ministries",
-    page: "Ministries",
-    route: "/ministries",
-    status: "Visible",
-    headline: "Church Ministries",
-    summary: "Sabbath Worship 9:00 AM – 12:00 PM | Bible Study Wednesday • 5:00 PM | Prayer Meeting Friday • 5:00 PM",
-    keyItems: "Youth, Children, Women, Men, Choir and Music, Prayer, Bible Study, and Community Outreach",
-    schedules: "Fridays at 5:00 PM & Saturdays at 1:30 PM\nSabbath Worship: 9:00 AM – 12:00 PM\nBible Study: Wednesday • 5:00 PM\nPrayer Meeting: Friday • 5:00 PM",
-    leadership: "Music Director"
-  },
-  {
-    id: "sermons",
-    page: "Sermons",
-    route: "/sermons",
-    status: "Visible",
-    headline: "Sermon Library",
-    summary: "Manage featured sermon details, sermon library entries, audio/video links, download options, categories, and filters.",
-    keyItems: "Featured sermon, title, speaker, date, Bible text, description, video, audio, categories, search filters",
-    speaker: "Pastor",
-    date: "2026-09-05",
-    scripture: "Revelation 14:6-12"
-  },
-  {
-    id: "events",
-    page: "Events",
-    route: "/events",
-    status: "Visible",
-    headline: "Church Events",
-    summary: "Every Saturday 9:00 AM - 12:00 PM at Main Sanctuary",
-    keyItems: "Event title, date, start time, end time, location, image, description, speaker, organizer, contact, register/join action",
-    date: "Every Saturday",
-    schedules: "9:00 AM - 12:00 PM",
-    location: "Main Sanctuary",
-    speaker: "Church Pastor",
-    organizer: "Church Board",
-    contactPhone: "+250 780 000 000"
-  },
-  {
-    id: "gallery",
-    page: "Gallery",
-    route: "/gallery",
-    status: "Visible",
-    headline: "Church Gallery",
-    summary: "Manage photo and video gallery categories, captions, dates, and event labels.",
-    keyItems: "Worship services, Sabbath School, youth, children, women, men, choir, baptism, evangelism, community outreach, special events, videos",
-  },
-  {
-    id: "contact",
-    page: "Contact",
-    route: "/contact",
-    status: "Visible",
-    headline: "Contact Information",
-    summary: "RP Ngoma Campus, Kibungo, Eastern Province, Rwanda",
-    keyItems: "Address, phone number, email, website, office hours, contact form, prayer request form, map, directions, social media",
-    address: "RP Ngoma Campus, Kibungo, Eastern Province, Rwanda",
-    contactPhone: "+250 780 000 000",
-    email: "info@asaunikrpngoma.org",
-    officeHours: "Mon-Fri, 9:00 AM - 5:00 PM",
-    websiteUrl: "asaunikrpngoma.org"
-  },
-  {
-    id: "give",
-    page: "Give",
-    route: "/give",
-    status: "Visible",
-    headline: "Support God's Work",
-    summary: "Manage giving introduction, giving options, verified payment information, instructions, and thank-you confirmation.",
-    keyItems: "Tithe, offering, development fund, youth ministry, community outreach, other donations, bank details, mobile money, payment instructions",
-  },
-]
-
 export default function ElderDashboardClient() {
   const [members, setMembers] = React.useState<Member[]>([])
   const [councilMembers, setCouncilMembers] = React.useState<any[]>([])
@@ -278,9 +162,6 @@ export default function ElderDashboardClient() {
   const [choirFormData, setChoirFormData] = React.useState({ name: "", leaderName: "" })
 
   const [generatedResetLink, setGeneratedResetLink] = React.useState<string | null>(null)
-  const [websitePages, setWebsitePages] = React.useState<WebsitePageSection[]>(DEFAULT_WEBSITE_PAGES)
-  const [selectedWebsitePageId, setSelectedWebsitePageId] = React.useState("home")
-  const [websiteFormData, setWebsiteFormData] = React.useState<WebsitePageSection>(DEFAULT_WEBSITE_PAGES[0])
 
   const [formData, setFormData] = React.useState({
     name: "",
@@ -344,34 +225,17 @@ export default function ElderDashboardClient() {
       setBlockedYears(config.blockedYears || [])
     }
 
-    const savedWebsitePages = localStorage.getItem(`website_pages_${year}`) || localStorage.getItem("website_pages")
-    if (savedWebsitePages) {
-      try {
-        const parsed = JSON.parse(savedWebsitePages)
-        if (Array.isArray(parsed)) {
-          setWebsitePages(parsed)
-          setWebsiteFormData(parsed.find((page: WebsitePageSection) => page.id === selectedWebsitePageId) || parsed[0] || DEFAULT_WEBSITE_PAGES[0])
-        }
-      } catch (error) {
-        console.error("Error loading website page management data", error)
-      }
-    } else {
-      setWebsitePages(DEFAULT_WEBSITE_PAGES)
-      setWebsiteFormData(DEFAULT_WEBSITE_PAGES.find((page) => page.id === selectedWebsitePageId) || DEFAULT_WEBSITE_PAGES[0])
-    }
   }
 
   React.useEffect(() => {
     loadData()
     window.addEventListener("storage", loadData)
     window.addEventListener("year-changed", loadData)
-    window.addEventListener("website-pages-changed", loadData)
     return () => {
       window.removeEventListener("storage", loadData)
       window.removeEventListener("year-changed", loadData)
-      window.removeEventListener("website-pages-changed", loadData)
     }
-  }, [selectedWebsitePageId])
+  }, [])
 
   const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -600,42 +464,6 @@ export default function ElderDashboardClient() {
     doc.save("weekly_choir_schedule.pdf")
   }
 
-  const handleSelectWebsitePage = (pageId: string) => {
-    const page = websitePages.find((item) => item.id === pageId)
-    if (!page) return
-    setSelectedWebsitePageId(pageId)
-    setWebsiteFormData(page)
-  }
-
-  const handleSaveWebsitePage = (e: React.FormEvent) => {
-    e.preventDefault()
-    const year = localStorage.getItem("selected_year") || new Date().getFullYear().toString()
-    const updatedPages = websitePages.map((page) =>
-      page.id === websiteFormData.id ? websiteFormData : page
-    )
-    setWebsitePages(updatedPages)
-    localStorage.setItem(`website_pages_${year}`, JSON.stringify(updatedPages))
-    localStorage.setItem("website_pages", JSON.stringify(updatedPages))
-    
-    window.dispatchEvent(new Event("website-pages-changed"))
-    window.dispatchEvent(new Event("storage"))
-    
-    alert(`${websiteFormData.page} management details saved and synced live!`)
-  }
-
-  const handleResetWebsitePages = () => {
-    if (!confirm("Reset website page management details to the default structure?")) return
-    const year = localStorage.getItem("selected_year") || new Date().getFullYear().toString()
-    setWebsitePages(DEFAULT_WEBSITE_PAGES)
-    setSelectedWebsitePageId("home")
-    setWebsiteFormData(DEFAULT_WEBSITE_PAGES[0])
-    localStorage.setItem(`website_pages_${year}`, JSON.stringify(DEFAULT_WEBSITE_PAGES))
-    localStorage.setItem("website_pages", JSON.stringify(DEFAULT_WEBSITE_PAGES))
-    
-    window.dispatchEvent(new Event("website-pages-changed"))
-    window.dispatchEvent(new Event("storage"))
-  }
-
   // System Config Handlers
   const handleAddYear = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -689,7 +517,6 @@ export default function ElderDashboardClient() {
           <TabsTrigger value="users">User Accounts</TabsTrigger>
           <TabsTrigger value="evangelism">Evangelism Dept</TabsTrigger>
           <TabsTrigger value="announcements">Announcements</TabsTrigger>
-          <TabsTrigger value="website-pages">Website Pages</TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
           <TabsTrigger value="system">System Config</TabsTrigger>
         </TabsList>
@@ -1327,310 +1154,6 @@ export default function ElderDashboardClient() {
                       ))}
                     </TableBody>
                   </Table>
-                </div>
-              </div>
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="website-pages" className="space-y-6">
-          <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-            <div className="space-y-4 rounded-xl border bg-background p-4 shadow-sm">
-              <div className="space-y-1">
-                <h3 className="flex items-center gap-2 text-xl font-bold">
-                  <Globe className="h-5 w-5 text-primary" /> Public Website Pages
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Select a page to edit its title, summary, and specific custom information manually.
-                </p>
-              </div>
-
-              <div className="grid gap-2">
-                {websitePages.map((page) => (
-                  <button
-                    key={page.id}
-                    type="button"
-                    onClick={() => handleSelectWebsitePage(page.id)}
-                    className={cn(
-                      "flex items-center justify-between gap-3 rounded-lg border p-3 text-left transition-colors",
-                      selectedWebsitePageId === page.id
-                        ? "border-primary bg-primary/10"
-                        : "border-border hover:bg-muted/50"
-                    )}
-                  >
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm font-bold">{page.page}</span>
-                      <span className="block truncate text-xs text-muted-foreground">{page.route}</span>
-                    </span>
-                    <span className={cn(
-                      "shrink-0 rounded-full px-2 py-1 text-[10px] font-bold",
-                      page.status === "Visible" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
-                    )}>
-                      {page.status}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <form onSubmit={handleSaveWebsitePage} className="space-y-5 rounded-xl border bg-background p-4 shadow-sm md:p-6">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <h3 className="flex items-center gap-2 text-xl font-bold">
-                      <Edit className="h-5 w-5 text-primary" /> Manage {websiteFormData.page} Details
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Route: {websiteFormData.route}
-                    </p>
-                  </div>
-                  <a
-                    href={websiteFormData.route}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center justify-center gap-2 rounded-md border px-3 py-2 text-sm font-semibold hover:bg-muted"
-                  >
-                    <Eye className="h-4 w-4" /> Preview
-                  </a>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="grid gap-2">
-                    <Label>Page Name</Label>
-                    <Input
-                      value={websiteFormData.page}
-                      onChange={(e) => setWebsiteFormData({ ...websiteFormData, page: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Status</Label>
-                    <select
-                      value={websiteFormData.status}
-                      onChange={(e) => setWebsiteFormData({ ...websiteFormData, status: e.target.value as "Visible" | "Draft" })}
-                      className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    >
-                      <option value="Visible">Visible</option>
-                      <option value="Draft">Draft</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid gap-2">
-                  <Label>Main Headline</Label>
-                  <Input
-                    value={websiteFormData.headline}
-                    onChange={(e) => setWebsiteFormData({ ...websiteFormData, headline: e.target.value })}
-                    required
-                  />
-                </div>
-
-                <div className="grid gap-2">
-                  <Label>Page Summary</Label>
-                  <textarea
-                    value={websiteFormData.summary}
-                    onChange={(e) => setWebsiteFormData({ ...websiteFormData, summary: e.target.value })}
-                    className="min-h-20 rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    required
-                  />
-                </div>
-
-                <div className="grid gap-2">
-                  <Label>Managed Key Items / Categories</Label>
-                  <textarea
-                    value={websiteFormData.keyItems}
-                    onChange={(e) => setWebsiteFormData({ ...websiteFormData, keyItems: e.target.value })}
-                    className="min-h-20 rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    required
-                  />
-                </div>
-
-                {/* Dynamic Content Custom Fields Based on Selected Page */}
-                {websiteFormData.id === "sermons" && (
-                  <div className="p-4 border rounded-lg bg-muted/20 space-y-4">
-                    <h4 className="font-bold text-sm text-primary">Sermon Details Manual Input</h4>
-                    <div className="grid gap-4 md:grid-cols-3">
-                      <div className="grid gap-2">
-                        <Label>Speaker</Label>
-                        <Input
-                          placeholder="e.g. Pastor"
-                          value={websiteFormData.speaker || ""}
-                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, speaker: e.target.value })}
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label>Date</Label>
-                        <Input
-                          type="date"
-                          value={websiteFormData.date || ""}
-                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, date: e.target.value })}
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label>Scripture</Label>
-                        <Input
-                          placeholder="e.g. Revelation 14:6-12"
-                          value={websiteFormData.scripture || ""}
-                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, scripture: e.target.value })}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {websiteFormData.id === "ministries" && (
-                  <div className="p-4 border rounded-lg bg-muted/20 space-y-4">
-                    <h4 className="font-bold text-sm text-primary">Ministries Details Manual Input</h4>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div className="grid gap-2">
-                        <Label>Schedules / Times</Label>
-                        <textarea
-                          placeholder="e.g. Fridays at 5:00 PM & Saturdays at 1:30 PM..."
-                          value={websiteFormData.schedules || ""}
-                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, schedules: e.target.value })}
-                          className="min-h-24 rounded-md border border-input bg-background px-3 py-2 text-sm"
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label>Leadership Roles / Positions</Label>
-                        <Input
-                          placeholder="e.g. Music Director"
-                          value={websiteFormData.leadership || ""}
-                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, leadership: e.target.value })}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {websiteFormData.id === "events" && (
-                  <div className="p-4 border rounded-lg bg-muted/20 space-y-4">
-                    <h4 className="font-bold text-sm text-primary">Events Details Manual Input</h4>
-                    <div className="grid gap-4 md:grid-cols-3">
-                      <div className="grid gap-2">
-                        <Label>Frequency / Day</Label>
-                        <Input
-                          placeholder="e.g. Every Saturday"
-                          value={websiteFormData.date || ""}
-                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, date: e.target.value })}
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label>Time Schedule</Label>
-                        <Input
-                          placeholder="e.g. 9:00 AM - 12:00 PM"
-                          value={websiteFormData.schedules || ""}
-                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, schedules: e.target.value })}
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label>Location</Label>
-                        <Input
-                          placeholder="e.g. Main Sanctuary"
-                          value={websiteFormData.location || ""}
-                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, location: e.target.value })}
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label>Speaker</Label>
-                        <Input
-                          placeholder="e.g. Church Pastor"
-                          value={websiteFormData.speaker || ""}
-                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, speaker: e.target.value })}
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label>Organizer</Label>
-                        <Input
-                          placeholder="e.g. Church Board"
-                          value={websiteFormData.organizer || ""}
-                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, organizer: e.target.value })}
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label>Contact Number</Label>
-                        <Input
-                          placeholder="e.g. +250 780 000 000"
-                          value={websiteFormData.contactPhone || ""}
-                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, contactPhone: e.target.value })}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {websiteFormData.id === "contact" && (
-                  <div className="p-4 border rounded-lg bg-muted/20 space-y-4">
-                    <h4 className="font-bold text-sm text-primary">Contact Information Manual Input</h4>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div className="grid gap-2">
-                        <Label>Address</Label>
-                        <Input
-                          placeholder="e.g. RP Ngoma Campus, Kibungo..."
-                          value={websiteFormData.address || ""}
-                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, address: e.target.value })}
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label>Phone Number</Label>
-                        <Input
-                          placeholder="e.g. +250 780 000 000"
-                          value={websiteFormData.contactPhone || ""}
-                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, contactPhone: e.target.value })}
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label>Email Address</Label>
-                        <Input
-                          placeholder="e.g. info@asaunikrpngoma.org"
-                          value={websiteFormData.email || ""}
-                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, email: e.target.value })}
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label>Office Hours</Label>
-                        <Input
-                          placeholder="e.g. Mon-Fri, 9:00 AM - 5:00 PM"
-                          value={websiteFormData.officeHours || ""}
-                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, officeHours: e.target.value })}
-                        />
-                      </div>
-                      <div className="grid gap-2 md:col-span-2">
-                        <Label>Website URL</Label>
-                        <Input
-                          placeholder="e.g. asaunikrpngoma.org"
-                          value={websiteFormData.websiteUrl || ""}
-                          onChange={(e) => setWebsiteFormData({ ...websiteFormData, websiteUrl: e.target.value })}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex flex-col gap-2 sm:flex-row">
-                  <Button type="submit">
-                    <CheckCircle2 className="mr-2 h-4 w-4" /> Save Page Details
-                  </Button>
-                  <Button type="button" variant="outline" onClick={handleResetWebsitePages}>
-                    Reset Defaults
-                  </Button>
-                </div>
-              </form>
-
-              <div className="rounded-xl border bg-muted/30 p-4">
-                <h4 className="mb-3 flex items-center gap-2 font-bold">
-                  <FileText className="h-4 w-4 text-primary" /> Management Coverage Preview
-                </h4>
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                  {websitePages.map((page) => (
-                    <div key={page.id} className="rounded-lg border bg-background p-3 space-y-1">
-                      <p className="truncate text-sm font-bold">{page.page}</p>
-                      <p className="line-clamp-2 text-xs leading-5 text-muted-foreground">{page.summary}</p>
-                      {page.speaker && <p className="text-[11px] font-medium text-primary">Speaker: {page.speaker}</p>}
-                      {page.scripture && <p className="text-[11px] text-muted-foreground">Text: {page.scripture}</p>}
-                      {page.contactPhone && <p className="text-[11px] text-muted-foreground">Contact: {page.contactPhone}</p>}
-                    </div>
-                  ))}
                 </div>
               </div>
             </div>
