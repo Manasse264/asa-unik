@@ -143,7 +143,7 @@ const MINISTRIES_DATA: Ministry[] = [
     ],
     schedule: "Fridays at 5:00 PM & Saturdays at 1:30 PM",
     leader: "Music Director",
-    contactPhone: "+250 780 000 005",
+    contactPhone: "+250 790 673 150",
     contactEmail: "music@asaunikrpngoma.org"
   },
   {
