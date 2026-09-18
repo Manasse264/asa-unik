@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Camera, PlayCircle } from "lucide-react"
+import { Camera } from "lucide-react"
 import { getStoredGallery } from "@/lib/website-gallery-storage"
 
 const categories = ["Worship Services", "Sabbath School", "Youth", "Children", "Women's Ministry", "Men's Ministry", "Choir", "Baptism", "Evangelism", "Community Outreach", "Special Events"]
@@ -96,23 +96,6 @@ export default function GalleryPage() {
         </div>
       </section>
 
-      <section className="container px-4 pb-12 md:px-8">
-        <div className="rounded-lg border bg-white p-5 shadow-sm">
-          <div className="mb-5 flex items-center gap-2">
-            <PlayCircle className="h-6 w-6 text-primary" />
-            <h2 className="text-2xl font-black text-slate-900">Video Gallery</h2>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            {["Worship videos", "Church programs", "Youth programs", "Evangelism", "Special events"].map((video) => (
-              <div key={video} className="flex items-center justify-between rounded-md border bg-slate-50 p-4">
-                <span className="font-semibold text-slate-800">{video}</span>
-                <button className="rounded-md bg-slate-900 px-3 py-2 text-xs font-bold text-white">Watch Video</button>
-              </div>
-            ))}
-          </div>
-          <button className="mt-5 rounded-md border px-4 py-2 text-sm font-bold text-slate-800">View More</button>
-        </div>
-      </section>
     </main>
   )
 }
