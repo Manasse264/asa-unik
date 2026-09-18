@@ -140,8 +140,10 @@ interface WebsiteEvent {
   description: string
   category: "Worship" | "Prayer" | "Youth" | "Bible Study" | "Evangelism" | "Community Outreach" | "Family"
   date: string
-  time: string
+  start: string
+  end: string
   location: string
+  speaker: string
   organizer: string
   image: string
 }
@@ -247,8 +249,10 @@ export default function ElderDashboardClient() {
     description: "",
     category: "Worship" as WebsiteEvent["category"],
     date: new Date().toISOString().split('T')[0],
-    time: "",
+    start: "09:00",
+    end: "12:00",
     location: "",
+    speaker: "",
     organizer: "",
     image: "",
   })
@@ -451,8 +455,10 @@ export default function ElderDashboardClient() {
       description: eventFormData.description.trim(),
       category: eventFormData.category,
       date: eventFormData.date,
-      time: eventFormData.time.trim(),
+      start: eventFormData.start,
+      end: eventFormData.end,
       location: eventFormData.location.trim(),
+      speaker: eventFormData.speaker.trim() || "Church Pastor",
       organizer: eventFormData.organizer.trim() || "Church Team",
       image: eventFormData.image.trim() || "/photo1.jpg",
     }
@@ -471,8 +477,10 @@ export default function ElderDashboardClient() {
       description: "",
       category: "Worship",
       date: new Date().toISOString().split('T')[0],
-      time: "",
+      start: "09:00",
+      end: "12:00",
       location: "",
+      speaker: "",
       organizer: "",
       image: "",
     })
@@ -1056,12 +1064,20 @@ export default function ElderDashboardClient() {
                   <Input type="date" value={eventFormData.date} onChange={(e) => setEventFormData({ ...eventFormData, date: e.target.value })} />
                 </div>
                 <div className="grid gap-2">
-                  <Label>Time / Hours</Label>
-                  <Input value={eventFormData.time} onChange={(e) => setEventFormData({ ...eventFormData, time: e.target.value })} placeholder="9:00 AM - 12:00 PM" />
+                  <Label>Start time</Label>
+                  <Input type="time" value={eventFormData.start} onChange={(e) => setEventFormData({ ...eventFormData, start: e.target.value })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>End time</Label>
+                  <Input type="time" value={eventFormData.end} onChange={(e) => setEventFormData({ ...eventFormData, end: e.target.value })} />
                 </div>
                 <div className="grid gap-2">
                   <Label>Location</Label>
                   <Input value={eventFormData.location} onChange={(e) => setEventFormData({ ...eventFormData, location: e.target.value })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Speaker</Label>
+                  <Input value={eventFormData.speaker} onChange={(e) => setEventFormData({ ...eventFormData, speaker: e.target.value })} placeholder="Speaker name" />
                 </div>
                 <div className="grid gap-2">
                   <Label>Organizer / Coordinator</Label>

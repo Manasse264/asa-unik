@@ -14,6 +14,15 @@ const DEFAULT_EVENTS = [
 const categories = ["Worship", "Prayer", "Youth", "Bible Study", "Evangelism", "Community Outreach", "Family", "Special Programs"]
 const pastEvents = ["Baptism Sabbath", "Choir Concert", "Health Program"]
 
+const formatEventTime = (time: string | undefined) => {
+  if (!time) return "Time to be announced"
+  if (!/^\d{2}:\d{2}$/.test(time)) return time
+  const [hours, minutes] = time.split(":").map(Number)
+  const period = hours >= 12 ? "PM" : "AM"
+  const displayHours = hours % 12 || 12
+  return `${displayHours}:${String(minutes).padStart(2, "0")} ${period}`
+}
+
 const getPublishedEvents = () => {
   if (typeof window === "undefined") return DEFAULT_EVENTS
   try {
@@ -78,12 +87,11 @@ export default function EventsPage() {
                 <p className="text-sm leading-6 text-slate-600">{event.description}</p>
                 <div className="grid gap-2 text-sm text-slate-700 sm:grid-cols-2">
                   <p className="flex items-center gap-2"><CalendarDays className="h-4 w-4 text-primary" /> {event.date}</p>
-                  <p className="flex items-center gap-2"><Clock className="h-4 w-4 text-primary" /> {event.start} - {event.end}</p>
+                  <p className="flex items-center gap-2"><Clock className="h-4 w-4 text-primary" /> {event.start || event.time ? `${formatEventTime(event.start || event.time)}${event.end ? ` - ${formatEventTime(event.end)}` : ""}` : "Time to be announced"}</p>
                   <p className="flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" /> {event.location}</p>
                   <p className="flex items-center gap-2"><Mic className="h-4 w-4 text-primary" /> {event.speaker}</p>
-                  <p className="flex items-center gap-2 sm:col-span-2"><Users className="h-4 w-4 text-primary" /> Organizer: {event.organizer} | Contact: +250 780 000 000</p>
+                  <p className="flex items-center gap-2 sm:col-span-2"><Users className="h-4 w-4 text-primary" /> Organizer: {event.organizer} </p>
                 </div>
-                <button className="w-full rounded-md bg-slate-900 px-4 py-2 text-sm font-bold text-white">Register / Join Event</button>
               </div>
             </article>
           ))}
