@@ -203,6 +203,13 @@ interface HomepageGalleryPhoto {
   type?: "photo" | "video"
 }
 
+interface HomepageSermon {
+  title: string
+  speaker?: string
+  date?: string
+  thumbnail?: string
+}
+
 const upcomingEvents: HomepageEvent[] = [
   {
     id: 1,
@@ -260,10 +267,17 @@ const formatEventDate = (date?: string) => {
   }
 }
 
+const formatSermonDate = (date?: string) => {
+  if (!date) return "Date to be announced"
+  const parsed = /^\d{4}-\d{2}-\d{2}$/.test(date) ? new Date(`${date}T00:00:00`) : new Date(date)
+  return Number.isNaN(parsed.getTime()) ? date : new Intl.DateTimeFormat("en-US", { dateStyle: "long" }).format(parsed)
+}
+
 export default function Page() {
   const [lang, setLang] = React.useState<"en" | "rw" | "fr">("en")
   const [homepageEvents, setHomepageEvents] = React.useState<HomepageEvent[]>(upcomingEvents)
   const [homepageGallery, setHomepageGallery] = React.useState<HomepageGalleryPhoto[]>([])
+  const [homepageSermon, setHomepageSermon] = React.useState<HomepageSermon | null>(null)
 
   React.useEffect(() => {
     const updateLang = () => {
@@ -283,6 +297,13 @@ export default function Page() {
         if (rawEvents) {
           const parsedEvents = JSON.parse(rawEvents)
           if (Array.isArray(parsedEvents)) setHomepageEvents(parsedEvents)
+        }
+        const rawSermons = localStorage.getItem("church_website_sermons")
+        if (rawSermons) {
+          const parsedSermons = JSON.parse(rawSermons)
+          setHomepageSermon(Array.isArray(parsedSermons) && parsedSermons.length ? parsedSermons[0] : null)
+        } else {
+          setHomepageSermon(null)
         }
         const gallery = await getStoredGallery()
         if (gallery) setHomepageGallery(gallery.filter((item) => item.type !== "video").slice(0, 5))
@@ -493,11 +514,10 @@ export default function Page() {
             {/* Latest Sermon Card */}
             <div className="lg:col-span-5 bg-slate-900 rounded-2xl overflow-hidden shadow-lg border border-slate-800 text-white flex flex-col">
               <div className="relative w-full h-48 bg-slate-800">
-                <Image 
-                  src="/photo3.jpg" 
-                  alt="Sermon Thumbnail" 
-                  fill 
-                  className="object-cover opacity-80"
+                <img
+                  src={homepageSermon?.thumbnail || "/photo3.jpg"}
+                  alt={homepageSermon?.title || "Sermon Thumbnail"}
+                  className="h-full w-full object-cover opacity-80"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent flex items-center justify-center">
                   <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/40 cursor-pointer hover:scale-110 transition-transform">
@@ -512,13 +532,13 @@ export default function Page() {
                     {t.sermonBadge}
                   </span>
                   <h3 className="text-2xl font-bold text-white mt-1">
-                    {t.sermonTitle}
+                    {homepageSermon?.title || t.sermonTitle}
                   </h3>
                   <p className="text-xs font-medium text-slate-300 mt-2">
-                    {t.sermonSpeaker}
+                    {homepageSermon?.speaker ? `Speaker: ${homepageSermon.speaker}` : t.sermonSpeaker}
                   </p>
                   <p className="text-xs font-medium text-slate-400 mt-0.5">
-                    {t.sermonDate}
+                    {homepageSermon?.date ? formatSermonDate(homepageSermon.date) : t.sermonDate}
                   </p>
                 </div>
 
