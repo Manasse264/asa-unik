@@ -5,6 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { getStoredGallery } from "@/lib/website-gallery-storage"
 import {
   Calendar,
   Clock,
@@ -182,7 +183,27 @@ const translations = {
   }
 }
 
-const upcomingEvents = [
+interface HomepageEvent {
+  id: string | number
+  day?: string
+  month?: string
+  title: string
+  date?: string
+  category?: string
+  time?: string
+  start?: string
+  end?: string
+  location: string
+}
+
+interface HomepageGalleryPhoto {
+  id?: string
+  src: string
+  title: string
+  type?: "photo" | "video"
+}
+
+const upcomingEvents: HomepageEvent[] = [
   {
     id: 1,
     day: "13",
@@ -217,8 +238,32 @@ const upcomingEvents = [
   }
 ]
 
+const formatEventTime = (start?: string, end?: string, legacyTime?: string) => {
+  const formatTime = (time?: string) => {
+    if (!time) return "Time to be announced"
+    if (!/^\d{2}:\d{2}$/.test(time)) return time
+    const [hours, minutes] = time.split(":").map(Number)
+    return `${hours % 12 || 12}:${String(minutes).padStart(2, "0")} ${hours >= 12 ? "PM" : "AM"}`
+  }
+
+  if (start || legacyTime) return `${formatTime(start || legacyTime)}${end ? ` - ${formatTime(end)}` : ""}`
+  return "Time to be announced"
+}
+
+const formatEventDate = (date?: string) => {
+  if (!date) return { day: "--", month: "DATE" }
+  const parsed = /^\d{4}-\d{2}-\d{2}$/.test(date) ? new Date(`${date}T00:00:00`) : new Date(date)
+  if (Number.isNaN(parsed.getTime())) return { day: "--", month: "DATE" }
+  return {
+    day: String(parsed.getDate()),
+    month: new Intl.DateTimeFormat("en-US", { month: "short" }).format(parsed).toUpperCase(),
+  }
+}
+
 export default function Page() {
   const [lang, setLang] = React.useState<"en" | "rw" | "fr">("en")
+  const [homepageEvents, setHomepageEvents] = React.useState<HomepageEvent[]>(upcomingEvents)
+  const [homepageGallery, setHomepageGallery] = React.useState<HomepageGalleryPhoto[]>([])
 
   React.useEffect(() => {
     const updateLang = () => {
@@ -229,6 +274,31 @@ export default function Page() {
 
     window.addEventListener("lang-change", updateLang)
     return () => window.removeEventListener("lang-change", updateLang)
+  }, [])
+
+  React.useEffect(() => {
+    const syncHomepageContent = async () => {
+      try {
+        const rawEvents = localStorage.getItem("church_website_events")
+        if (rawEvents) {
+          const parsedEvents = JSON.parse(rawEvents)
+          if (Array.isArray(parsedEvents)) setHomepageEvents(parsedEvents)
+        }
+        const gallery = await getStoredGallery()
+        if (gallery) setHomepageGallery(gallery.filter((item) => item.type !== "video").slice(0, 5))
+      } catch {
+        setHomepageEvents(upcomingEvents)
+      }
+    }
+
+    const handleContentUpdate = () => { void syncHomepageContent() }
+    void syncHomepageContent()
+    window.addEventListener("website-content-updated", handleContentUpdate)
+    window.addEventListener("storage", handleContentUpdate)
+    return () => {
+      window.removeEventListener("website-content-updated", handleContentUpdate)
+      window.removeEventListener("storage", handleContentUpdate)
+    }
   }, [])
 
   const t = translations[lang]
@@ -517,17 +587,20 @@ export default function Page() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {upcomingEvents.map((ev) => (
+              {homepageEvents.map((ev) => {
+                const eventDate = formatEventDate(ev.date)
+                return (
                 <div key={ev.id} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-start gap-4">
                   <div className="bg-blue-50 border border-blue-100 rounded-lg p-2.5 text-center shrink-0 min-w-[56px]">
-                    <span className="block text-lg font-black text-blue-900 leading-none">{ev.day}</span>
-                    <span className="block text-[10px] font-bold text-blue-600 tracking-wider uppercase mt-1">{ev.month}</span>
+                    <span className="block text-lg font-black text-blue-900 leading-none">{ev.date ? eventDate.day : ev.day}</span>
+                    <span className="block text-[10px] font-bold text-blue-600 tracking-wider uppercase mt-1">{ev.date ? eventDate.month : ev.month}</span>
                   </div>
                   <div className="space-y-1 min-w-0">
                     <h4 className="text-sm font-bold text-slate-900 truncate">{ev.title}</h4>
+                    <p className="text-xs font-semibold text-blue-800 truncate">{ev.category || "Church Event"}</p>
                     <p className="text-xs text-slate-500 flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5" />
-                      {ev.time}
+                      {formatEventTime(ev.start, ev.end, ev.time)}
                     </p>
                     <p className="text-xs text-slate-500 flex items-center gap-1">
                       <MapPin className="w-3.5 h-3.5" />
@@ -535,7 +608,8 @@ export default function Page() {
                     </p>
                   </div>
                 </div>
-              ))}
+                )
+              })}
             </div>
           </div>
 
@@ -559,14 +633,9 @@ export default function Page() {
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-              {["/photo1.jpg", "/photo2.jpg", "/photo3.jpg", "/photo4.jpg", "/photo1.jpg"].map((src, i) => (
-                <div key={i} className="relative h-36 rounded-xl overflow-hidden group shadow-sm">
-                  <Image 
-                    src={src} 
-                    alt={`Gallery photo ${i + 1}`} 
-                    fill 
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
+              {(homepageGallery.length ? homepageGallery : ["/photo1.jpg", "/photo2.jpg", "/photo3.jpg", "/photo4.jpg", "/photo1.jpg"].map((src): HomepageGalleryPhoto => ({ src, title: "Church gallery" }))).map((photo, i) => (
+                <div key={photo.id ?? `${photo.src}-${i}`} className="relative h-36 rounded-xl overflow-hidden group shadow-sm">
+                  <img src={photo.src} alt={photo.title || `Gallery photo ${i + 1}`} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
                   <div className="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/0 transition-colors" />
                 </div>
               ))}
