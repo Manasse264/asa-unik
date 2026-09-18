@@ -127,7 +127,17 @@ const getPublishedSermons = () => {
     const raw = localStorage.getItem("church_website_sermons")
     if (!raw) return DEFAULT_SERMONS_DATA
     const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) && parsed.length ? parsed : DEFAULT_SERMONS_DATA
+    if (!Array.isArray(parsed) || !parsed.length) return DEFAULT_SERMONS_DATA
+
+    return parsed.map((sermon) => ({
+      ...sermon,
+      bibleReference: sermon.bibleReference ?? sermon.scripture ?? "",
+      speaker: sermon.speaker ?? "Pastor",
+      description: sermon.description ?? "",
+      videoUrl: sermon.videoUrl ?? "",
+      audioUrl: sermon.audioUrl ?? "",
+      thumbnail: sermon.thumbnail ?? "/photo1.jpg",
+    }))
   } catch {
     return DEFAULT_SERMONS_DATA
   }
