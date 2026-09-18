@@ -5,6 +5,7 @@ import { Camera, PlayCircle } from "lucide-react"
 
 const categories = ["Worship Services", "Sabbath School", "Youth", "Children", "Women's Ministry", "Men's Ministry", "Choir", "Baptism", "Evangelism", "Community Outreach", "Special Events"]
 interface GalleryPhoto {
+  id?: string
   src: string
   title: string
   date: string
@@ -75,7 +76,7 @@ export default function GalleryPage() {
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {photos.map((photo) => (
-            <article key={`${photo.title}-${photo.date}`} className="overflow-hidden rounded-lg border bg-white shadow-sm">
+            <article key={photo.id ?? `${photo.title}-${photo.date}`} className="overflow-hidden rounded-lg border bg-white shadow-sm">
               <div className="relative aspect-[4/3]">
                 {photo.type === "video" ? (
                   <video src={photo.src} controls className="h-full w-full object-cover" />

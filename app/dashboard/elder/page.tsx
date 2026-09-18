@@ -500,8 +500,13 @@ export default function ElderDashboardClient() {
     }
 
     const updated = [galleryItem, ...publishedGallery]
+    try {
+      localStorage.setItem(WEBSITE_GALLERY_KEY, JSON.stringify(updated))
+    } catch {
+      alert("This gallery file is too large to publish in browser storage. Please choose a smaller file.")
+      return
+    }
     setPublishedGallery(updated)
-    localStorage.setItem(WEBSITE_GALLERY_KEY, JSON.stringify(updated))
     window.dispatchEvent(new Event("website-content-updated"))
     setGalleryFormData({
       title: "",
