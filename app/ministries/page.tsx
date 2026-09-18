@@ -399,9 +399,6 @@ export default function MinistriesPage() {
               >
                 Close
               </Button>
-              <Button asChild className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold">
-                <Link href="/register">Get Involved</Link>
-              </Button>
             </div>
 
           </div>

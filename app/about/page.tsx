@@ -232,9 +232,6 @@ export default function AboutPage() {
             </p>
             <p className="text-xs text-slate-400 uppercase tracking-widest">– Matthew 18:20</p>
             <div className="flex justify-center gap-4 pt-2">
-              <Button asChild size="lg" className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-8 rounded-full">
-                <Link href="/register">Join Us Today</Link>
-              </Button>
               <Button asChild variant="outline" size="lg" className="border-white/40 text-white hover:bg-white/10 rounded-full">
                 <Link href="/events">View Sabbath Schedule</Link>
               </Button>
