@@ -258,7 +258,7 @@ export default function ElderDashboardClient() {
   const [ministryFormData, setMinistryFormData] = React.useState({
     name: "",
     iconKey: "Users",
-    photo: "/photo1.jpg",
+    photo: "",
     description: "",
     objectives: "",
     activities: "",
@@ -453,7 +453,7 @@ export default function ElderDashboardClient() {
       id: `ministry-${Date.now()}`,
       name: ministryFormData.name.trim(),
       iconKey: ministryFormData.iconKey,
-      photo: ministryFormData.photo.trim() || "/photo1.jpg",
+      photo: ministryFormData.photo,
       description: ministryFormData.description.trim(),
       objectives: ministryFormData.objectives.split("\n").map((item) => item.trim()).filter(Boolean),
       activities: ministryFormData.activities.split("\n").map((item) => item.trim()).filter(Boolean),
@@ -463,8 +463,8 @@ export default function ElderDashboardClient() {
       contactEmail: ministryFormData.contactEmail.trim(),
     }
 
-    if (!ministry.name || !ministry.description || !ministry.schedule || !ministry.leader) {
-      alert("Please complete the ministry name, description, schedule, and leader before publishing.")
+    if (!ministry.name || !ministry.photo || !ministry.description || !ministry.schedule || !ministry.leader) {
+      alert("Please complete the ministry name, photo, description, schedule, and leader before publishing.")
       return
     }
 
@@ -475,7 +475,7 @@ export default function ElderDashboardClient() {
     setMinistryFormData({
       name: "",
       iconKey: "Users",
-      photo: "/photo1.jpg",
+      photo: "",
       description: "",
       objectives: "",
       activities: "",
@@ -547,12 +547,13 @@ export default function ElderDashboardClient() {
     window.dispatchEvent(new Event("website-content-updated"))
   }
 
-  const handleUploadFile = (file: File | undefined, type: "image" | "gallery") => {
+  const handleUploadFile = (file: File | undefined, type: "image" | "gallery" | "ministry") => {
     if (!file) return
     const reader = new FileReader()
     reader.onloadend = () => {
       const result = reader.result as string
       if (type === "image") setEventFormData((prev) => ({ ...prev, image: result }))
+      if (type === "ministry") setMinistryFormData((prev) => ({ ...prev, photo: result }))
       if (type === "gallery") setGalleryFormData((prev) => ({
         ...prev,
         src: result,
@@ -1105,8 +1106,11 @@ export default function ElderDashboardClient() {
                   </select>
                 </div>
                 <div className="grid gap-2">
-                  <Label>Photo URL</Label>
-                  <Input value={ministryFormData.photo} onChange={(e) => setMinistryFormData({ ...ministryFormData, photo: e.target.value })} placeholder="/photo1.jpg or https://..." />
+                  <Label>Ministry photo</Label>
+                  <Input type="file" accept="image/*" onChange={(e) => handleUploadFile(e.target.files?.[0], "ministry")} />
+                  {ministryFormData.photo && (
+                    <img src={ministryFormData.photo} alt="Ministry preview" className="h-32 w-full rounded-md object-cover" />
+                  )}
                 </div>
                 <div className="grid gap-2">
                   <Label>Description</Label>
