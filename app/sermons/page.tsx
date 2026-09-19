@@ -164,7 +164,7 @@ const getYouTubeEmbedUrl = (url: string) => {
 }
 
 export default function SermonsPage() {
-  const [sermons, setSermons] = React.useState<Sermon[]>(getPublishedSermons)
+  const [sermons, setSermons] = React.useState<Sermon[]>(DEFAULT_SERMONS_DATA)
   const [searchQuery, setSearchQuery] = React.useState("")
   const [selectedCategory, setSelectedCategory] = React.useState("All")
   const [activeMedia, setActiveMedia] = React.useState<{ sermon: Sermon; type: "video" | "audio" } | null>(null)
