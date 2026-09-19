@@ -163,7 +163,7 @@ const getYouTubeEmbedUrl = (url: string) => {
 }
 
 export default function SermonsPage() {
-  const [sermons, setSermons] = React.useState<Sermon[]>(DEFAULT_SERMONS_DATA)
+  const [sermons, setSermons] = React.useState<Sermon[]>(getPublishedSermons)
   const [searchQuery, setSearchQuery] = React.useState("")
   const [selectedCategory, setSelectedCategory] = React.useState("All")
   const [activeMedia, setActiveMedia] = React.useState<{ sermon: Sermon; type: "video" | "audio" } | null>(null)
@@ -174,10 +174,14 @@ export default function SermonsPage() {
     window.addEventListener("website-content-updated", syncSermons)
     window.addEventListener("storage", syncSermons)
     window.addEventListener("year-changed", syncSermons)
+    window.addEventListener("pageshow", syncSermons)
+    document.addEventListener("visibilitychange", syncSermons)
     return () => {
       window.removeEventListener("website-content-updated", syncSermons)
       window.removeEventListener("storage", syncSermons)
       window.removeEventListener("year-changed", syncSermons)
+      window.removeEventListener("pageshow", syncSermons)
+      document.removeEventListener("visibilitychange", syncSermons)
     }
   }, [])
 

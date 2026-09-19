@@ -35,6 +35,10 @@ interface Ministry {
   contactEmail: string
 }
 
+interface PublishedMinistry extends Omit<Ministry, "icon"> {
+  iconKey?: string
+}
+
 const MINISTRIES_DATA: Ministry[] = [
   {
     id: "youth",
@@ -192,8 +196,49 @@ const MINISTRIES_DATA: Ministry[] = [
   }
 ]
 
+const MINISTRIES_KEY = "church_website_ministries"
+
+const getIcon = (iconKey?: string) => {
+  const icons: Record<string, React.ElementType> = {
+    Users,
+    Smile,
+    HeartHandshake,
+    Shield,
+    Music,
+    Flame,
+    Globe,
+  }
+  return icons[iconKey || "Users"] || Users
+}
+
+const getPublishedMinistries = (): Ministry[] => {
+  if (typeof window === "undefined") return MINISTRIES_DATA
+  try {
+    const raw = localStorage.getItem(MINISTRIES_KEY)
+    if (!raw) return MINISTRIES_DATA
+    const parsed = JSON.parse(raw) as PublishedMinistry[]
+    if (!Array.isArray(parsed) || parsed.length === 0) return MINISTRIES_DATA
+    const publishedMinistries = parsed.map(({ iconKey, ...ministry }) => ({ ...ministry, icon: getIcon(iconKey) }))
+    return [...MINISTRIES_DATA, ...publishedMinistries]
+  } catch {
+    return MINISTRIES_DATA
+  }
+}
+
 export default function MinistriesPage() {
   const [selectedMinistry, setSelectedMinistry] = React.useState<Ministry | null>(null)
+  const [ministries, setMinistries] = React.useState<Ministry[]>(getPublishedMinistries)
+
+  React.useEffect(() => {
+    const syncMinistries = () => setMinistries(getPublishedMinistries())
+    syncMinistries()
+    window.addEventListener("website-content-updated", syncMinistries)
+    window.addEventListener("storage", syncMinistries)
+    return () => {
+      window.removeEventListener("website-content-updated", syncMinistries)
+      window.removeEventListener("storage", syncMinistries)
+    }
+  }, [])
 
   return (
     <main className="relative flex-1 min-h-[calc(100vh-64px)] overflow-hidden">
@@ -231,7 +276,7 @@ export default function MinistriesPage() {
 
           {/* Ministry Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {MINISTRIES_DATA.map((ministry) => {
+            {ministries.map((ministry) => {
               const IconComponent = ministry.icon
               return (
                 <div

@@ -159,9 +159,24 @@ interface WebsiteGalleryItem {
   mimeType?: string
 }
 
+interface WebsiteMinistry {
+  id: string
+  name: string
+  iconKey: string
+  photo: string
+  description: string
+  objectives: string[]
+  activities: string[]
+  schedule: string
+  leader: string
+  contactPhone: string
+  contactEmail: string
+}
+
 const WEBSITE_SERMONS_KEY = "church_website_sermons"
 const WEBSITE_EVENTS_KEY = "church_website_events"
 const WEBSITE_GALLERY_KEY = "church_website_gallery"
+const WEBSITE_MINISTRIES_KEY = "church_website_ministries"
 
 export default function ElderDashboardClient() {
   const [members, setMembers] = React.useState<Member[]>([])
@@ -230,6 +245,7 @@ export default function ElderDashboardClient() {
   const [publishedSermons, setPublishedSermons] = React.useState<WebsiteSermon[]>([])
   const [publishedEvents, setPublishedEvents] = React.useState<WebsiteEvent[]>([])
   const [publishedGallery, setPublishedGallery] = React.useState<WebsiteGalleryItem[]>([])
+  const [publishedMinistries, setPublishedMinistries] = React.useState<WebsiteMinistry[]>([])
 
   const [sermonFormData, setSermonFormData] = React.useState({
     title: "",
@@ -268,19 +284,35 @@ export default function ElderDashboardClient() {
     fileSize: 0,
   })
 
+  const [ministryFormData, setMinistryFormData] = React.useState({
+    name: "",
+    iconKey: "Users",
+    photo: "/photo1.jpg",
+    description: "",
+    objectives: "",
+    activities: "",
+    schedule: "",
+    leader: "",
+    contactPhone: "",
+    contactEmail: "",
+  })
+
   const loadWebsiteContent = async () => {
     try {
       const storedSermons = localStorage.getItem(WEBSITE_SERMONS_KEY)
       const storedEvents = localStorage.getItem(WEBSITE_EVENTS_KEY)
+      const storedMinistries = localStorage.getItem(WEBSITE_MINISTRIES_KEY)
       const storedGallery = await getStoredGallery()
 
       setPublishedSermons(storedSermons ? JSON.parse(storedSermons) : [])
       setPublishedEvents(storedEvents ? JSON.parse(storedEvents) : [])
+      setPublishedMinistries(storedMinistries ? JSON.parse(storedMinistries) : [])
       setPublishedGallery(storedGallery || [])
     } catch (error) {
       console.error("Error loading published website content", error)
       setPublishedSermons([])
       setPublishedEvents([])
+      setPublishedMinistries([])
       setPublishedGallery([])
     }
   }
@@ -492,6 +524,53 @@ export default function ElderDashboardClient() {
     const updated = publishedEvents.filter((event) => event.id !== id)
     setPublishedEvents(updated)
     localStorage.setItem(WEBSITE_EVENTS_KEY, JSON.stringify(updated))
+    window.dispatchEvent(new Event("website-content-updated"))
+  }
+
+  const handlePublishMinistry = () => {
+    const ministry: WebsiteMinistry = {
+      id: `ministry-${Date.now()}`,
+      name: ministryFormData.name.trim(),
+      iconKey: ministryFormData.iconKey,
+      photo: ministryFormData.photo.trim() || "/photo1.jpg",
+      description: ministryFormData.description.trim(),
+      objectives: ministryFormData.objectives.split("\n").map((item) => item.trim()).filter(Boolean),
+      activities: ministryFormData.activities.split("\n").map((item) => item.trim()).filter(Boolean),
+      schedule: ministryFormData.schedule.trim(),
+      leader: ministryFormData.leader.trim(),
+      contactPhone: ministryFormData.contactPhone.trim(),
+      contactEmail: ministryFormData.contactEmail.trim(),
+    }
+
+    if (!ministry.name || !ministry.description || !ministry.schedule || !ministry.leader) {
+      alert("Please complete the ministry name, description, schedule, and leader before publishing.")
+      return
+    }
+
+    const updated = [ministry, ...publishedMinistries]
+    setPublishedMinistries(updated)
+    localStorage.setItem(WEBSITE_MINISTRIES_KEY, JSON.stringify(updated))
+    window.dispatchEvent(new Event("website-content-updated"))
+    setMinistryFormData({
+      name: "",
+      iconKey: "Users",
+      photo: "/photo1.jpg",
+      description: "",
+      objectives: "",
+      activities: "",
+      schedule: "",
+      leader: "",
+      contactPhone: "",
+      contactEmail: "",
+    })
+    alert("Ministry published to the website.")
+  }
+
+  const handleDeletePublishedMinistry = (id: string) => {
+    if (!confirm("Delete this published ministry from the website?")) return
+    const updated = publishedMinistries.filter((ministry) => ministry.id !== id)
+    setPublishedMinistries(updated)
+    localStorage.setItem(WEBSITE_MINISTRIES_KEY, JSON.stringify(updated))
     window.dispatchEvent(new Event("website-content-updated"))
   }
 
@@ -970,7 +1049,7 @@ export default function ElderDashboardClient() {
         </TabsContent>
 
         <TabsContent value="manage-webpage" className="space-y-6">
-          <div className="grid gap-6 xl:grid-cols-3">
+          <div className="grid gap-6 xl:grid-cols-4">
             <div className="rounded-xl border bg-background p-4 shadow-sm space-y-4">
               <div>
                 <h3 className="text-xl font-bold">Sermons</h3>
@@ -1146,9 +1225,67 @@ export default function ElderDashboardClient() {
                 <Button onClick={handlePublishGalleryItem}>Publish Gallery Item</Button>
               </div>
             </div>
+
+            <div className="rounded-xl border bg-background p-4 shadow-sm space-y-4">
+              <div>
+                <h3 className="text-xl font-bold">Ministries</h3>
+                <p className="text-sm text-muted-foreground">Add a ministry and publish it to the public Ministries page.</p>
+              </div>
+              <div className="grid gap-3">
+                <div className="grid gap-2">
+                  <Label>Name</Label>
+                  <Input value={ministryFormData.name} onChange={(e) => setMinistryFormData({ ...ministryFormData, name: e.target.value })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Icon</Label>
+                  <select className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm" value={ministryFormData.iconKey} onChange={(e) => setMinistryFormData({ ...ministryFormData, iconKey: e.target.value })}>
+                    <option value="Users">People</option>
+                    <option value="Smile">Children</option>
+                    <option value="HeartHandshake">Care</option>
+                    <option value="Shield">Leadership</option>
+                    <option value="Music">Music</option>
+                    <option value="Flame">Prayer</option>
+                    <option value="Globe">Outreach</option>
+                  </select>
+                </div>
+                <div className="grid gap-2">
+                  <Label>Photo URL</Label>
+                  <Input value={ministryFormData.photo} onChange={(e) => setMinistryFormData({ ...ministryFormData, photo: e.target.value })} placeholder="/photo1.jpg or https://..." />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Description</Label>
+                  <textarea className="min-h-[90px] rounded-md border border-input bg-background px-3 py-2 text-sm" value={ministryFormData.description} onChange={(e) => setMinistryFormData({ ...ministryFormData, description: e.target.value })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Objectives (one per line)</Label>
+                  <textarea className="min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm" value={ministryFormData.objectives} onChange={(e) => setMinistryFormData({ ...ministryFormData, objectives: e.target.value })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Activities (one per line)</Label>
+                  <textarea className="min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm" value={ministryFormData.activities} onChange={(e) => setMinistryFormData({ ...ministryFormData, activities: e.target.value })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Schedule</Label>
+                  <Input value={ministryFormData.schedule} onChange={(e) => setMinistryFormData({ ...ministryFormData, schedule: e.target.value })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Leader</Label>
+                  <Input value={ministryFormData.leader} onChange={(e) => setMinistryFormData({ ...ministryFormData, leader: e.target.value })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Contact phone</Label>
+                  <Input value={ministryFormData.contactPhone} onChange={(e) => setMinistryFormData({ ...ministryFormData, contactPhone: e.target.value })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Contact email</Label>
+                  <Input type="email" value={ministryFormData.contactEmail} onChange={(e) => setMinistryFormData({ ...ministryFormData, contactEmail: e.target.value })} />
+                </div>
+                <Button onClick={handlePublishMinistry}>Publish Ministry</Button>
+              </div>
+            </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-xl border bg-background p-4 shadow-sm">
               <h4 className="font-bold mb-2">Published Sermons</h4>
               <div className="space-y-2 text-sm text-muted-foreground">
@@ -1182,6 +1319,19 @@ export default function ElderDashboardClient() {
                   <div key={item.id} className="flex items-center justify-between gap-2">
                     <p className="truncate">• {item.title}</p>
                     <Button variant="ghost" size="icon" className="shrink-0 text-destructive" onClick={() => handleDeletePublishedGalleryItem(item.id)} aria-label={`Delete ${item.title}`}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-xl border bg-background p-4 shadow-sm">
+              <h4 className="font-bold mb-2">Published Ministries</h4>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                {publishedMinistries.length === 0 ? <p>No ministries yet.</p> : publishedMinistries.map((item) => (
+                  <div key={item.id} className="flex items-center justify-between gap-2">
+                    <p className="truncate">• {item.name}</p>
+                    <Button variant="ghost" size="icon" className="shrink-0 text-destructive" onClick={() => handleDeletePublishedMinistry(item.id)} aria-label={`Delete ${item.name}`}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
