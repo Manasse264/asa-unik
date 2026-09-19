@@ -378,12 +378,6 @@ export default function Page() {
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </Link>
               </Button>
-              <Button variant="outline" size="lg" asChild className="border-2 border-white/80 bg-white/10 hover:bg-white/20 text-white font-bold rounded-full px-6 backdrop-blur-sm">
-                <Link href="/sermons" className="flex items-center gap-2">
-                  <Play className="w-5 h-5 fill-current" />
-                  {t.watchOnline}
-                </Link>
-              </Button>
             </div>
           </div>
 
@@ -542,12 +536,6 @@ export default function Page() {
                   </p>
                 </div>
 
-                <Button asChild className="w-full bg-white hover:bg-slate-100 text-slate-950 font-bold rounded-lg mt-4">
-                  <Link href="/sermons" className="flex items-center justify-center gap-2">
-                    <Play className="w-4 h-4 fill-current" />
-                    {t.watchSermon}
-                  </Link>
-                </Button>
               </div>
             </div>
 

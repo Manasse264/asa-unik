@@ -6,7 +6,6 @@ const quickLinks = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About Us" },
   { href: "/ministries", label: "Ministries" },
-  { href: "/sermons", label: "Sermons" },
   { href: "/events", label: "Events" },
   { href: "/gallery", label: "Gallery" },
   { href: "/updates", label: "Updates" },

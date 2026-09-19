@@ -239,7 +239,6 @@ export function Navbar() {
     { href: "/", label: t.home },
     { href: "/about", label: t.about },
     { href: "/ministries", label: t.ministries },
-    { href: "/sermons", label: t.sermons },
     { href: "/events", label: t.events },
     { href: "/gallery", label: t.gallery },
     { href: "/updates", label: t.updates, isUpdates: true },

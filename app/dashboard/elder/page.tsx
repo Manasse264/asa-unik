@@ -59,8 +59,7 @@ import {
   getUsers, updateUser, deleteUser,
   getReports,
   getWeekOfPrayers, saveWeekOfPrayer, deleteWeekOfPrayer,
-  getWeeklyChoirs, saveWeeklyChoir, deleteWeeklyChoir,
-  getWebsiteSermons, saveWebsiteSermon, deleteWebsiteSermon
+  getWeeklyChoirs, saveWeeklyChoir, deleteWeeklyChoir
 } from "@/lib/actions"
 
 interface Member {
@@ -121,20 +120,6 @@ interface Announcement {
   fileData?: string | null
 }
 
-interface WebsiteSermon {
-  id: string
-  title: string
-  speaker: string
-  date: string
-  category: string
-  scripture: string
-  description: string
-  videoUrl: string
-  audioUrl: string
-  thumbnail: string
-  featured?: boolean
-}
-
 interface WebsiteEvent {
   id: string
   title: string
@@ -174,7 +159,6 @@ interface WebsiteMinistry {
   contactEmail: string
 }
 
-const WEBSITE_SERMONS_KEY = "church_website_sermons"
 const WEBSITE_EVENTS_KEY = "church_website_events"
 const WEBSITE_GALLERY_KEY = "church_website_gallery"
 const WEBSITE_MINISTRIES_KEY = "church_website_ministries"
@@ -243,23 +227,9 @@ export default function ElderDashboardClient() {
     fileData: ""
   })
 
-  const [publishedSermons, setPublishedSermons] = React.useState<WebsiteSermon[]>([])
   const [publishedEvents, setPublishedEvents] = React.useState<WebsiteEvent[]>([])
   const [publishedGallery, setPublishedGallery] = React.useState<WebsiteGalleryItem[]>([])
   const [publishedMinistries, setPublishedMinistries] = React.useState<WebsiteMinistry[]>([])
-
-  const [sermonFormData, setSermonFormData] = React.useState({
-    title: "",
-    speaker: "",
-    date: new Date().toISOString().split('T')[0],
-    category: "Faith",
-    scripture: "",
-    description: "",
-    videoUrl: "",
-    audioUrl: "",
-    thumbnail: "",
-    featured: false,
-  })
 
   const [eventFormData, setEventFormData] = React.useState({
     title: "",
@@ -300,26 +270,15 @@ export default function ElderDashboardClient() {
 
   const loadWebsiteContent = async () => {
     try {
-      const storedSermons = localStorage.getItem(WEBSITE_SERMONS_KEY)
       const storedEvents = localStorage.getItem(WEBSITE_EVENTS_KEY)
       const storedMinistries = localStorage.getItem(WEBSITE_MINISTRIES_KEY)
       const storedGallery = await getStoredGallery()
 
-      const databaseSermons = await getWebsiteSermons()
-      const browserSermons = storedSermons ? JSON.parse(storedSermons) : []
-      if (databaseSermons.length === 0 && Array.isArray(browserSermons) && browserSermons.length > 0) {
-        const migratedSermons = await Promise.all(browserSermons.map((sermon) => saveWebsiteSermon(sermon)))
-        setPublishedSermons(migratedSermons)
-        localStorage.setItem(WEBSITE_SERMONS_KEY, JSON.stringify(migratedSermons))
-      } else {
-        setPublishedSermons(databaseSermons.length > 0 ? databaseSermons : browserSermons)
-      }
       setPublishedEvents(storedEvents ? JSON.parse(storedEvents) : [])
       setPublishedMinistries(storedMinistries ? JSON.parse(storedMinistries) : [])
       setPublishedGallery(storedGallery || [])
     } catch (error) {
       console.error("Error loading published website content", error)
-      setPublishedSermons([])
       setPublishedEvents([])
       setPublishedMinistries([])
       setPublishedGallery([])
@@ -440,60 +399,6 @@ export default function ElderDashboardClient() {
       await deleteMember(id)
       loadData()
     }
-  }
-
-  const handlePublishSermon = async () => {
-    const sermon: WebsiteSermon = {
-      id: `sermon-${Date.now()}`,
-      title: sermonFormData.title.trim(),
-      speaker: sermonFormData.speaker.trim() || "Pastor",
-      date: sermonFormData.date,
-      category: sermonFormData.category,
-      scripture: sermonFormData.scripture.trim(),
-      description: sermonFormData.description.trim(),
-      videoUrl: sermonFormData.videoUrl.trim(),
-      audioUrl: sermonFormData.audioUrl.trim(),
-      thumbnail: sermonFormData.thumbnail.trim() || "/photo1.jpg",
-      featured: sermonFormData.featured,
-    }
-
-    if (!sermon.title || !sermon.description) {
-      alert("Please add a sermon title and description before publishing.")
-      return
-    }
-
-    try {
-      const savedSermon = await saveWebsiteSermon(sermon)
-      const updated = [savedSermon, ...publishedSermons.filter((item) => item.id !== savedSermon.id)]
-      setPublishedSermons(updated)
-      localStorage.setItem(WEBSITE_SERMONS_KEY, JSON.stringify(updated))
-      window.dispatchEvent(new Event("website-content-updated"))
-      setSermonFormData({
-        title: "",
-        speaker: "",
-        date: new Date().toISOString().split('T')[0],
-        category: "Faith",
-        scripture: "",
-        description: "",
-        videoUrl: "",
-        audioUrl: "",
-        thumbnail: "",
-        featured: false,
-      })
-      alert("Sermon published to the public website.")
-    } catch (error) {
-      console.error("SERMON PUBLISH ERROR:", error)
-      alert("The sermon could not be published. Please try again.")
-    }
-  }
-
-  const handleDeletePublishedSermon = async (id: string) => {
-    if (!confirm("Delete this published sermon from the website?")) return
-    await deleteWebsiteSermon(id)
-    const updated = publishedSermons.filter((sermon) => sermon.id !== id)
-    setPublishedSermons(updated)
-    localStorage.setItem(WEBSITE_SERMONS_KEY, JSON.stringify(updated))
-    window.dispatchEvent(new Event("website-content-updated"))
   }
 
   const handlePublishEvent = () => {
@@ -642,12 +547,11 @@ export default function ElderDashboardClient() {
     window.dispatchEvent(new Event("website-content-updated"))
   }
 
-  const handleUploadFile = (file: File | undefined, type: "thumbnail" | "image" | "gallery" | "video" | "audio") => {
+  const handleUploadFile = (file: File | undefined, type: "image" | "gallery") => {
     if (!file) return
     const reader = new FileReader()
     reader.onloadend = () => {
       const result = reader.result as string
-      if (type === "thumbnail") setSermonFormData((prev) => ({ ...prev, thumbnail: result }))
       if (type === "image") setEventFormData((prev) => ({ ...prev, image: result }))
       if (type === "gallery") setGalleryFormData((prev) => ({
         ...prev,
@@ -656,8 +560,6 @@ export default function ElderDashboardClient() {
         mimeType: file.type,
         fileSize: file.size,
       }))
-      if (type === "video") setSermonFormData((prev) => ({ ...prev, videoUrl: result }))
-      if (type === "audio") setSermonFormData((prev) => ({ ...prev, audioUrl: result }))
     }
     reader.readAsDataURL(file)
   }
@@ -1065,69 +967,7 @@ export default function ElderDashboardClient() {
         </TabsContent>
 
         <TabsContent value="manage-webpage" className="space-y-6">
-          <div className="grid gap-6 xl:grid-cols-4">
-            <div className="rounded-xl border bg-background p-4 shadow-sm space-y-4">
-              <div>
-                <h3 className="text-xl font-bold">Sermons</h3>
-                <p className="text-sm text-muted-foreground">Add sermon title, speaker, date, scripture, description, video, audio, and thumbnail.</p>
-              </div>
-              <div className="grid gap-3">
-                <div className="grid gap-2">
-                  <Label>Title</Label>
-                  <Input value={sermonFormData.title} onChange={(e) => setSermonFormData({ ...sermonFormData, title: e.target.value })} />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Speaker</Label>
-                  <Input value={sermonFormData.speaker} onChange={(e) => setSermonFormData({ ...sermonFormData, speaker: e.target.value })} />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Date</Label>
-                  <Input type="date" value={sermonFormData.date} onChange={(e) => setSermonFormData({ ...sermonFormData, date: e.target.value })} />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Category</Label>
-                  <select className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm" value={sermonFormData.category} onChange={(e) => setSermonFormData({ ...sermonFormData, category: e.target.value })}>
-                    <option>Faith</option>
-                    <option>Prayer</option>
-                    <option>Family</option>
-                    <option>Youth</option>
-                    <option>Prophecy</option>
-                    <option>Christian Living</option>
-                    <option>Evangelism</option>
-                    <option>Sabbath</option>
-                  </select>
-                </div>
-                <div className="grid gap-2">
-                  <Label>Scripture</Label>
-                  <Input value={sermonFormData.scripture} onChange={(e) => setSermonFormData({ ...sermonFormData, scripture: e.target.value })} />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Description</Label>
-                  <textarea className="min-h-[90px] rounded-md border border-input bg-background px-3 py-2 text-sm" value={sermonFormData.description} onChange={(e) => setSermonFormData({ ...sermonFormData, description: e.target.value })} />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Video URL or upload</Label>
-                  <Input value={sermonFormData.videoUrl} onChange={(e) => setSermonFormData({ ...sermonFormData, videoUrl: e.target.value })} placeholder="https://... or file upload" />
-                  <Input type="file" accept="video/*" onChange={(e) => handleUploadFile(e.target.files?.[0], "video")} />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Audio URL or upload</Label>
-                  <Input value={sermonFormData.audioUrl} onChange={(e) => setSermonFormData({ ...sermonFormData, audioUrl: e.target.value })} placeholder="https://... or file upload" />
-                  <Input type="file" accept="audio/*" onChange={(e) => handleUploadFile(e.target.files?.[0], "audio")} />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Thumbnail</Label>
-                  <Input type="file" accept="image/*" onChange={(e) => handleUploadFile(e.target.files?.[0], "thumbnail")} />
-                  {sermonFormData.thumbnail && <img src={sermonFormData.thumbnail} alt="Thumbnail preview" className="h-20 w-full rounded-md object-cover" />}
-                </div>
-                <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" checked={sermonFormData.featured} onChange={(e) => setSermonFormData({ ...sermonFormData, featured: e.target.checked })} />
-                  Set as featured sermon
-                </label>
-                <Button onClick={handlePublishSermon}>Publish Sermon</Button>
-              </div>
-            </div>
-
+          <div className="grid gap-6 xl:grid-cols-3">
             <div className="rounded-xl border bg-background p-4 shadow-sm space-y-4">
               <div>
                 <h3 className="text-xl font-bold">Events</h3>
@@ -1301,20 +1141,7 @@ export default function ElderDashboardClient() {
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-xl border bg-background p-4 shadow-sm">
-              <h4 className="font-bold mb-2">Published Sermons</h4>
-              <div className="space-y-2 text-sm text-muted-foreground">
-                {publishedSermons.length === 0 ? <p>No published sermons yet.</p> : publishedSermons.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between gap-2">
-                    <p className="truncate">• {item.title}</p>
-                    <Button variant="ghost" size="icon" className="shrink-0 text-destructive" onClick={() => handleDeletePublishedSermon(item.id)} aria-label={`Delete ${item.title}`}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
+          <div className="grid gap-4 md:grid-cols-3">
             <div className="rounded-xl border bg-background p-4 shadow-sm">
               <h4 className="font-bold mb-2">Published Events</h4>
               <div className="space-y-2 text-sm text-muted-foreground">
