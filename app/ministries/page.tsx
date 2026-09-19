@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import {
   Users,
@@ -212,16 +211,15 @@ const getIcon = (iconKey?: string) => {
 }
 
 const getPublishedMinistries = (): Ministry[] => {
-  if (typeof window === "undefined") return MINISTRIES_DATA
+  if (typeof window === "undefined") return []
   try {
     const raw = localStorage.getItem(MINISTRIES_KEY)
-    if (!raw) return MINISTRIES_DATA
+    if (!raw) return []
     const parsed = JSON.parse(raw) as PublishedMinistry[]
-    if (!Array.isArray(parsed) || parsed.length === 0) return MINISTRIES_DATA
-    const publishedMinistries = parsed.map(({ iconKey, ...ministry }) => ({ ...ministry, icon: getIcon(iconKey) }))
-    return [...MINISTRIES_DATA, ...publishedMinistries]
+    if (!Array.isArray(parsed)) return []
+    return parsed.map(({ iconKey, ...ministry }) => ({ ...ministry, icon: getIcon(iconKey) }))
   } catch {
-    return MINISTRIES_DATA
+    return []
   }
 }
 
@@ -339,11 +337,6 @@ export default function MinistriesPage() {
             <p className="text-slate-300 max-w-2xl mx-auto text-sm md:text-base">
               Whether you want to sing in the choir, serve in community outreach, or participate in youth leadership, there is a place for you in our church family.
             </p>
-            <div className="pt-2">
-              <Button asChild size="lg" className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-8 rounded-full">
-                <Link href="/register">Join a Ministry Today</Link>
-              </Button>
-            </div>
           </div>
 
         </div>
