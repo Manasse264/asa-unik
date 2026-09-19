@@ -154,6 +154,34 @@ export async function deleteAnnouncement(id: string) {
   revalidatePath("/news")
 }
 
+// --- Website Sermons ---
+export async function getWebsiteSermons() {
+  return await prisma.websiteSermon.findMany({
+    orderBy: { createdAt: "desc" },
+  })
+}
+
+export async function saveWebsiteSermon(data: any) {
+  const { id, ...sermon } = data
+  const saved = id
+    ? await prisma.websiteSermon.upsert({
+        where: { id },
+        update: sermon,
+        create: { id, ...sermon },
+      })
+    : await prisma.websiteSermon.create({ data: sermon })
+
+  revalidatePath("/sermons")
+  revalidatePath("/")
+  return saved
+}
+
+export async function deleteWebsiteSermon(id: string) {
+  await prisma.websiteSermon.deleteMany({ where: { id } })
+  revalidatePath("/sermons")
+  revalidatePath("/")
+}
+
 // --- System Config ---
 export async function getSystemConfig() {
   return await prisma.systemConfig.upsert({

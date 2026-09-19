@@ -3,6 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { getWebsiteSermons } from "@/lib/actions"
 import {
   Search,
   Play,
@@ -169,8 +170,22 @@ export default function SermonsPage() {
   const [activeMedia, setActiveMedia] = React.useState<{ sermon: Sermon; type: "video" | "audio" } | null>(null)
 
   React.useEffect(() => {
-    const syncSermons = () => setSermons(getPublishedSermons())
-    syncSermons()
+    const syncSermons = async () => {
+      try {
+        const databaseSermons = await getWebsiteSermons()
+        if (databaseSermons.length > 0) {
+          setSermons(databaseSermons.map((sermon) => ({
+            ...sermon,
+            bibleReference: sermon.scripture ?? "",
+          })))
+          return
+        }
+      } catch {
+        // Use browser storage when the database is unavailable.
+      }
+      setSermons(getPublishedSermons())
+    }
+    void syncSermons()
     window.addEventListener("website-content-updated", syncSermons)
     window.addEventListener("storage", syncSermons)
     window.addEventListener("year-changed", syncSermons)

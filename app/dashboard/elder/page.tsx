@@ -59,7 +59,8 @@ import {
   getUsers, updateUser, deleteUser,
   getReports,
   getWeekOfPrayers, saveWeekOfPrayer, deleteWeekOfPrayer,
-  getWeeklyChoirs, saveWeeklyChoir, deleteWeeklyChoir
+  getWeeklyChoirs, saveWeeklyChoir, deleteWeeklyChoir,
+  getWebsiteSermons, saveWebsiteSermon, deleteWebsiteSermon
 } from "@/lib/actions"
 
 interface Member {
@@ -304,7 +305,15 @@ export default function ElderDashboardClient() {
       const storedMinistries = localStorage.getItem(WEBSITE_MINISTRIES_KEY)
       const storedGallery = await getStoredGallery()
 
-      setPublishedSermons(storedSermons ? JSON.parse(storedSermons) : [])
+      const databaseSermons = await getWebsiteSermons()
+      const browserSermons = storedSermons ? JSON.parse(storedSermons) : []
+      if (databaseSermons.length === 0 && Array.isArray(browserSermons) && browserSermons.length > 0) {
+        const migratedSermons = await Promise.all(browserSermons.map((sermon) => saveWebsiteSermon(sermon)))
+        setPublishedSermons(migratedSermons)
+        localStorage.setItem(WEBSITE_SERMONS_KEY, JSON.stringify(migratedSermons))
+      } else {
+        setPublishedSermons(databaseSermons.length > 0 ? databaseSermons : browserSermons)
+      }
       setPublishedEvents(storedEvents ? JSON.parse(storedEvents) : [])
       setPublishedMinistries(storedMinistries ? JSON.parse(storedMinistries) : [])
       setPublishedGallery(storedGallery || [])
@@ -433,7 +442,7 @@ export default function ElderDashboardClient() {
     }
   }
 
-  const handlePublishSermon = () => {
+  const handlePublishSermon = async () => {
     const sermon: WebsiteSermon = {
       id: `sermon-${Date.now()}`,
       title: sermonFormData.title.trim(),
@@ -453,7 +462,8 @@ export default function ElderDashboardClient() {
       return
     }
 
-    const updated = [sermon, ...publishedSermons]
+    const savedSermon = await saveWebsiteSermon(sermon)
+    const updated = [savedSermon, ...publishedSermons]
     setPublishedSermons(updated)
     localStorage.setItem(WEBSITE_SERMONS_KEY, JSON.stringify(updated))
     window.dispatchEvent(new Event("website-content-updated"))
@@ -472,8 +482,9 @@ export default function ElderDashboardClient() {
     alert("Sermon published to the website.")
   }
 
-  const handleDeletePublishedSermon = (id: string) => {
+  const handleDeletePublishedSermon = async (id: string) => {
     if (!confirm("Delete this published sermon from the website?")) return
+    await deleteWebsiteSermon(id)
     const updated = publishedSermons.filter((sermon) => sermon.id !== id)
     setPublishedSermons(updated)
     localStorage.setItem(WEBSITE_SERMONS_KEY, JSON.stringify(updated))
