@@ -10,7 +10,6 @@ import {
   Calendar,
   Clock,
   MapPin,
-  Play,
   Users,
   BookOpen,
   HeartHandshake,
@@ -29,7 +28,6 @@ const translations = {
     mottoTitle: "A Place to Worship. A Place to Belong. A Place to Grow.",
     mottoDesc: "Together in Christ, we seek to know God, grow in faith, and serve our community.",
     joinSabbath: "Join Us This Sabbath",
-    watchOnline: "Watch Online",
     heroQuote: "“For where two or three gather in my name, there am I with them.”",
     heroVerse: "Matthew 18:20",
 
@@ -52,12 +50,6 @@ const translations = {
     verseBadge: "BIBLE VERSE OF THE WEEK",
     verseText: "“Come to me, all you who are weary and burdened, and I will give you rest.”",
     verseRef: "Matthew 11:28",
-
-    sermonBadge: "LATEST SERMON",
-    sermonTitle: "Walking by Faith",
-    sermonSpeaker: "Speaker: Pastor Jean Bosco Niyongabo",
-    sermonDate: "September 7, 2026",
-    watchSermon: "Watch Sermon",
 
     ministriesBadge: "OUR MINISTRIES",
     youthMin: "Youth Ministry",
@@ -82,7 +74,6 @@ const translations = {
     mottoTitle: "Aho Gusengera. Aho Kuba Umuryango. Aho Gukurira.",
     mottoDesc: "Turi hamwe muli Kristo, tushaka kumenya Imana, gukura mu kwizera, no gukorera umuryango wacu.",
     joinSabbath: "Sangana Nayo Isabato",
-    watchOnline: "Kurikirana Online",
     heroQuote: "“Kuko aho babiri cyangwa batatu bateraniye mu izina ryanjye, mba ndi hagati yabo.”",
     heroVerse: "Matayo 18:20",
 
@@ -105,12 +96,6 @@ const translations = {
     verseBadge: "ICYO BIBLE YIGISHA MU CYUMWERU",
     verseText: "“Nimuze gukorera aho muri hose mwese abafite umutwaro uremerewe, nanjye nzabaruhura.”",
     verseRef: "Matayo 11:28",
-
-    sermonBadge: "INYIGISHO Y'IBIHUZO",
-    sermonTitle: "Kugenda Mu Kwizera",
-    sermonSpeaker: "Umwigisha: Pastor Jean Bosco Niyongabo",
-    sermonDate: "7 Nzeri 2026",
-    watchSermon: "Reba Inyigisho",
 
     ministriesBadge: "MINISITIRI ZACU",
     youthMin: "Urubyiruko",
@@ -135,7 +120,6 @@ const translations = {
     mottoTitle: "Un lieu pour adorer. Un lieu pour appartenir. Un lieu pour grandir.",
     mottoDesc: "Ensemble en Christ, nous cherchons à connaître Dieu, à grandir dans la foi et à servir notre communauté.",
     joinSabbath: "Rejoignez-nous ce Sabbat",
-    watchOnline: "Regarder en direct",
     heroQuote: "« Car là où deux ou trois sont assemblés en mon nom, je suis au milieu d'eux. »",
     heroVerse: "Matthieu 18:20",
 
@@ -158,12 +142,6 @@ const translations = {
     verseBadge: "VERSET BIBLIQUE DE LA SEMAINE",
     verseText: "« Venez à moi, vous tous qui êtes fatigués et chargés, et je vous donnerai du repos. »",
     verseRef: "Matthieu 11:28",
-
-    sermonBadge: "DERNIER SERMON",
-    sermonTitle: "Marcher par la Foi",
-    sermonSpeaker: "Prédicateur: Pasteur Jean Bosco Niyongabo",
-    sermonDate: "7 Septembre 2026",
-    watchSermon: "Regarder le Sermon",
 
     ministriesBadge: "NOS MINISTÈRES",
     youthMin: "Ministère des Jeunes",
@@ -201,13 +179,6 @@ interface HomepageGalleryPhoto {
   src: string
   title: string
   type?: "photo" | "video"
-}
-
-interface HomepageSermon {
-  title: string
-  speaker?: string
-  date?: string
-  thumbnail?: string
 }
 
 const upcomingEvents: HomepageEvent[] = [
@@ -267,17 +238,10 @@ const formatEventDate = (date?: string) => {
   }
 }
 
-const formatSermonDate = (date?: string) => {
-  if (!date) return "Date to be announced"
-  const parsed = /^\d{4}-\d{2}-\d{2}$/.test(date) ? new Date(`${date}T00:00:00`) : new Date(date)
-  return Number.isNaN(parsed.getTime()) ? date : new Intl.DateTimeFormat("en-US", { dateStyle: "long" }).format(parsed)
-}
-
 export default function Page() {
   const [lang, setLang] = React.useState<"en" | "rw" | "fr">("en")
   const [homepageEvents, setHomepageEvents] = React.useState<HomepageEvent[]>(upcomingEvents)
   const [homepageGallery, setHomepageGallery] = React.useState<HomepageGalleryPhoto[]>([])
-  const [homepageSermon, setHomepageSermon] = React.useState<HomepageSermon | null>(null)
 
   React.useEffect(() => {
     const updateLang = () => {
@@ -297,13 +261,6 @@ export default function Page() {
         if (rawEvents) {
           const parsedEvents = JSON.parse(rawEvents)
           if (Array.isArray(parsedEvents)) setHomepageEvents(parsedEvents)
-        }
-        const rawSermons = localStorage.getItem("church_website_sermons")
-        if (rawSermons) {
-          const parsedSermons = JSON.parse(rawSermons)
-          setHomepageSermon(Array.isArray(parsedSermons) && parsedSermons.length ? parsedSermons[0] : null)
-        } else {
-          setHomepageSermon(null)
         }
         const gallery = await getStoredGallery()
         if (gallery) setHomepageGallery(gallery.filter((item) => item.type !== "video").slice(0, 5))
@@ -500,47 +457,12 @@ export default function Page() {
         </div>
       </section>
 
-      {/* 4. LATEST SERMON & MINISTRIES SECTION */}
+      {/* 4. MINISTRIES SECTION */}
       <section className="w-full py-16 bg-white border-y border-slate-200">
         <div className="container px-4 md:px-8">
           <div className="grid lg:grid-cols-12 gap-8">
-            
-            {/* Latest Sermon Card */}
-            <div className="lg:col-span-5 bg-slate-900 rounded-2xl overflow-hidden shadow-lg border border-slate-800 text-white flex flex-col">
-              <div className="relative w-full h-48 bg-slate-800">
-                <img
-                  src={homepageSermon?.thumbnail || "/photo3.jpg"}
-                  alt={homepageSermon?.title || "Sermon Thumbnail"}
-                  className="h-full w-full object-cover opacity-80"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent flex items-center justify-center">
-                  <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/40 cursor-pointer hover:scale-110 transition-transform">
-                    <Play className="w-6 h-6 fill-current ml-0.5" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-6 space-y-4 flex-1 flex flex-col justify-between">
-                <div>
-                  <span className="text-[11px] font-extrabold tracking-widest text-amber-400 uppercase">
-                    {t.sermonBadge}
-                  </span>
-                  <h3 className="text-2xl font-bold text-white mt-1">
-                    {homepageSermon?.title || t.sermonTitle}
-                  </h3>
-                  <p className="text-xs font-medium text-slate-300 mt-2">
-                    {homepageSermon?.speaker ? `Speaker: ${homepageSermon.speaker}` : t.sermonSpeaker}
-                  </p>
-                  <p className="text-xs font-medium text-slate-400 mt-0.5">
-                    {homepageSermon?.date ? formatSermonDate(homepageSermon.date) : t.sermonDate}
-                  </p>
-                </div>
-
-              </div>
-            </div>
-
             {/* Ministries Grid */}
-            <div className="lg:col-span-7 space-y-6">
+            <div className="lg:col-span-12 space-y-6">
               <div>
                 <span className="text-xs font-extrabold tracking-widest text-blue-800 uppercase">
                   {t.ministriesBadge}
