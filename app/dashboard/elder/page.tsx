@@ -462,24 +462,29 @@ export default function ElderDashboardClient() {
       return
     }
 
-    const savedSermon = await saveWebsiteSermon(sermon)
-    const updated = [savedSermon, ...publishedSermons]
-    setPublishedSermons(updated)
-    localStorage.setItem(WEBSITE_SERMONS_KEY, JSON.stringify(updated))
-    window.dispatchEvent(new Event("website-content-updated"))
-    setSermonFormData({
-      title: "",
-      speaker: "",
-      date: new Date().toISOString().split('T')[0],
-      category: "Faith",
-      scripture: "",
-      description: "",
-      videoUrl: "",
-      audioUrl: "",
-      thumbnail: "",
-      featured: false,
-    })
-    alert("Sermon published to the website.")
+    try {
+      const savedSermon = await saveWebsiteSermon(sermon)
+      const updated = [savedSermon, ...publishedSermons.filter((item) => item.id !== savedSermon.id)]
+      setPublishedSermons(updated)
+      localStorage.setItem(WEBSITE_SERMONS_KEY, JSON.stringify(updated))
+      window.dispatchEvent(new Event("website-content-updated"))
+      setSermonFormData({
+        title: "",
+        speaker: "",
+        date: new Date().toISOString().split('T')[0],
+        category: "Faith",
+        scripture: "",
+        description: "",
+        videoUrl: "",
+        audioUrl: "",
+        thumbnail: "",
+        featured: false,
+      })
+      alert("Sermon published to the public website.")
+    } catch (error) {
+      console.error("SERMON PUBLISH ERROR:", error)
+      alert("The sermon could not be published. Please try again.")
+    }
   }
 
   const handleDeletePublishedSermon = async (id: string) => {
