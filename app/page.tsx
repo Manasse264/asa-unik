@@ -264,10 +264,6 @@ export default function Page() {
 
         <div className="container relative z-20 px-4 md:px-8 grid lg:grid-cols-12 gap-8 items-center">
           <div className="lg:col-span-8 space-y-6 text-left">
-            <div className="inline-block px-3 py-1 bg-white/10 backdrop-blur-md rounded-md border border-white/20 text-xs font-bold tracking-widest text-white uppercase">
-              {t.welcomeSub}
-            </div>
-            
             <div className="space-y-2">
               <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight leading-none">
                 {t.churchName}
