@@ -389,7 +389,7 @@ export function Navbar() {
       </header>
 
       {pathname === "/" && (
-        <div className="overflow-hidden border-b border-blue-800 bg-blue-600 py-2" aria-label="Welcome message">
+        <div className="overflow-hidden border-b border-transparent bg-transparent py-2" aria-label="Welcome message">
           <div className="w-max animate-marquee whitespace-nowrap px-4 text-xs font-black uppercase tracking-[0.35em] text-white sm:text-sm">
             WELCOME TO
           </div>
