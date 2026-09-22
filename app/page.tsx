@@ -23,7 +23,6 @@ import {
 
 const translations = {
   en: {
-    welcomeSub: "WELCOME TO",
     churchName: "ASA UNIK-RP NGOMA",
     sdaSub: "A Seventh-day Adventist Church",
     mottoTitle: "A Place to Worship. A Place to Belong. A Place to Grow.",
@@ -69,7 +68,6 @@ const translations = {
     viewGallery: "View Gallery"
   },
   rw: {
-    welcomeSub: "MURA KAZA NEZA KURI",
     churchName: "ASA UNIK-RP NGOMA",
     sdaSub: "Itorero ry'Abadiventisti b'Umunsi wa Karindwi",
     mottoTitle: "Aho Gusengera. Aho Kuba Umuryango. Aho Gukurira.",
@@ -115,7 +113,6 @@ const translations = {
     viewGallery: "Reba Amafoto"
   },
   fr: {
-    welcomeSub: "BIENVENUE À",
     churchName: "ASA UNIK-RP NGOMA",
     sdaSub: "Église Adventiste du Septième Jour",
     mottoTitle: "Un lieu pour adorer. Un lieu pour appartenir. Un lieu pour grandir.",
