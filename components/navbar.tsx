@@ -389,8 +389,8 @@ export function Navbar() {
       </header>
 
       {!isDashboard && (
-        <div className="overflow-hidden border-b border-blue-200 bg-blue-50 py-2" aria-label="Welcome message">
-          <div className="w-max animate-marquee whitespace-nowrap px-4 text-xs font-black uppercase tracking-[0.35em] text-blue-900 sm:text-sm">
+        <div className="overflow-hidden border-b border-blue-800 bg-blue-600 py-2" aria-label="Welcome message">
+          <div className="w-max animate-marquee whitespace-nowrap px-4 text-xs font-black uppercase tracking-[0.35em] text-white sm:text-sm">
             WELCOME TO
           </div>
         </div>
