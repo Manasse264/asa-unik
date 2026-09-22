@@ -255,7 +255,7 @@ export default function Page() {
     <main className="flex-1 w-full bg-slate-50 overflow-x-hidden">
       
       {/* 1. HERO SECTION */}
-      <section className="relative w-full min-h-[580px] lg:min-h-[640px] flex items-center justify-center overflow-hidden bg-slate-900 py-16">
+      <section className="relative w-full min-h-[580px] lg:min-h-[640px] flex items-start justify-center overflow-hidden bg-slate-900 py-4">
         <div 
           className="absolute inset-0 z-0 bg-cover bg-center opacity-40 scale-105 transition-transform duration-1000"
           style={{ backgroundImage: "url('/photo1.jpg')" }}
