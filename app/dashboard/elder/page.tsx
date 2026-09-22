@@ -30,7 +30,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { 
   getWeeklyPrograms, saveWeeklyProgram, deleteWeeklyProgram,
-  getChoirs, saveChoir, deleteChoir 
+  getChoirs, saveChoir, deleteChoir,
+  getWebsiteEvents, saveWebsiteEvent, deleteWebsiteEvent
 } from "@/lib/actions"
 import {
   Table,
@@ -124,7 +125,7 @@ interface WebsiteEvent {
   id: string
   title: string
   description: string
-  category: "Worship" | "Prayer" | "Youth" | "Bible Study" | "Evangelism" | "Community Outreach" | "Family"
+  category: string
   date: string
   start: string
   end: string
@@ -159,7 +160,6 @@ interface WebsiteMinistry {
   contactEmail: string
 }
 
-const WEBSITE_EVENTS_KEY = "church_website_events"
 const WEBSITE_GALLERY_KEY = "church_website_gallery"
 const WEBSITE_MINISTRIES_KEY = "church_website_ministries"
 
@@ -270,11 +270,10 @@ export default function ElderDashboardClient() {
 
   const loadWebsiteContent = async () => {
     try {
-      const storedEvents = localStorage.getItem(WEBSITE_EVENTS_KEY)
       const storedMinistries = localStorage.getItem(WEBSITE_MINISTRIES_KEY)
       const storedGallery = await getStoredGallery()
 
-      setPublishedEvents(storedEvents ? JSON.parse(storedEvents) : [])
+      setPublishedEvents(await getWebsiteEvents())
       setPublishedMinistries(storedMinistries ? JSON.parse(storedMinistries) : [])
       setPublishedGallery(storedGallery || [])
     } catch (error) {
@@ -401,9 +400,8 @@ export default function ElderDashboardClient() {
     }
   }
 
-  const handlePublishEvent = () => {
-    const eventItem: WebsiteEvent = {
-      id: `event-${Date.now()}`,
+  const handlePublishEvent = async () => {
+    const eventData = {
       title: eventFormData.title.trim(),
       description: eventFormData.description.trim(),
       category: eventFormData.category,
@@ -416,14 +414,13 @@ export default function ElderDashboardClient() {
       image: eventFormData.image.trim() || "/photo1.jpg",
     }
 
-    if (!eventItem.title || !eventItem.description || !eventItem.location) {
+    if (!eventData.title || !eventData.description || !eventData.location) {
       alert("Please complete the event title, description, and location before publishing.")
       return
     }
 
-    const updated = [eventItem, ...publishedEvents]
-    setPublishedEvents(updated)
-    localStorage.setItem(WEBSITE_EVENTS_KEY, JSON.stringify(updated))
+    const eventItem = await saveWebsiteEvent(eventData)
+    setPublishedEvents((current) => [eventItem, ...current])
     window.dispatchEvent(new Event("website-content-updated"))
     setEventFormData({
       title: "",
@@ -440,11 +437,10 @@ export default function ElderDashboardClient() {
     alert("Event published to the website.")
   }
 
-  const handleDeletePublishedEvent = (id: string) => {
+  const handleDeletePublishedEvent = async (id: string) => {
     if (!confirm("Delete this published event from the website?")) return
-    const updated = publishedEvents.filter((event) => event.id !== id)
-    setPublishedEvents(updated)
-    localStorage.setItem(WEBSITE_EVENTS_KEY, JSON.stringify(updated))
+    await deleteWebsiteEvent(id)
+    setPublishedEvents((current) => current.filter((event) => event.id !== id))
     window.dispatchEvent(new Event("website-content-updated"))
   }
 

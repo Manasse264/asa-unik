@@ -154,6 +154,32 @@ export async function deleteAnnouncement(id: string) {
   revalidatePath("/news")
 }
 
+// --- Website events ---
+export async function getWebsiteEvents() {
+  return prisma.websiteEvent.findMany({
+    orderBy: { createdAt: "desc" },
+  })
+}
+
+export async function saveWebsiteEvent(data: any) {
+  const { id, ...eventData } = data
+  const event = id
+    ? await prisma.websiteEvent.update({ where: { id }, data: eventData })
+    : await prisma.websiteEvent.create({ data: eventData })
+
+  revalidatePath("/")
+  revalidatePath("/events")
+  revalidatePath("/dashboard/elder")
+  return event
+}
+
+export async function deleteWebsiteEvent(id: string) {
+  await prisma.websiteEvent.delete({ where: { id } })
+  revalidatePath("/")
+  revalidatePath("/events")
+  revalidatePath("/dashboard/elder")
+}
+
 // --- System Config ---
 export async function getSystemConfig() {
   return await prisma.systemConfig.upsert({

@@ -3,8 +3,23 @@
 import * as React from "react"
 import Image from "next/image"
 import { CalendarDays, Clock, MapPin, Mic, Users } from "lucide-react"
+import { getWebsiteEvents } from "@/lib/actions"
 
 const categories = ["Worship", "Prayer", "Youth", "Bible Study", "Evangelism", "Community Outreach", "Family", "Special Programs"]
+
+interface WebsiteEvent {
+  id: string
+  title: string
+  description: string
+  category: string
+  date: string
+  start: string
+  end: string
+  location: string
+  speaker: string
+  organizer: string
+  image: string
+}
 
 const formatEventTime = (time: string | undefined) => {
   if (!time) return "Time to be announced"
@@ -23,24 +38,18 @@ const parseEventDate = (value: string | undefined) => {
   return Number.isNaN(parsed.getTime()) ? null : parsed
 }
 
-const getPublishedEvents = () => {
-  if (typeof window === "undefined") return []
-  try {
-    const raw = localStorage.getItem("church_website_events")
-    if (!raw) return []
-    const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return []
-  }
-}
-
 export default function EventsPage() {
-  const [events, setEvents] = React.useState(getPublishedEvents)
+  const [events, setEvents] = React.useState<WebsiteEvent[]>([])
 
   React.useEffect(() => {
-    const syncEvents = () => setEvents(getPublishedEvents())
-    syncEvents()
+    const syncEvents = async () => {
+      try {
+        setEvents(await getWebsiteEvents())
+      } catch {
+        setEvents([])
+      }
+    }
+    void syncEvents()
     window.addEventListener("website-content-updated", syncEvents)
     window.addEventListener("storage", syncEvents)
     window.addEventListener("year-changed", syncEvents)
@@ -106,7 +115,7 @@ export default function EventsPage() {
                 <p className="text-sm leading-6 text-slate-600">{event.description}</p>
                 <div className="grid gap-2 text-sm text-slate-700 sm:grid-cols-2">
                   <p className="flex items-center gap-2"><CalendarDays className="h-4 w-4 text-primary" /> {event.date}</p>
-                  <p className="flex items-center gap-2"><Clock className="h-4 w-4 text-primary" /> {event.start || event.time ? `${formatEventTime(event.start || event.time)}${event.end ? ` - ${formatEventTime(event.end)}` : ""}` : "Time to be announced"}</p>
+                  <p className="flex items-center gap-2"><Clock className="h-4 w-4 text-primary" /> {event.start ? `${formatEventTime(event.start)}${event.end ? ` - ${formatEventTime(event.end)}` : ""}` : "Time to be announced"}</p>
                   <p className="flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" /> {event.location}</p>
                   <p className="flex items-center gap-2"><Mic className="h-4 w-4 text-primary" /> {event.speaker}</p>
                   <p className="flex items-center gap-2 sm:col-span-2"><Users className="h-4 w-4 text-primary" /> Organizer: {event.organizer} </p>

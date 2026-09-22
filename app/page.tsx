@@ -6,6 +6,7 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { getStoredGallery } from "@/lib/website-gallery-storage"
+import { getWebsiteEvents } from "@/lib/actions"
 import {
   Calendar,
   Clock,
@@ -222,11 +223,7 @@ export default function Page() {
   React.useEffect(() => {
     const syncHomepageContent = async () => {
       try {
-        const rawEvents = localStorage.getItem("church_website_events")
-        if (rawEvents) {
-          const parsedEvents = JSON.parse(rawEvents)
-          if (Array.isArray(parsedEvents)) setHomepageEvents(parsedEvents)
-        }
+        setHomepageEvents(await getWebsiteEvents())
         const gallery = await getStoredGallery()
         if (gallery) setHomepageGallery(gallery.filter((item) => item.type !== "video").slice(0, 5))
       } catch {
