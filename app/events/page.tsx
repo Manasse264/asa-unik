@@ -4,15 +4,7 @@ import * as React from "react"
 import Image from "next/image"
 import { CalendarDays, Clock, MapPin, Mic, Users } from "lucide-react"
 
-const DEFAULT_EVENTS = [
-  { title: "Sabbath Worship Service", date: "Every Saturday", start: "9:00 AM", end: "12:00 PM", location: "Main Sanctuary", category: "Worship", speaker: "Church Pastor", organizer: "Church Board", image: "/photo1.jpg", description: "Bible study, worship, music, prayer, and preaching for the whole church family." },
-  { title: "Youth Fellowship", date: "September 17, 2026", start: "5:00 PM", end: "7:00 PM", location: "Church Hall", category: "Youth", speaker: "Youth Leader", organizer: "Youth Ministry", image: "/photo2.jpg", description: "A Christ-centered evening of Bible discussion, prayer, music, and friendship." },
-  { title: "Community Outreach", date: "September 20, 2026", start: "8:00 AM", end: "12:00 PM", location: "Ngoma Community", category: "Community Outreach", speaker: "Outreach Team", organizer: "Community Outreach", image: "/photo3.jpg", description: "Service, evangelism, charity support, and practical care for our neighbors." },
-  { title: "Family Worship Sabbath", date: "September 27, 2026", start: "9:00 AM", end: "12:00 PM", location: "Main Sanctuary", category: "Family", speaker: "Guest Speaker", organizer: "Family Life Ministry", image: "/photo4.jpg", description: "A special Sabbath focused on Christian homes, unity, discipleship, and hope." },
-]
-
 const categories = ["Worship", "Prayer", "Youth", "Bible Study", "Evangelism", "Community Outreach", "Family", "Special Programs"]
-const pastEvents = ["Baptism Sabbath", "Choir Concert", "Health Program"]
 
 const formatEventTime = (time: string | undefined) => {
   if (!time) return "Time to be announced"
@@ -32,14 +24,14 @@ const parseEventDate = (value: string | undefined) => {
 }
 
 const getPublishedEvents = () => {
-  if (typeof window === "undefined") return DEFAULT_EVENTS
+  if (typeof window === "undefined") return []
   try {
     const raw = localStorage.getItem("church_website_events")
-    if (!raw) return DEFAULT_EVENTS
+    if (!raw) return []
     const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed : DEFAULT_EVENTS
+    return Array.isArray(parsed) ? parsed : []
   } catch {
-    return DEFAULT_EVENTS
+    return []
   }
 }
 
@@ -101,7 +93,9 @@ export default function EventsPage() {
           <h2 className="text-2xl font-black text-slate-900">Upcoming Events</h2>
         </div>
         <div className="grid gap-5 lg:grid-cols-2">
-          {events.map((event) => (
+          {events.length === 0 ? (
+            <p className="rounded-lg border border-dashed border-slate-300 bg-white p-6 text-sm text-slate-600">No upcoming events have been published.</p>
+          ) : events.map((event) => (
             <article key={event.title} className="overflow-hidden rounded-lg border bg-white shadow-sm">
               <div className="relative h-48 w-full">
                 <Image src={event.image} alt={event.title} fill className="object-cover" />
@@ -142,14 +136,7 @@ export default function EventsPage() {
         </div>
         <div className="rounded-lg border bg-white p-5 shadow-sm">
           <h2 className="mb-4 text-xl font-black text-slate-900">Past Events</h2>
-          <div className="space-y-3">
-            {pastEvents.map((event) => (
-              <div key={event} className="rounded-md border border-slate-200 p-3">
-                <h3 className="font-bold text-slate-900">{event}</h3>
-                <p className="text-sm text-slate-600">Photos, videos, summaries, and ministry highlights from the program.</p>
-              </div>
-            ))}
-          </div>
+          <p className="text-sm text-slate-600">No past events have been published.</p>
         </div>
       </section>
     </main>

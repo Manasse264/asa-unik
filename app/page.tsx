@@ -181,41 +181,6 @@ interface HomepageGalleryPhoto {
   type?: "photo" | "video"
 }
 
-const upcomingEvents: HomepageEvent[] = [
-  {
-    id: 1,
-    day: "13",
-    month: "SEP",
-    title: "Prayer Night",
-    time: "5:00 PM – 7:00 PM",
-    location: "Church Hall"
-  },
-  {
-    id: 2,
-    day: "17",
-    month: "SEP",
-    title: "Youth Fellowship",
-    time: "5:00 PM – 7:00 PM",
-    location: "Church Hall"
-  },
-  {
-    id: 3,
-    day: "20",
-    month: "SEP",
-    title: "Community Outreach",
-    time: "8:00 AM – 12:00 PM",
-    location: "Ngoma Community"
-  },
-  {
-    id: 4,
-    day: "27",
-    month: "SEP",
-    title: "Family Worship",
-    time: "9:00 AM – 12:00 PM",
-    location: "Main Sanctuary"
-  }
-]
-
 const formatEventTime = (start?: string, end?: string, legacyTime?: string) => {
   const formatTime = (time?: string) => {
     if (!time) return "Time to be announced"
@@ -240,7 +205,7 @@ const formatEventDate = (date?: string) => {
 
 export default function Page() {
   const [lang, setLang] = React.useState<"en" | "rw" | "fr">("en")
-  const [homepageEvents, setHomepageEvents] = React.useState<HomepageEvent[]>(upcomingEvents)
+  const [homepageEvents, setHomepageEvents] = React.useState<HomepageEvent[]>([])
   const [homepageGallery, setHomepageGallery] = React.useState<HomepageGalleryPhoto[]>([])
 
   React.useEffect(() => {
@@ -265,7 +230,7 @@ export default function Page() {
         const gallery = await getStoredGallery()
         if (gallery) setHomepageGallery(gallery.filter((item) => item.type !== "video").slice(0, 5))
       } catch {
-        setHomepageEvents(upcomingEvents)
+        setHomepageEvents([])
       }
     }
 
