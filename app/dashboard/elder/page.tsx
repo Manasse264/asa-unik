@@ -30,8 +30,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { 
   getWeeklyPrograms, saveWeeklyProgram, deleteWeeklyProgram,
-  getChoirs, saveChoir, deleteChoir,
-  getWebsiteEvents, saveWebsiteEvent, deleteWebsiteEvent
+  getChoirs, saveChoir, deleteChoir
 } from "@/lib/actions"
 import {
   Table,
@@ -49,7 +48,6 @@ import {
 } from "@/components/ui/tabs"
 import { YearSelector } from "@/components/year-selector"
 import { cn } from "@/lib/utils"
-import { getStoredGallery, saveStoredGallery } from "@/lib/website-gallery-storage"
 import { jsPDF } from "jspdf"
 import autoTable from "jspdf-autotable"
 
@@ -60,7 +58,9 @@ import {
   getUsers, updateUser, deleteUser,
   getReports,
   getWeekOfPrayers, saveWeekOfPrayer, deleteWeekOfPrayer,
-  getWeeklyChoirs, saveWeeklyChoir, deleteWeeklyChoir
+  getWeeklyChoirs, saveWeeklyChoir, deleteWeeklyChoir,
+  getWebsiteEvents, saveWebsiteEvent, deleteWebsiteEvent,
+  getWebsiteGallery, saveWebsiteGalleryItem, deleteWebsiteGalleryItem
 } from "@/lib/actions"
 
 interface Member {
@@ -142,8 +142,8 @@ interface WebsiteGalleryItem {
   category: string
   caption: string
   src: string
-  type: "photo" | "video"
-  mimeType?: string
+  type: string
+  mimeType?: string | null
 }
 
 interface WebsiteMinistry {
@@ -160,7 +160,6 @@ interface WebsiteMinistry {
   contactEmail: string
 }
 
-const WEBSITE_GALLERY_KEY = "church_website_gallery"
 const WEBSITE_MINISTRIES_KEY = "church_website_ministries"
 
 export default function ElderDashboardClient() {
@@ -271,11 +270,11 @@ export default function ElderDashboardClient() {
   const loadWebsiteContent = async () => {
     try {
       const storedMinistries = localStorage.getItem(WEBSITE_MINISTRIES_KEY)
-      const storedGallery = await getStoredGallery()
+      const storedGallery = await getWebsiteGallery()
 
       setPublishedEvents(await getWebsiteEvents())
       setPublishedMinistries(storedMinistries ? JSON.parse(storedMinistries) : [])
-      setPublishedGallery(storedGallery || [])
+      setPublishedGallery(storedGallery)
     } catch (error) {
       console.error("Error loading published website content", error)
       setPublishedEvents([])
@@ -492,8 +491,7 @@ export default function ElderDashboardClient() {
   }
 
   const handlePublishGalleryItem = async () => {
-    const galleryItem: WebsiteGalleryItem = {
-      id: `gallery-${Date.now()}`,
+    const galleryData = {
       title: galleryFormData.title.trim(),
       date: galleryFormData.date,
       category: galleryFormData.category,
@@ -503,7 +501,7 @@ export default function ElderDashboardClient() {
       mimeType: galleryFormData.mimeType,
     }
 
-    if (!galleryItem.title || !galleryItem.caption) {
+    if (!galleryData.title || !galleryData.caption) {
       alert("Please add a gallery title and caption before publishing.")
       return
     }
@@ -513,14 +511,13 @@ export default function ElderDashboardClient() {
       return
     }
 
-    const updated = [galleryItem, ...publishedGallery]
     try {
-      await saveStoredGallery(updated)
+      const galleryItem = await saveWebsiteGalleryItem(galleryData)
+      setPublishedGallery((current) => [galleryItem, ...current])
     } catch {
-      alert("This gallery file is too large to publish in browser storage. Please choose a smaller file.")
+      alert("This gallery file could not be published. Please choose a smaller file.")
       return
     }
-    setPublishedGallery(updated)
     window.dispatchEvent(new Event("website-content-updated"))
     setGalleryFormData({
       title: "",
@@ -537,9 +534,8 @@ export default function ElderDashboardClient() {
 
   const handleDeletePublishedGalleryItem = async (id: string) => {
     if (!confirm("Delete this published gallery item from the website?")) return
-    const updated = publishedGallery.filter((item) => item.id !== id)
-    setPublishedGallery(updated)
-    await saveStoredGallery(updated)
+    await deleteWebsiteGalleryItem(id)
+    setPublishedGallery((current) => current.filter((item) => item.id !== id))
     window.dispatchEvent(new Event("website-content-updated"))
   }
 

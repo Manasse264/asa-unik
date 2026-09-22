@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { Camera } from "lucide-react"
-import { getStoredGallery } from "@/lib/website-gallery-storage"
+import { getWebsiteGallery } from "@/lib/actions"
 
 const categories = ["Worship Services", "Sabbath School", "Youth", "Children", "Women's Ministry", "Men's Ministry", "Choir", "Baptism", "Evangelism", "Community Outreach", "Special Events"]
 interface GalleryPhoto {
@@ -15,39 +15,29 @@ interface GalleryPhoto {
   type?: "photo" | "video"
 }
 
-const DEFAULT_PHOTOS: GalleryPhoto[] = [
-  { src: "/photo1.jpg", title: "Sabbath Worship", date: "September 2026", event: "Worship Services", caption: "The church family gathered for worship and Bible teaching." },
-  { src: "/photo2.jpg", title: "Bible Study", date: "September 2026", event: "Sabbath School", caption: "Members studying Scripture together in small groups." },
-  { src: "/photo3.jpg", title: "Youth Program", date: "August 2026", event: "Youth", caption: "Young people serving and growing in Christ." },
-  { src: "/photo4.jpg", title: "Choir Ministry", date: "August 2026", event: "Choir", caption: "Music ministry leading praise and worship." },
-  { src: "/photo1.jpg", title: "Outreach Day", date: "July 2026", event: "Community Outreach", caption: "Serving the community with compassion and hope." },
-  { src: "/photo2.jpg", title: "Special Program", date: "July 2026", event: "Special Events", caption: "A special church program for students and visitors." },
-]
-
-const getPublishedGallery = async (): Promise<GalleryPhoto[]> => {
-  if (typeof window === "undefined") return DEFAULT_PHOTOS
-  try {
-    const parsed = await getStoredGallery()
-    if (!parsed) return DEFAULT_PHOTOS
-
-    return parsed.map((photo) => ({
-      ...photo,
-      event: photo.category ?? "Church Event",
-      caption: photo.caption ?? "",
-      src: photo.src ?? "/photo1.jpg",
-      type: photo.type ?? "photo",
-    }))
-  } catch {
-    return DEFAULT_PHOTOS
-  }
+interface StoredGalleryPhoto {
+  id: string
+  title: string
+  date: string
+  category: string
+  caption: string
+  src: string
+  type: string
 }
 
 export default function GalleryPage() {
-  const [photos, setPhotos] = React.useState(DEFAULT_PHOTOS)
+  const [photos, setPhotos] = React.useState<GalleryPhoto[]>([])
 
   React.useEffect(() => {
-    const syncGallery = async () => setPhotos(await getPublishedGallery())
-    syncGallery()
+    const syncGallery = async () => {
+      try {
+        const publishedGallery = await getWebsiteGallery()
+        setPhotos(publishedGallery.map((photo: StoredGalleryPhoto) => ({ ...photo, event: photo.category, type: photo.type as "photo" | "video" })))
+      } catch {
+        setPhotos([])
+      }
+    }
+    void syncGallery()
     window.addEventListener("website-content-updated", syncGallery)
     window.addEventListener("storage", syncGallery)
     window.addEventListener("year-changed", syncGallery)

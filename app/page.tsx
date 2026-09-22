@@ -5,8 +5,8 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { getStoredGallery } from "@/lib/website-gallery-storage"
 import { getWebsiteEvents } from "@/lib/actions"
+import { getWebsiteGallery } from "@/lib/actions"
 import {
   Calendar,
   Clock,
@@ -179,7 +179,7 @@ interface HomepageGalleryPhoto {
   id?: string
   src: string
   title: string
-  type?: "photo" | "video"
+  type?: string
 }
 
 const formatEventTime = (start?: string, end?: string, legacyTime?: string) => {
@@ -224,8 +224,8 @@ export default function Page() {
     const syncHomepageContent = async () => {
       try {
         setHomepageEvents(await getWebsiteEvents())
-        const gallery = await getStoredGallery()
-        if (gallery) setHomepageGallery(gallery.filter((item) => item.type !== "video").slice(0, 5))
+        const gallery = await getWebsiteGallery()
+        setHomepageGallery(gallery.filter((item: HomepageGalleryPhoto) => item.type !== "video").slice(0, 5))
       } catch {
         setHomepageEvents([])
       }

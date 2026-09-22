@@ -180,6 +180,31 @@ export async function deleteWebsiteEvent(id: string) {
   revalidatePath("/dashboard/elder")
 }
 
+export async function getWebsiteGallery() {
+  return prisma.websiteGalleryItem.findMany({
+    orderBy: { createdAt: "desc" },
+  })
+}
+
+export async function saveWebsiteGalleryItem(data: any) {
+  const { id, ...galleryData } = data
+  const item = id
+    ? await prisma.websiteGalleryItem.update({ where: { id }, data: galleryData })
+    : await prisma.websiteGalleryItem.create({ data: galleryData })
+
+  revalidatePath("/")
+  revalidatePath("/gallery")
+  revalidatePath("/dashboard/elder")
+  return item
+}
+
+export async function deleteWebsiteGalleryItem(id: string) {
+  await prisma.websiteGalleryItem.delete({ where: { id } })
+  revalidatePath("/")
+  revalidatePath("/gallery")
+  revalidatePath("/dashboard/elder")
+}
+
 // --- System Config ---
 export async function getSystemConfig() {
   return await prisma.systemConfig.upsert({
