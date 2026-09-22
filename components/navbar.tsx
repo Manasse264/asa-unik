@@ -252,7 +252,7 @@ export function Navbar() {
           {t.yearRequired}
         </div>
       )}
-      <header className="hidden border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
         <div className="container flex min-h-20 items-center justify-between gap-3 px-3 py-3 md:px-8">
           
           {/* Logo Section */}
@@ -388,7 +388,7 @@ export function Navbar() {
         </div>
       </header>
 
-      {!isDashboard && (
+      {pathname === "/" && (
         <div className="overflow-hidden border-b border-blue-800 bg-blue-600 py-2" aria-label="Welcome message">
           <div className="w-max animate-marquee whitespace-nowrap px-4 text-xs font-black uppercase tracking-[0.35em] text-white sm:text-sm">
             WELCOME TO
@@ -397,7 +397,7 @@ export function Navbar() {
       )}
 
       {!isDashboard && isMobileMenuOpen && (
-        <div className="hidden border-b bg-white shadow-sm xl:hidden">
+        <div className="border-b bg-white shadow-sm xl:hidden">
           <div className="container px-4 py-4">
             <nav className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {navLinks.map((link) => {
@@ -435,7 +435,7 @@ export function Navbar() {
 
       {/* Updates / News / Announcements Subtabs */}
       {isUpdatesSection && (
-        <div className="hidden container flex justify-end mt-1 px-4 md:px-6 pointer-events-none">
+        <div className="container flex justify-end mt-1 px-4 md:px-6 pointer-events-none">
           <div className="pointer-events-auto flex items-center gap-6 py-2">
             <Link 
               href="/news" 
