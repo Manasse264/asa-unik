@@ -505,34 +505,35 @@ export default function Page() {
             </div>
           </div>
 
-          {/* Church Gallery Preview */}
-          <div className="space-y-6 pt-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
-              <div>
-                <span className="text-xs font-extrabold tracking-widest text-blue-800 uppercase">
-                  {t.galleryBadge}
-                </span>
-                <h2 className="text-2xl md:text-3xl font-black text-slate-900 mt-1">
-                  Recent Moments
-                </h2>
-              </div>
-              <Button variant="ghost" asChild className="text-blue-900 hover:text-blue-700 font-bold self-start sm:self-auto p-0">
-                <Link href="/gallery" className="flex items-center gap-1">
-                  {t.viewGallery}
-                  <ChevronRight className="w-4 h-4" />
-                </Link>
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-              {(homepageGallery.length ? homepageGallery : ["/photo1.jpg", "/photo2.jpg", "/photo3.jpg", "/photo4.jpg", "/photo1.jpg"].map((src): HomepageGalleryPhoto => ({ src, title: "Church gallery" }))).map((photo, i) => (
-                <div key={photo.id ?? `${photo.src}-${i}`} className="relative h-36 rounded-xl overflow-hidden group shadow-sm">
-                  <img src={photo.src} alt={photo.title || `Gallery photo ${i + 1}`} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                  <div className="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/0 transition-colors" />
+          {homepageGallery.length > 0 && (
+            <div className="space-y-6 pt-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+                <div>
+                  <span className="text-xs font-extrabold tracking-widest text-blue-800 uppercase">
+                    {t.galleryBadge}
+                  </span>
+                  <h2 className="text-2xl md:text-3xl font-black text-slate-900 mt-1">
+                    Recent Moments
+                  </h2>
                 </div>
-              ))}
+                <Button variant="ghost" asChild className="text-blue-900 hover:text-blue-700 font-bold self-start sm:self-auto p-0">
+                  <Link href="/gallery" className="flex items-center gap-1">
+                    {t.viewGallery}
+                    <ChevronRight className="w-4 h-4" />
+                  </Link>
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                {homepageGallery.map((photo, i) => (
+                  <div key={photo.id ?? `${photo.src}-${i}`} className="relative h-36 rounded-xl overflow-hidden group shadow-sm">
+                    <img src={photo.src} alt={photo.title || `Gallery photo ${i + 1}`} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                    <div className="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/0 transition-colors" />
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
         </div>
       </section>
