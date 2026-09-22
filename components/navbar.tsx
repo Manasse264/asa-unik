@@ -388,6 +388,14 @@ export function Navbar() {
         </div>
       </header>
 
+      {!isDashboard && (
+        <div className="overflow-hidden border-b border-amber-200 bg-amber-50 py-2" aria-label="Welcome message">
+          <div className="w-max animate-marquee whitespace-nowrap px-4 text-xs font-black uppercase tracking-[0.35em] text-amber-900 sm:text-sm">
+            WELCOME TO
+          </div>
+        </div>
+      )}
+
       {!isDashboard && isMobileMenuOpen && (
         <div className="border-b bg-white shadow-sm xl:hidden">
           <div className="container px-4 py-4">
