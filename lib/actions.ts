@@ -500,7 +500,7 @@ export async function loginUser(email: string, password: string) {
         role: "Church Elder",
         registrationYear: new Date().getFullYear().toString(),
         allowedYears: config.availableYears || ["2024-2025"],
-        email: "emergency-elder@local"
+        email: config.defaultLoginEmail
       }
     }
   }
