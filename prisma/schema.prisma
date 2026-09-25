@@ -181,16 +181,14 @@ model WebsiteGalleryItem {
 }
 
 model SystemConfig {
-  id                    String   @id @default("global")
-  blockLogin            Boolean  @default(false)
-  blockRegister         Boolean  @default(false)
-  availableYears        String[] @default(["2024-2025"])
-  blockedYears          String[] @default([])
-  restrictNewAccounts   Boolean  @default(false)
-  restrictOldAccounts   Boolean  @default(false)
-  defaultLoginEmail     String   @default("elder")
-  defaultPasswordHash   String   @default("$2b$10$3jvx5JD90WxTJjb27XGTT.iGvM5u4Lc3jVv9cJKOSadYIwwExC8Ba")
-  updatedAt             DateTime @updatedAt
+  id                  String   @id @default("global")
+  blockLogin          Boolean  @default(false)
+  blockRegister       Boolean  @default(false)
+  availableYears      String[] @default(["2024-2025"])
+  blockedYears        String[] @default([])
+  restrictNewAccounts Boolean  @default(false)
+  restrictOldAccounts Boolean  @default(false)
+  updatedAt           DateTime @updatedAt
 }
 
 model Report {

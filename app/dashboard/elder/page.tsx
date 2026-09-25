@@ -177,12 +177,9 @@ export default function ElderDashboardClient() {
   const [blockRegister, setBlockRegister] = React.useState(false)
   const [restrictNewAccounts, setRestrictNewAccounts] = React.useState(false)
   const [restrictOldAccounts, setRestrictOldAccounts] = React.useState(false)
-  const [availableYears, setAvailableYears] = React.useState<string[]>(["2024-2025"])
+  const [availableYears, setAvailableYears] = React.useState<string[]>([])
   const [blockedYears, setBlockedYears] = React.useState<string[]>([])
   const [newYearInput, setNewYearInput] = React.useState("")
-  const [defaultLoginEmail, setDefaultLoginEmail] = React.useState("")
-  const [defaultLoginPassword, setDefaultLoginPassword] = React.useState("")
-  const [isSavingDefaultLogin, setIsSavingDefaultLogin] = React.useState(false)
 
   const [users, setUsers] = React.useState<UserAccount[]>([])
   const [editingUser, setEditingUser] = React.useState<UserAccount | null>(null)
@@ -294,7 +291,6 @@ export default function ElderDashboardClient() {
       setRestrictOldAccounts(!!config.restrictOldAccounts)
       setAvailableYears(Array.isArray(config.availableYears) ? config.availableYears : [])
       setBlockedYears(Array.isArray(config.blockedYears) ? config.blockedYears : [])
-      setDefaultLoginEmail(config.defaultLoginEmail || "elder")
       localStorage.setItem("system_config", JSON.stringify(config))
     } catch (error) {
       console.error("Error loading system configuration:", error)
@@ -339,12 +335,16 @@ export default function ElderDashboardClient() {
     loadWebsiteContent()
     loadSystemConfig()
     loadData()
+    window.addEventListener("storage", loadSystemConfig)
     window.addEventListener("storage", loadData)
     window.addEventListener("year-changed", loadData)
+    window.addEventListener("system-config-updated", loadSystemConfig)
     window.addEventListener("website-content-updated", loadWebsiteContent)
     return () => {
+      window.removeEventListener("storage", loadSystemConfig)
       window.removeEventListener("storage", loadData)
       window.removeEventListener("year-changed", loadData)
+      window.removeEventListener("system-config-updated", loadSystemConfig)
       window.removeEventListener("website-content-updated", loadWebsiteContent)
     }
   }, [])
@@ -767,36 +767,6 @@ export default function ElderDashboardClient() {
     } catch (error) {
       console.error("Failed to save year:", error)
       alert("The year could not be saved. Please try again.")
-    }
-  }
-
-  const handleSaveDefaultLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!defaultLoginEmail.trim()) {
-      alert("Default email is required.")
-      return
-    }
-    if (defaultLoginPassword && defaultLoginPassword.length < 6) {
-      alert("Default password must be at least 6 characters.")
-      return
-    }
-
-    setIsSavingDefaultLogin(true)
-    try {
-      const config = await updateSystemConfig({
-        defaultLoginEmail: defaultLoginEmail.trim(),
-        ...(defaultLoginPassword ? { defaultPassword: defaultLoginPassword } : {}),
-      })
-      setDefaultLoginEmail(config.defaultLoginEmail)
-      setDefaultLoginPassword("")
-      localStorage.setItem("system_config", JSON.stringify(config))
-      window.dispatchEvent(new CustomEvent("system-config-updated", { detail: config }))
-      alert("Default login settings saved.")
-    } catch (error) {
-      console.error("Failed to save default login settings:", error)
-      alert("The default login settings could not be saved.")
-    } finally {
-      setIsSavingDefaultLogin(false)
     }
   }
 
@@ -1729,39 +1699,6 @@ export default function ElderDashboardClient() {
             <h3 className="text-xl font-bold flex items-center gap-2">
               <Settings className="h-5 w-5" /> System Controls & Security Settings
             </h3>
-
-            <form onSubmit={handleSaveDefaultLogin} className="space-y-4 border-b pb-6">
-              <div>
-                <h4 className="text-lg font-semibold">Default Login Settings</h4>
-                <p className="text-sm text-muted-foreground">Change the emergency elder login credentials.</p>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="grid gap-2">
-                  <Label htmlFor="default-login-email">Default Email</Label>
-                  <Input
-                    id="default-login-email"
-                    type="text"
-                    value={defaultLoginEmail}
-                    onChange={(e) => setDefaultLoginEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="default-login-password">New Default Password</Label>
-                  <Input
-                    id="default-login-password"
-                    type="password"
-                    value={defaultLoginPassword}
-                    onChange={(e) => setDefaultLoginPassword(e.target.value)}
-                    placeholder="Leave blank to keep current password"
-                    minLength={6}
-                  />
-                </div>
-              </div>
-              <Button type="submit" disabled={isSavingDefaultLogin}>
-                {isSavingDefaultLogin ? "Saving..." : "Save Default Login"}
-              </Button>
-            </form>
             
             {/* Global Access Controls */}
             <div className="grid gap-4 md:grid-cols-2">

@@ -46,7 +46,7 @@ const sslTranslations = {
     origin: "Origin Church", district: "District", field: "Field", upload: "Upload Letter",
     status: "Status", received: "Received", rejected: "Rejected", files: "Files",
     addChoir: "Register Choir", choirName: "Choir Name", memberCount: "Number of Members", updateChoir: "Update Choir",
-    rank: "Rank", avg: "Average %", downloadWeekly: "Download Weekly Report", generateWeekly: "Generate Weekly Report", needThreeDays: "Record attendance for 3 different days before generating the weekly report."
+    rank: "Rank", avg: "Average %", downloadWeekly: "Download Weekly Report", generateWeekly: "Generate Weekly Report"
   },
   fr: {
     title: "Responsable École du Sabbat", subtitle: "Officier de Présence", addFamily: "Enregistrer Famille",
@@ -63,7 +63,7 @@ const sslTranslations = {
     origin: "Église d'Origine", district: "District", field: "Champ", upload: "Télécharger Lettre",
     status: "Statut", received: "Reçu", rejected: "Rejeté", files: "Fichiers",
     addChoir: "Enregistrer Chorale", choirName: "Nom de la Chorale", memberCount: "Nombre de Membres", updateChoir: "Mettre à jour la chorale",
-    rank: "Rang", avg: "Moyenne %", downloadWeekly: "Télécharger le Rapport Hebdomadaire", generateWeekly: "Générer le Rapport Hebdomadaire", needThreeDays: "Enregistrez les présences pendant 3 jours différents avant de générer le rapport hebdomadaire."
+    rank: "Rang", avg: "Moyenne %", downloadWeekly: "Télécharger le Rapport Hebdomadaire", generateWeekly: "Générer le Rapport Hebdomadaire"
   },
   rw: {
     title: "Umuyobozi w'Ishuri ryo ku Isabato", subtitle: "Ushinzwe Imyitwarire n'Abaramukwa", addFamily: "Andika Umuryango",
@@ -80,7 +80,7 @@ const sslTranslations = {
     origin: "Itorero Inkomoko", district: "Akarere", field: "Inshingano", upload: "Shiraho Ibaruwa",
     status: "Ikarita", received: "Yakiriwe", rejected: "Yanzwe", files: "Inyandiko",
     addChoir: "Andika Korali", choirName: "Izina rya Korali", memberCount: "Umubare w'Abaririmbyi", updateChoir: "Vugurura Korali",
-    rank: "Umwanya", avg: "Impuzandengo %", downloadWeekly: "Sohora Raporo y'Icyumweru", generateWeekly: "Sohora Raporo y'Icyumweru", needThreeDays: "Andika imyitabire y'iminsi 3 itandukanye mbere yo gukora raporo y'icyumweru."
+    rank: "Umwanya", avg: "Impuzandengo %", downloadWeekly: "Sohora Raporo y'Icyumweru", generateWeekly: "Sohora Raporo y'Icyumweru"
   }
 }
 
@@ -433,11 +433,6 @@ export default function SabbathSchoolDashboard() {
   }
 
   const generateWeeklyPDF = () => {
-    if (uniqueDates.length !== 3) {
-      alert(t.needThreeDays)
-      return
-    }
-
     const doc = new jsPDF()
 
     doc.setFontSize(20)
@@ -617,12 +612,12 @@ export default function SabbathSchoolDashboard() {
 
   const currentDayAttendance = attendance.filter(a => a.date === selectedDate)
 
-  // Weekly reports require three distinct days of recorded attendance.
-  const uniqueDates = Array.from(new Set(attendance.map(record => record.date)))
+  // Calculating 3-day Performance for Weekly Report strictly from generated daily reports
+  const uniqueDates = generatedDates
     .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
     .slice(0, 3)
 
-  const hasGeneratedReports = uniqueDates.length === 3
+  const hasGeneratedReports = uniqueDates.length > 0
 
   const familyPerformance = hasGeneratedReports ? families.map(f => {
     const totalMembers = f.memberCount || 1
@@ -788,13 +783,13 @@ export default function SabbathSchoolDashboard() {
         <div className="space-y-8">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h3 className="text-xl font-bold">{t.tabRep}</h3>
-            <Button size="lg" className="gap-2" onClick={generateWeeklyPDF} disabled={!hasGeneratedReports}>
+            <Button size="lg" className="gap-2" onClick={generateWeeklyPDF}>
               <Download className="h-5 w-5" /> {t.generateWeekly}
             </Button>
           </div>
           {!hasGeneratedReports ? (
             <div className="p-8 text-center border rounded-lg bg-card text-muted-foreground">
-              {uniqueDates.length > 0 ? t.needThreeDays : t.noData}
+              {t.noData}
             </div>
           ) : (
             <>
