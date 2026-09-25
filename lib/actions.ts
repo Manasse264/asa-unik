@@ -215,11 +215,16 @@ export async function getSystemConfig() {
 }
 
 export async function updateSystemConfig(data: any) {
-  await prisma.systemConfig.update({
+  const config = await prisma.systemConfig.upsert({
     where: { id: "global" },
-    data,
+    update: data,
+    create: {
+      id: "global",
+      ...data,
+    },
   })
   revalidatePath("/dashboard/elder")
+  return config
 }
 
 // --- Users ---

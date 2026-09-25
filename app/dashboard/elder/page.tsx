@@ -744,19 +744,30 @@ export default function ElderDashboardClient() {
   // System Config Handlers
   const handleAddYear = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newYearInput.trim() || availableYears.includes(newYearInput.trim())) return
-    const updatedYears = [...availableYears, newYearInput.trim()]
-    setAvailableYears(updatedYears)
-    setNewYearInput("")
-    await updateSystemConfig({ availableYears: updatedYears })
+    const year = newYearInput.trim()
+    if (!year || availableYears.includes(year)) return
+
+    try {
+      const config = await updateSystemConfig({ availableYears: [...availableYears, year] })
+      setAvailableYears(config.availableYears)
+      setBlockedYears(config.blockedYears)
+      localStorage.setItem("system_config", JSON.stringify(config))
+      setNewYearInput("")
+      window.dispatchEvent(new Event("storage"))
+    } catch (error) {
+      console.error("Failed to save year:", error)
+      alert("The year could not be saved. Please try again.")
+    }
   }
 
   const handleRemoveYear = async (year: string) => {
     const updatedYears = availableYears.filter(y => y !== year)
     const updatedBlocked = blockedYears.filter(y => y !== year)
-    setAvailableYears(updatedYears)
-    setBlockedYears(updatedBlocked)
-    await updateSystemConfig({ availableYears: updatedYears, blockedYears: updatedBlocked })
+    const config = await updateSystemConfig({ availableYears: updatedYears, blockedYears: updatedBlocked })
+    setAvailableYears(config.availableYears)
+    setBlockedYears(config.blockedYears)
+    localStorage.setItem("system_config", JSON.stringify(config))
+    window.dispatchEvent(new Event("storage"))
   }
 
   const handleToggleBlockYear = async (year: string) => {
@@ -764,8 +775,11 @@ export default function ElderDashboardClient() {
     const updatedBlocked = isBlocked 
       ? blockedYears.filter(y => y !== year) 
       : [...blockedYears, year]
-    setBlockedYears(updatedBlocked)
-    await updateSystemConfig({ blockedYears: updatedBlocked })
+    const config = await updateSystemConfig({ blockedYears: updatedBlocked })
+    setAvailableYears(config.availableYears)
+    setBlockedYears(config.blockedYears)
+    localStorage.setItem("system_config", JSON.stringify(config))
+    window.dispatchEvent(new Event("storage"))
   }
 
   const filteredMembers = members.filter(m => 

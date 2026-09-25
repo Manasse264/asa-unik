@@ -46,7 +46,7 @@ const sslTranslations = {
     origin: "Origin Church", district: "District", field: "Field", upload: "Upload Letter",
     status: "Status", received: "Received", rejected: "Rejected", files: "Files",
     addChoir: "Register Choir", choirName: "Choir Name", memberCount: "Number of Members", updateChoir: "Update Choir",
-    rank: "Rank", avg: "Average %", downloadWeekly: "Download Weekly Report"
+    rank: "Rank", avg: "Average %", downloadWeekly: "Download Weekly Report", generateWeekly: "Generate Weekly Report"
   },
   fr: {
     title: "Responsable École du Sabbat", subtitle: "Officier de Présence", addFamily: "Enregistrer Famille",
@@ -63,7 +63,7 @@ const sslTranslations = {
     origin: "Église d'Origine", district: "District", field: "Champ", upload: "Télécharger Lettre",
     status: "Statut", received: "Reçu", rejected: "Rejeté", files: "Fichiers",
     addChoir: "Enregistrer Chorale", choirName: "Nom de la Chorale", memberCount: "Nombre de Membres", updateChoir: "Mettre à jour la chorale",
-    rank: "Rang", avg: "Moyenne %", downloadWeekly: "Télécharger le Rapport Hebdomadaire"
+    rank: "Rang", avg: "Moyenne %", downloadWeekly: "Télécharger le Rapport Hebdomadaire", generateWeekly: "Générer le Rapport Hebdomadaire"
   },
   rw: {
     title: "Umuyobozi w'Ishuri ryo ku Isabato", subtitle: "Ushinzwe Imyitwarire n'Abaramukwa", addFamily: "Andika Umuryango",
@@ -80,7 +80,7 @@ const sslTranslations = {
     origin: "Itorero Inkomoko", district: "Akarere", field: "Inshingano", upload: "Shiraho Ibaruwa",
     status: "Ikarita", received: "Yakiriwe", rejected: "Yanzwe", files: "Inyandiko",
     addChoir: "Andika Korali", choirName: "Izina rya Korali", memberCount: "Umubare w'Abaririmbyi", updateChoir: "Vugurura Korali",
-    rank: "Umwanya", avg: "Impuzandengo %", downloadWeekly: "Sohora Raporo y'Icyumweru"
+    rank: "Umwanya", avg: "Impuzandengo %", downloadWeekly: "Sohora Raporo y'Icyumweru", generateWeekly: "Sohora Raporo y'Icyumweru"
   }
 }
 
@@ -781,6 +781,12 @@ export default function SabbathSchoolDashboard() {
 
       {activeTab === 'reports' && (
         <div className="space-y-8">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h3 className="text-xl font-bold">{t.tabRep}</h3>
+            <Button size="lg" className="gap-2" onClick={generateWeeklyPDF}>
+              <Download className="h-5 w-5" /> {t.generateWeekly}
+            </Button>
+          </div>
           {!hasGeneratedReports ? (
             <div className="p-8 text-center border rounded-lg bg-card text-muted-foreground">
               {t.noData}
@@ -853,11 +859,6 @@ export default function SabbathSchoolDashboard() {
                 </div>
               </div>
 
-              <div className="flex justify-end pt-4">
-                <Button size="lg" className="gap-2 px-6 shadow-lg shadow-primary/20" onClick={generateWeeklyPDF}>
-                  <Download className="h-5 w-5" /> {t.downloadWeekly}
-                </Button>
-              </div>
             </>
           )}
         </div>
