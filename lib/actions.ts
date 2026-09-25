@@ -389,6 +389,18 @@ export async function saveReport(data: any) {
   })
 }
 
+export async function deleteReport(id: string) {
+  await prisma.report.delete({ where: { id } })
+  revalidatePath("/dashboard/elder")
+  revalidatePath("/dashboard/sabbath-school")
+}
+
+export async function deleteReports(year: string) {
+  await prisma.report.deleteMany({ where: { year } })
+  revalidatePath("/dashboard/elder")
+  revalidatePath("/dashboard/sabbath-school")
+}
+
 // ---------------- WEEK OF PRAYER ----------------
 export async function getWeekOfPrayers(year: string) {
   return await prisma.weekOfPrayer.findMany({ where: { year } })

@@ -56,7 +56,7 @@ import {
   getAnnouncements, saveAnnouncement, deleteAnnouncement,
   getSystemConfig, updateSystemConfig,
   getUsers, updateUser, deleteUser,
-  getReports,
+  getReports, deleteReport, deleteReports,
   getWeekOfPrayers, saveWeekOfPrayer, deleteWeekOfPrayer,
   getWeeklyChoirs, saveWeeklyChoir, deleteWeeklyChoir,
   getWebsiteEvents, saveWebsiteEvent, deleteWebsiteEvent,
@@ -397,6 +397,22 @@ export default function ElderDashboardClient() {
       await deleteMember(id)
       loadData()
     }
+  }
+
+  const handleDeleteReport = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this report?")) return
+
+    await deleteReport(id)
+    await loadData()
+  }
+
+  const handleClearReports = async () => {
+    if (reports.length === 0) return
+    if (!confirm("Are you sure you want to delete all reports?")) return
+
+    const year = localStorage.getItem("selected_year") || new Date().getFullYear().toString()
+    await deleteReports(year)
+    await loadData()
   }
 
   const handlePublishEvent = async () => {
@@ -1181,20 +1197,31 @@ export default function ElderDashboardClient() {
         </TabsContent>
 
         <TabsContent value="reports" className="space-y-4">
+          <div className="flex items-center justify-between gap-4">
+            <h3 className="text-xl font-bold">Published Reports</h3>
+            <Button
+              variant="destructive"
+              onClick={handleClearReports}
+              disabled={reports.length === 0}
+            >
+              <Trash2 className="mr-2 h-4 w-4" /> Clear all
+            </Button>
+          </div>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {reports.map((r) => (
               <div key={r.id} className="border p-4 rounded-xl space-y-2 bg-background shadow-sm">
-                <h3 className="font-bold text-lg">{r.title}</h3>
-                <Button 
-                  variant="destructive" 
-                  onClick={() => {
-                    if (confirm("Are you sure you want to delete all reports?")) {
-                      setReports([])
-                    }
-                  }}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" /> Delete All
-                </Button>
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="font-bold text-lg">{r.title}</h3>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-destructive"
+                    onClick={() => handleDeleteReport(r.id)}
+                    aria-label={`Delete ${r.title}`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
                 <p className="text-sm text-muted-foreground">Date: {r.date}</p>
                 <p className="text-sm font-medium">Total Attendance: {r.total}</p>
                 <Button
