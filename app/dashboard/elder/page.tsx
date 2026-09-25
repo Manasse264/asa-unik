@@ -102,9 +102,8 @@ interface WeeklyProgram {
 
 interface WeeklyChoir {
   id: string
-  name: string        
-  leaderName: string
-  memberNames: string[]
+  day: string
+  name: string
   year: string
   createdAt: Date
   updatedAt: Date
@@ -712,7 +711,7 @@ export default function ElderDashboardClient() {
     const year = localStorage.getItem("selected_year") || new Date().getFullYear().toString()
     await saveWeeklyChoir({
       name: choirFormData.name,
-      leaderName: choirFormData.day,
+      day: choirFormData.day,
       year
     })
     setIsAddingChoir(false)
@@ -731,7 +730,7 @@ export default function ElderDashboardClient() {
     const doc = new jsPDF()
     doc.text("Weekly Choir Schedule", 14, 15)
     
-    const tableData = weeklyChoirs.map(c => [c.leaderName, c.name])
+    const tableData = weeklyChoirs.map(c => [c.day, c.name])
     
     autoTable(doc, {
       head: [['Day', 'Choir Name']],
@@ -1654,7 +1653,7 @@ export default function ElderDashboardClient() {
                     <TableBody>
                       {weeklyChoirs.map((c) => (
                         <TableRow key={c.id}>
-                          <TableCell className="font-medium">{c.leaderName}</TableCell>
+                          <TableCell className="font-medium">{c.day}</TableCell>
                           <TableCell>{c.name}</TableCell>
                           <TableCell className="text-right">
                             <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteChoir(c.id)}>

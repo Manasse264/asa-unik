@@ -420,24 +420,30 @@ export async function deleteWeekOfPrayer(id: string) {
   await prisma.weekOfPrayer.delete({ where: { id } })
   revalidatePath("/dashboard/evangelism")
 }
-// Add these to your actions.ts file to re-route them to the existing choir table
-
 export async function getWeeklyChoirs(year: string) {
-  return await prisma.choir.findMany({ where: { year } })
+  return await prisma.weeklyChoirSchedule.findMany({
+    where: { year },
+    orderBy: { createdAt: "desc" },
+  })
 }
 
 export async function saveWeeklyChoir(data: any) {
-  const { id, ...rest } = data
+  const { id, day, name, year } = data
   if (id && id.length > 10) {
-    await prisma.choir.update({ where: { id }, data: rest })
+    await prisma.weeklyChoirSchedule.update({
+      where: { id },
+      data: { day, name, year },
+    })
   } else {
-    await prisma.choir.create({ data: rest })
+    await prisma.weeklyChoirSchedule.create({
+      data: { day, name, year },
+    })
   }
   revalidatePath("/dashboard/elder")
 }
 
 export async function deleteWeeklyChoir(id: string) {
-  await prisma.choir.delete({ where: { id } })
+  await prisma.weeklyChoirSchedule.delete({ where: { id } })
   revalidatePath("/dashboard/elder")
 }
 // ---------------- WEEKLY PROGRAMS ----------------
