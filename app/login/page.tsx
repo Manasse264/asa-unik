@@ -137,7 +137,7 @@ export default function LoginPage() {
             </div>
             <Button className="w-full" type="submit" disabled={isBlocked}>{t.login}</Button>
           </form>
-   
+        </div>
       </div>
     </div>
   )
