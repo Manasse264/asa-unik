@@ -781,28 +781,28 @@ export default function ElderDashboardClient() {
   )
 
   return (
-    <div className="flex-1 space-y-4 p-8 pt-6">
+    <div className="min-w-0 max-w-full flex-1 space-y-4 overflow-x-hidden p-3 pt-4 sm:p-6 sm:pt-6 lg:p-8">
       <YearSelector />
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Church Elder Dashboard</h2>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Church Elder Dashboard</h2>
       </div>
 
       <Tabs defaultValue="members" className="space-y-4">
-        <TabsList className="h-auto flex-wrap justify-start">
-          <TabsTrigger value="members">Baptized Members</TabsTrigger>
-          <TabsTrigger value="council">Church Council</TabsTrigger>
-          <TabsTrigger value="users">User Accounts</TabsTrigger>
-          <TabsTrigger value="evangelism">Evangelism Dept</TabsTrigger>
-          <TabsTrigger value="announcements">Announcements</TabsTrigger>
-          <TabsTrigger value="manage-webpage">Manage webpage</TabsTrigger>
-          <TabsTrigger value="reports">Reports</TabsTrigger>
-          <TabsTrigger value="system">System Config</TabsTrigger>
+        <TabsList className="flex h-auto max-w-full justify-start gap-1 overflow-x-auto overscroll-x-contain p-1">
+          <TabsTrigger className="shrink-0" value="members">Baptized Members</TabsTrigger>
+          <TabsTrigger className="shrink-0" value="council">Church Council</TabsTrigger>
+          <TabsTrigger className="shrink-0" value="users">User Accounts</TabsTrigger>
+          <TabsTrigger className="shrink-0" value="evangelism">Evangelism Dept</TabsTrigger>
+          <TabsTrigger className="shrink-0" value="announcements">Announcements</TabsTrigger>
+          <TabsTrigger className="shrink-0" value="manage-webpage">Manage webpage</TabsTrigger>
+          <TabsTrigger className="shrink-0" value="reports">Reports</TabsTrigger>
+          <TabsTrigger className="shrink-0" value="system">System Config</TabsTrigger>
         </TabsList>
 
         <TabsContent value="members" className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <div className="relative w-72">
+              <div className="relative w-full max-w-sm">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search members..."
@@ -818,7 +818,7 @@ export default function ElderDashboardClient() {
           </div>
 
           {(isAddingMember || editingMember) && (
-            <div className="p-6 border rounded-xl bg-muted/30 space-y-4">
+            <div className="p-4 sm:p-6 border rounded-xl bg-muted/30 space-y-4">
               <h3 className="text-lg font-bold">{editingMember ? "Edit Member" : "Add New Baptized Member"}</h3>
               <form onSubmit={editingMember ? handleUpdateMember : handleAddMember} className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -888,8 +888,8 @@ export default function ElderDashboardClient() {
             </div>
           )}
 
-          <div className="rounded-md border">
-            <Table>
+          <div className="max-w-full overflow-x-auto rounded-md border">
+            <Table className="min-w-[720px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Full Name</TableHead>
@@ -939,8 +939,8 @@ export default function ElderDashboardClient() {
         </TabsContent>
 
         <TabsContent value="council" className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="relative w-72">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="relative w-full max-w-sm">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search council members..."
@@ -951,8 +951,8 @@ export default function ElderDashboardClient() {
             </div>
           </div>
 
-          <div className="rounded-md border">
-            <Table>
+          <div className="max-w-full overflow-x-auto rounded-md border">
+            <Table className="min-w-[560px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Full Name</TableHead>
@@ -1251,7 +1251,7 @@ export default function ElderDashboardClient() {
           </div>
 
           {(isAddingAnnouncement || editingAnnouncement) && (
-            <div className="p-6 border rounded-xl bg-muted/30 space-y-4">
+            <div className="p-4 sm:p-6 border rounded-xl bg-muted/30 space-y-4">
               <h3 className="text-lg font-bold">{editingAnnouncement ? "Edit Announcement" : "Create New Announcement"}</h3>
               <form onSubmit={editingAnnouncement ? handleUpdateAnnouncement : handleAddAnnouncement} className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
@@ -1332,8 +1332,8 @@ export default function ElderDashboardClient() {
             </div>
           )}
 
-          <div className="rounded-md border">
-            <Table>
+          <div className="max-w-full overflow-x-auto rounded-md border">
+            <Table className="min-w-[640px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Title</TableHead>
@@ -1404,7 +1404,7 @@ export default function ElderDashboardClient() {
         </TabsContent>
 
         <TabsContent value="users" className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <h3 className="text-xl font-bold">Manage All User Accounts</h3>
           </div>
 
@@ -1427,7 +1427,7 @@ export default function ElderDashboardClient() {
           )}
 
           {editingUser && (
-            <div className="p-6 border rounded-xl bg-muted/30 space-y-4">
+            <div className="p-4 sm:p-6 border rounded-xl bg-muted/30 space-y-4">
               <h3 className="text-lg font-bold">Edit User</h3>
               <form onSubmit={handleUpdateUser} className="space-y-6">
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -1456,8 +1456,8 @@ export default function ElderDashboardClient() {
             </div>
           )}
 
-          <div className="rounded-md border">
-            <Table>
+          <div className="max-w-full overflow-x-auto rounded-md border">
+            <Table className="min-w-[640px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Full Name</TableHead>
@@ -1492,8 +1492,8 @@ export default function ElderDashboardClient() {
 
         <TabsContent value="evangelism" className="space-y-6">
           <div className="grid gap-6">
-            <div className="space-y-4 p-6 border rounded-xl">
-              <div className="flex items-center justify-between">
+            <div className="space-y-4 p-4 sm:p-6 border rounded-xl">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <h3 className="text-xl font-bold flex items-center gap-2">
                   <Church className="h-5 w-5" /> Week of Prayers
                 </h3>
@@ -1523,8 +1523,8 @@ export default function ElderDashboardClient() {
                 </form>
               )}
 
-              <div className="rounded-md border">
-                <Table>
+              <div className="max-w-full overflow-x-auto rounded-md border">
+                <Table className="min-w-[560px]">
                   <TableHeader>
                     <TableRow>
                       <TableHead>Title</TableHead>
@@ -1552,8 +1552,8 @@ export default function ElderDashboardClient() {
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-4 p-6 border rounded-xl">
-                <div className="flex items-center justify-between">
+              <div className="space-y-4 p-4 sm:p-6 border rounded-xl">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <h3 className="text-lg font-bold">Weekly Program Schedule</h3>
                   <Button size="sm" variant="outline" onClick={() => setIsAddingProgram(true)}>
                     <Plus className="h-4 w-4 mr-1" /> Add
@@ -1585,8 +1585,8 @@ export default function ElderDashboardClient() {
                   </form>
                 )}
 
-                <div className="rounded-md border">
-                  <Table>
+                <div className="max-w-full overflow-x-auto rounded-md border">
+                  <Table className="min-w-[560px]">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Day</TableHead>
@@ -1611,8 +1611,8 @@ export default function ElderDashboardClient() {
                 </div>
               </div>
 
-              <div className="space-y-4 p-6 border rounded-xl">
-                <div className="flex items-center justify-between">
+              <div className="space-y-4 p-4 sm:p-6 border rounded-xl">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <h3 className="text-lg font-bold">Weekly Choir Schedule</h3>
                   <div className="flex gap-2">
                     <Button size="sm" variant="outline" onClick={generateChoirPDF}>
@@ -1641,8 +1641,8 @@ export default function ElderDashboardClient() {
                   </form>
                 )}
 
-                <div className="rounded-md border">
-                  <Table>
+                <div className="max-w-full overflow-x-auto rounded-md border">
+                  <Table className="min-w-[520px]">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Day</TableHead>
@@ -1671,7 +1671,7 @@ export default function ElderDashboardClient() {
         </TabsContent>
 
         <TabsContent value="system" className="space-y-6">
-          <div className="p-6 border rounded-xl space-y-6 bg-background shadow-sm">
+          <div className="p-4 sm:p-6 border rounded-xl space-y-6 bg-background shadow-sm">
             <h3 className="text-xl font-bold flex items-center gap-2">
               <Settings className="h-5 w-5" /> System Controls & Security Settings
             </h3>
@@ -1753,7 +1753,7 @@ export default function ElderDashboardClient() {
                 <Calendar className="h-4 w-4" /> Manage Available & Blocked Years
               </h4>
               
-              <form onSubmit={handleAddYear} className="flex gap-2 max-w-md">
+              <form onSubmit={handleAddYear} className="flex w-full max-w-md flex-wrap gap-2 sm:flex-nowrap">
                 <Input 
                   placeholder="e.g. 2025-2026" 
                   value={newYearInput} 
@@ -1764,8 +1764,8 @@ export default function ElderDashboardClient() {
                 </Button>
               </form>
 
-              <div className="rounded-md border">
-                <Table>
+              <div className="max-w-full overflow-x-auto rounded-md border">
+                <Table className="min-w-[520px]">
                   <TableHeader>
                     <TableRow>
                       <TableHead>Year Period</TableHead>
