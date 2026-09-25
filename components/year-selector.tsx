@@ -94,10 +94,19 @@ export function YearSelector() {
     window.addEventListener("storage", loadConfig)
     window.addEventListener("lang-change", loadConfig)
     window.addEventListener("login-state-change", loadConfig)
+    const handleSystemConfigUpdate = (event: Event) => {
+      const config = (event as CustomEvent).detail
+      if (config) {
+        applyConfig(config)
+        localStorage.setItem("system_config", JSON.stringify(config))
+      }
+    }
+    window.addEventListener("system-config-updated", handleSystemConfigUpdate)
     return () => {
       window.removeEventListener("storage", loadConfig)
       window.removeEventListener("lang-change", loadConfig)
       window.removeEventListener("login-state-change", loadConfig)
+      window.removeEventListener("system-config-updated", handleSystemConfigUpdate)
     }
   }, [])
 

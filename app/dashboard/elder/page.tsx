@@ -322,6 +322,7 @@ export default function ElderDashboardClient() {
       setRestrictOldAccounts(!!config.restrictOldAccounts)
       setAvailableYears(config.availableYears || ["2024-2025"])
       setBlockedYears(config.blockedYears || [])
+      localStorage.setItem("system_config", JSON.stringify(config))
     }
 
   }
@@ -753,7 +754,7 @@ export default function ElderDashboardClient() {
       setBlockedYears(config.blockedYears)
       localStorage.setItem("system_config", JSON.stringify(config))
       setNewYearInput("")
-      window.dispatchEvent(new Event("storage"))
+      window.dispatchEvent(new CustomEvent("system-config-updated", { detail: config }))
     } catch (error) {
       console.error("Failed to save year:", error)
       alert("The year could not be saved. Please try again.")
@@ -767,7 +768,7 @@ export default function ElderDashboardClient() {
     setAvailableYears(config.availableYears)
     setBlockedYears(config.blockedYears)
     localStorage.setItem("system_config", JSON.stringify(config))
-    window.dispatchEvent(new Event("storage"))
+    window.dispatchEvent(new CustomEvent("system-config-updated", { detail: config }))
   }
 
   const handleToggleBlockYear = async (year: string) => {
@@ -779,7 +780,7 @@ export default function ElderDashboardClient() {
     setAvailableYears(config.availableYears)
     setBlockedYears(config.blockedYears)
     localStorage.setItem("system_config", JSON.stringify(config))
-    window.dispatchEvent(new Event("storage"))
+    window.dispatchEvent(new CustomEvent("system-config-updated", { detail: config }))
   }
 
   const filteredMembers = members.filter(m => 
