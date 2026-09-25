@@ -207,24 +207,32 @@ export async function deleteWebsiteGalleryItem(id: string) {
 
 // --- System Config ---
 export async function getSystemConfig() {
-  return await prisma.systemConfig.upsert({
+  const config = await prisma.systemConfig.upsert({
     where: { id: "global" },
     update: {},
     create: { id: "global" },
   })
+
+  const { defaultPasswordHash, ...publicConfig } = config
+  return publicConfig
 }
 
 export async function updateSystemConfig(data: any) {
+  const { defaultPassword, ...configData } = data
+  const updateData = defaultPassword
+    ? { ...configData, defaultPasswordHash: await bcrypt.hash(defaultPassword, 10) }
+    : configData
   const config = await prisma.systemConfig.upsert({
     where: { id: "global" },
-    update: data,
+    update: updateData,
     create: {
       id: "global",
-      ...data,
+      ...updateData,
     },
   })
   revalidatePath("/dashboard/elder")
-  return config
+  const { defaultPasswordHash, ...publicConfig } = config
+  return publicConfig
 }
 
 // --- Users ---
@@ -474,12 +482,18 @@ export async function deleteWeeklyProgram(id: string) {
 export async function loginUser(email: string, password: string) {
   const input = email.toLowerCase().trim()
   
-  if (input === "elder" && password === "admin123") {
-    const config = await prisma.systemConfig.upsert({
-      where: { id: "global" },
-      update: {},
-      create: { id: "global" }
-    })
+  const config = await prisma.systemConfig.upsert({
+    where: { id: "global" },
+    update: {},
+    create: { id: "global" },
+  })
+
+  if (input === config.defaultLoginEmail.toLowerCase().trim()) {
+    const matchesDefaultPassword = await bcrypt.compare(password, config.defaultPasswordHash)
+    if (!matchesDefaultPassword) {
+      return { success: false, error: "Invalid email or password." }
+    }
+
     return {
       success: true,
       user: {
