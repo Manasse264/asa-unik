@@ -282,6 +282,21 @@ export default function ElderDashboardClient() {
     }
   }
 
+  const loadSystemConfig = async () => {
+    try {
+      const config = await getSystemConfig()
+      setBlockLogin(!!config.blockLogin)
+      setBlockRegister(!!config.blockRegister)
+      setRestrictNewAccounts(!!config.restrictNewAccounts)
+      setRestrictOldAccounts(!!config.restrictOldAccounts)
+      setAvailableYears(Array.isArray(config.availableYears) ? config.availableYears : [])
+      setBlockedYears(Array.isArray(config.blockedYears) ? config.blockedYears : [])
+      localStorage.setItem("system_config", JSON.stringify(config))
+    } catch (error) {
+      console.error("Error loading system configuration:", error)
+    }
+  }
+
   const loadData = async () => {
     const year = localStorage.getItem('selected_year') || new Date().getFullYear().toString()
 
@@ -314,21 +329,11 @@ export default function ElderDashboardClient() {
     setWeeklyPrograms(await getWeeklyPrograms(year))
     setWeeklyChoirs(await getWeeklyChoirs(year))
 
-    const config = await getSystemConfig()
-    if (config) {
-      setBlockLogin(!!config.blockLogin)
-      setBlockRegister(!!config.blockRegister)
-      setRestrictNewAccounts(!!config.restrictNewAccounts)
-      setRestrictOldAccounts(!!config.restrictOldAccounts)
-      setAvailableYears(config.availableYears || ["2024-2025"])
-      setBlockedYears(config.blockedYears || [])
-      localStorage.setItem("system_config", JSON.stringify(config))
-    }
-
   }
 
   React.useEffect(() => {
     loadWebsiteContent()
+    loadSystemConfig()
     loadData()
     window.addEventListener("storage", loadData)
     window.addEventListener("year-changed", loadData)
