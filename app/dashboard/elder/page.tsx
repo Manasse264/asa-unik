@@ -103,7 +103,7 @@ interface WeeklyProgram {
 interface WeeklyChoir {
   id: string
   name: string        
-  leaderName: string  
+  leaderName: string
   memberNames: string[]
   year: string
   createdAt: Date
@@ -202,7 +202,7 @@ export default function ElderDashboardClient() {
 
   const [weeklyChoirs, setWeeklyChoirs] = React.useState<WeeklyChoir[]>([])
   const [isAddingChoir, setIsAddingChoir] = React.useState(false)
-  const [choirFormData, setChoirFormData] = React.useState({ name: "", leaderName: "" })
+  const [choirFormData, setChoirFormData] = React.useState({ name: "", day: "" })
 
   const [generatedResetLink, setGeneratedResetLink] = React.useState<string | null>(null)
 
@@ -711,11 +711,12 @@ export default function ElderDashboardClient() {
     e.preventDefault()
     const year = localStorage.getItem("selected_year") || new Date().getFullYear().toString()
     await saveWeeklyChoir({
-      ...choirFormData,
+      name: choirFormData.name,
+      leaderName: choirFormData.day,
       year
     })
     setIsAddingChoir(false)
-    setChoirFormData({ name: "", leaderName: "" })
+    setChoirFormData({ name: "", day: "" })
     loadData()
   }
 
@@ -730,10 +731,10 @@ export default function ElderDashboardClient() {
     const doc = new jsPDF()
     doc.text("Weekly Choir Schedule", 14, 15)
     
-    const tableData = weeklyChoirs.map(c => [c.name, c.leaderName])
+    const tableData = weeklyChoirs.map(c => [c.leaderName, c.name])
     
     autoTable(doc, {
-      head: [['Choir Name', 'Leader Name']],
+      head: [['Day', 'Choir Name']],
       body: tableData,
       startY: 20,
     })
@@ -1627,12 +1628,12 @@ export default function ElderDashboardClient() {
                 {isAddingChoir && (
                   <form onSubmit={handleAddChoir} className="grid gap-3 p-4 bg-muted/50 rounded-lg">
                     <div className="grid gap-1.5">
-                      <Label>Choir Name</Label>
+                        <Label>Day</Label>
+                        <Input placeholder="e.g. Sunday" value={choirFormData.day} onChange={(e) => setChoirFormData({...choirFormData, day: e.target.value})} required />
+                      </div>
+                      <div className="grid gap-1.5">
+                        <Label>Choir Name</Label>
                       <Input value={choirFormData.name} onChange={(e) => setChoirFormData({...choirFormData, name: e.target.value})} required />
-                    </div>
-                    <div className="grid gap-1.5">
-                      <Label>Leader Name</Label>
-                      <Input value={choirFormData.leaderName} onChange={(e) => setChoirFormData({...choirFormData, leaderName: e.target.value})} required />
                     </div>
                     <div className="flex gap-2">
                       <Button type="submit" size="sm">Save Choir</Button>
@@ -1645,16 +1646,16 @@ export default function ElderDashboardClient() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Leader</TableHead>
+                        <TableHead>Day</TableHead>
+                        <TableHead>Choir Name</TableHead>
                         <TableHead className="text-right">Action</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {weeklyChoirs.map((c) => (
                         <TableRow key={c.id}>
-                          <TableCell className="font-medium">{c.name}</TableCell>
-                          <TableCell>{c.leaderName}</TableCell>
+                          <TableCell className="font-medium">{c.leaderName}</TableCell>
+                          <TableCell>{c.name}</TableCell>
                           <TableCell className="text-right">
                             <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteChoir(c.id)}>
                               <Trash2 className="h-4 w-4" />
