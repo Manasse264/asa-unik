@@ -137,20 +137,7 @@ export default function LoginPage() {
             </div>
             <Button className="w-full" type="submit" disabled={isBlocked}>{t.login}</Button>
           </form>
-          <div className="text-center text-sm text-muted-foreground">{t.noAccount} <Link href="/register" className="underline">{t.register}</Link></div>
-          <div className="rounded-xl border border-indigo-100 bg-indigo-50/60 p-3 text-center text-xs space-y-1">
-            <span className="font-semibold text-indigo-950">Family Head (Pere / Mere)?</span>
-            <div className="flex justify-center gap-3">
-              <Link href="/family/signin" className="font-bold text-indigo-600 hover:text-indigo-800 underline underline-offset-2">
-                Family Sign In
-              </Link>
-              <span className="text-slate-300">•</span>
-              <Link href="/family/signup" className="font-bold text-indigo-600 hover:text-indigo-800 underline underline-offset-2">
-                Sign Up Family
-              </Link>
-            </div>
-          </div>
-        </div>
+   
       </div>
     </div>
   )
