@@ -20,10 +20,12 @@ export function YearSelector() {
   const loadConfig = async () => {
     if (typeof window === "undefined") return
 
+    let loadedConfig = systemConfig
     const configStr = localStorage.getItem("system_config")
     if (configStr) {
       try {
-        applyConfig(JSON.parse(configStr))
+        loadedConfig = JSON.parse(configStr)
+        applyConfig(loadedConfig)
       } catch (e) {
         console.error("Error parsing system_config", e)
       }
@@ -31,6 +33,7 @@ export function YearSelector() {
 
     try {
       const config = await getSystemConfig()
+      loadedConfig = config
       applyConfig(config)
       localStorage.setItem("system_config", JSON.stringify(config))
     } catch (e) {
@@ -38,11 +41,32 @@ export function YearSelector() {
     }
 
     const savedYear = localStorage.getItem("selected_year")
-    if (savedYear) setSelectedYear(savedYear)
-    
+    const role = localStorage.getItem("user_role") || ""
+    const registrationYear = localStorage.getItem("user_registration_year") || ""
+    const years = [...(loadedConfig?.availableYears || [])]
+    const isElder = role.includes("elder") || role.includes("umukuru")
+    let validYears = isElder
+      ? years
+      : years.filter(year => !loadedConfig?.blockedYears?.includes(year))
+    const registrationIndex = years.indexOf(registrationYear)
+
+    if (!isElder && registrationIndex !== -1 && loadedConfig?.restrictNewAccounts) {
+      validYears = validYears.filter(year => years.indexOf(year) >= registrationIndex)
+    }
+    if (!isElder && registrationIndex !== -1 && loadedConfig?.restrictOldAccounts) {
+      validYears = validYears.filter(year => years.indexOf(year) <= registrationIndex)
+    }
+
+    const initialYear = savedYear && validYears.includes(savedYear) ? savedYear : validYears[0] || ""
+    setSelectedYear(initialYear)
+    if (initialYear && initialYear !== savedYear) {
+      localStorage.setItem("selected_year", initialYear)
+      window.dispatchEvent(new Event("year-changed"))
+    }
+
     setLang(localStorage.getItem("app_lang") || "en")
-    setUserRole(localStorage.getItem("user_role") || "")
-    setUserRegYear(localStorage.getItem("user_registration_year") || "")
+    setUserRole(role)
+    setUserRegYear(registrationYear)
   }
 
   const getFilteredYears = () => {

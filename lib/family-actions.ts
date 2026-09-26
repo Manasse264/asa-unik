@@ -14,17 +14,31 @@ function safeRevalidate(path: string) {
 
 // 1. Get Established Years
 export async function getEstablishedYears() {
+  let configuredYears: string[] = []
+  let familyYears: string[] = []
+
   try {
     const config = await prisma.systemConfig.findUnique({
       where: { id: "global" },
     })
-    if (config?.availableYears && config.availableYears.length > 0) {
-      return config.availableYears
-    }
+    configuredYears = config?.availableYears || []
   } catch (e) {
     console.error("Error fetching system config years:", e)
   }
-  return ["2024-2025", "2025-2026", "2026-2027"]
+
+  try {
+    const families = await prisma.family.findMany({
+      distinct: ["year"],
+      select: { year: true },
+      orderBy: { year: "asc" },
+    })
+    familyYears = families.map((family) => family.year)
+  } catch (e) {
+    console.error("Error fetching family years:", e)
+  }
+
+  const years = Array.from(new Set([...configuredYears, ...familyYears]))
+  return years.length > 0 ? years : ["2024-2025", "2025-2026", "2026-2027"]
 }
 
 // 2. Get Families for Dropdown Selection in specific established year
