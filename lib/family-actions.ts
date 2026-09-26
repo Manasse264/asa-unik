@@ -169,15 +169,16 @@ export async function loginFamilyAccount(familyName: string, password: string, y
     const whereClause: any = {
       name: { equals: cleanName, mode: "insensitive" },
     }
-    if (year) {
-      whereClause.year = year
-    }
 
-    // Find families matching name
+    // Search all years so a stale selected year does not block sign-in.
     const families = await prisma.family.findMany({
       where: whereClause,
       orderBy: { createdAt: "desc" },
     })
+
+    if (year) {
+      families.sort((a, b) => Number(b.year === year) - Number(a.year === year))
+    }
 
     if (!families || families.length === 0) {
       return { success: false, error: "Family not found. Please verify the family name or sign up first." }
