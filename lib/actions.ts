@@ -245,12 +245,20 @@ export async function getUsers() {
 
 // --- Families ---
 export async function getFamilies(year: string) {
-  return await prisma.family.findMany({
+  const families = await prisma.family.findMany({
     where: { year },
     orderBy: {
       createdAt: "desc",
     },
+    include: {
+      _count: { select: { members: true } },
+    },
   })
+
+  return families.map(({ _count, ...family }) => ({
+    ...family,
+    memberCount: _count.members,
+  }))
 }
 
 export async function saveFamily(data: any) {

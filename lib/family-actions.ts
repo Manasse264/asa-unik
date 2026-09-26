@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache"
 
 function safeRevalidate(path: string) {
   try {
-    safeRevalidate(path)
+    revalidatePath(path)
   } catch (e) {
     // Gracefully ignore when executed outside Next.js request context
   }
@@ -459,7 +459,7 @@ export async function getSabbathSchoolAttendanceOverview(year: string, quarter: 
         name: f.name,
         pere: f.pere,
         mere: f.mere,
-        memberCount: f.members.length || f.memberCount,
+        memberCount: f.members.length,
         members: f.members,
         attendanceList: attendance,
         isPublished: attendance?.isPublished ?? false,

@@ -251,17 +251,24 @@ export default function SabbathSchoolDashboard() {
 
   React.useEffect(() => {
     const updateLang = () => setLang((localStorage.getItem("app_lang") || "en") as "en" | "rw" | "fr")
+    const reloadWhenVisible = () => {
+      if (document.visibilityState === "visible") loadData()
+    }
     updateLang()
     loadData()
 
     window.addEventListener("lang-change", updateLang)
     window.addEventListener("year-changed", loadData)
     window.addEventListener("storage", loadData)
+    window.addEventListener("focus", loadData)
+    document.addEventListener("visibilitychange", reloadWhenVisible)
 
     return () => {
       window.removeEventListener("lang-change", updateLang)
       window.removeEventListener("year-changed", loadData)
       window.removeEventListener("storage", loadData)
+      window.removeEventListener("focus", loadData)
+      document.removeEventListener("visibilitychange", reloadWhenVisible)
     }
   }, [])
 
