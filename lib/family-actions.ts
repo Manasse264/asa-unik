@@ -12,6 +12,14 @@ function safeRevalidate(path: string) {
   }
 }
 
+function normalizeFamilyName(name: string) {
+  return name
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLocaleLowerCase()
+    .replace(/[^\p{L}\p{N}]/gu, "")
+}
+
 // 1. Get Established Years
 export async function getEstablishedYears() {
   let configuredYears: string[] = []
@@ -180,15 +188,24 @@ export async function loginFamilyAccount(familyName: string, password: string, y
       return { success: false, error: "Please enter Family Name and Password." }
     }
 
-    const whereClause: any = {
-      name: { equals: cleanName, mode: "insensitive" },
-    }
+    const normalizedName = normalizeFamilyName(cleanName)
 
-    // Search all years so a stale selected year does not block sign-in.
-    const families = await prisma.family.findMany({
-      where: whereClause,
+    // Match normalized names across all years so punctuation or spacing differences do not block sign-in.
+    const allFamilies = await prisma.family.findMany({
       orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        name: true,
+        pere: true,
+        mere: true,
+        year: true,
+        password: true,
+        createdAt: true,
+      },
     })
+    const families = allFamilies.filter(
+      (family) => normalizeFamilyName(family.name) === normalizedName,
+    )
 
     if (year) {
       families.sort((a, b) => Number(b.year === year) - Number(a.year === year))
