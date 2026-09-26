@@ -920,7 +920,7 @@ export default function SabbathSchoolDashboard() {
         <div className="space-y-6">
           {selectedFamilyForSheet ? (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <Button
                   variant="outline"
                   size="sm"
@@ -931,7 +931,7 @@ export default function SabbathSchoolDashboard() {
                   <span>Back to All Families</span>
                 </Button>
 
-                <div className="text-right">
+                <div className="text-left sm:text-right">
                   <span className="text-xs text-muted-foreground uppercase font-semibold">Viewing Attendance (Read-Only):</span>
                   <p className="font-extrabold text-sm text-primary">{selectedFamilyForSheet.name}</p>
                 </div>
@@ -1012,8 +1012,63 @@ export default function SabbathSchoolDashboard() {
               </div>
 
               {/* Families Attendance Overview Table */}
-              <div className="rounded-2xl border bg-card overflow-hidden shadow-xs">
-                <table className="w-full text-xs text-left">
+              <div className="space-y-3 sm:hidden">
+                {familyAttendanceOverview
+                  .filter((f) => {
+                    if (!familySearchQuery) return true
+                    const q = familySearchQuery.toLowerCase()
+                    return (
+                      f.name.toLowerCase().includes(q) ||
+                      f.pere?.toLowerCase().includes(q) ||
+                      f.mere?.toLowerCase().includes(q)
+                    )
+                  })
+                  .map((fam) => (
+                    <article key={fam.id} className="rounded-xl border bg-card p-4 shadow-xs">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <h4 className="break-words font-bold text-foreground">{fam.name}</h4>
+                          <p className="mt-1 break-words text-xs text-muted-foreground">
+                            {fam.pere} &amp; {fam.mere}
+                          </p>
+                        </div>
+                        <span className="shrink-0 rounded-full bg-muted px-2.5 py-1 text-[11px] font-bold">
+                          {fam.memberCount} members
+                        </span>
+                      </div>
+                      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t pt-3">
+                        <span className="text-xs font-bold text-indigo-600">{selectedQuarterForLeader}</span>
+                        {fam.isPublished ? (
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
+                            <CheckCircle2 className="h-3.5 w-3.5" /> Published
+                          </span>
+                        ) : fam.attendanceList ? (
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700">
+                            <AlertCircle className="h-3.5 w-3.5" /> Draft in Progress
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">Not Started</span>
+                        )}
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => handleOpenFamilyAttendanceSheet(fam)}
+                        className="mt-3 w-full gap-1.5 bg-indigo-600 text-xs font-bold text-white hover:bg-indigo-700"
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                        <span>View Attendance</span>
+                      </Button>
+                    </article>
+                  ))}
+                {familyAttendanceOverview.length === 0 && (
+                  <p className="py-8 text-center text-sm text-muted-foreground">
+                    No families found for the selected year.
+                  </p>
+                )}
+              </div>
+
+              <div className="hidden overflow-x-auto rounded-2xl border bg-card shadow-xs sm:block">
+                <table className="w-full min-w-[820px] text-xs text-left">
                   <thead className="bg-muted/50 border-b text-muted-foreground font-bold uppercase text-[11px]">
                     <tr>
                       <th className="py-3.5 px-4 w-12 text-center">#</th>

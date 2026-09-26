@@ -239,10 +239,10 @@ export function FamilyAttendanceForm({
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden print:border-none print:shadow-none">
+    <div className="min-w-0 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden print:border-none print:shadow-none">
       {/* Top Action Toolbar */}
-      <div className="bg-slate-50 border-b border-slate-200 p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 print:hidden">
-        <div className="flex items-center gap-3">
+      <div className="bg-slate-50 border-b border-slate-200 p-3 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 print:hidden">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm">
             <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">Quarter:</span>
             <div className="flex gap-1">
@@ -277,7 +277,7 @@ export function FamilyAttendanceForm({
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           
 
           {!readOnly && (
@@ -339,7 +339,7 @@ export function FamilyAttendanceForm({
       )}
 
       {/* DOCUMENT BODY (EXACT FORMAT FROM D:\JACKSON DOC_100100.docx) */}
-      <div className="p-6 sm:p-8 space-y-6 text-slate-800 font-sans">
+      <div className="p-3 sm:p-8 space-y-5 sm:space-y-6 text-slate-800 font-sans">
         {/* Document Header */}
         <div className="border-b border-slate-300 pb-5 text-center space-y-1">
           <h1 className="text-base sm:text-lg font-black tracking-wider text-slate-900 uppercase">
@@ -402,7 +402,7 @@ export function FamilyAttendanceForm({
         </div>
 
         {/* ATTENDANCE TABLE */}
-        <div className="overflow-x-auto border border-slate-300 rounded-xl shadow-xs">
+        <div className="max-w-full overflow-x-auto overscroll-x-contain touch-pan-x border border-slate-300 rounded-xl shadow-xs">
           <table className="w-full text-xs text-left border-collapse min-w-[760px]">
             <thead>
               <tr className="bg-slate-100 border-b border-slate-300 text-slate-900 font-extrabold text-[11px]">
