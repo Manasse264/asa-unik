@@ -188,9 +188,19 @@ export async function loginFamilyAccount(familyName: string, password: string, y
     let authenticatedFamily = null
     for (const fam of families) {
       if (!fam.password) continue
-      const isMatch = await bcrypt.compare(password, fam.password).catch(() => fam.password === password)
+      const hasBcryptHash = /^\$2[aby]\$\d{2}\$/.test(fam.password)
+      const isMatch = hasBcryptHash
+        ? await bcrypt.compare(password, fam.password)
+        : password === fam.password
       if (isMatch) {
         authenticatedFamily = fam
+        if (!hasBcryptHash) {
+          const hashedPassword = await bcrypt.hash(password, 10)
+          await prisma.family.update({
+            where: { id: fam.id },
+            data: { password: hashedPassword },
+          })
+        }
         break
       }
     }
