@@ -739,6 +739,34 @@ export default function SabbathSchoolDashboard() {
   const formatMemberPercentage = (count: number, memberCount: number) =>
     `${(memberCount > 0 ? (count / memberCount) * 100 : 0).toFixed(1)}%`
 
+  const familyPerformanceRankings = [
+    { key: "presence", title: t.presents, countKey: "presentCount" as const },
+    { key: "beginning-sabbath", title: t.beginningSabbath, countKey: "beginningSabbathCount" as const },
+    { key: "seven-study", title: t.sevenStudy, countKey: "sevenStudyCount" as const },
+  ].map((metric) => {
+    const families = familyAttendancePerformance
+      .map((familyItem) => ({
+        id: familyItem.id,
+        name: familyItem.name,
+        percentage: familyItem.memberCount > 0
+          ? (familyItem[metric.countKey] / familyItem.memberCount) * 100
+          : 0,
+      }))
+      .sort((first, second) => second.percentage - first.percentage || first.name.localeCompare(second.name))
+
+    let rank = 0
+    let previousPercentage: number | null = null
+    const rankedFamilies = families.map((familyItem, index) => {
+      if (familyItem.percentage !== previousPercentage) {
+        rank = index + 1
+        previousPercentage = familyItem.percentage
+      }
+      return { ...familyItem, rank }
+    })
+
+    return { ...metric, families: rankedFamilies }
+  })
+
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
       <YearSelector />
@@ -1315,6 +1343,42 @@ export default function SabbathSchoolDashboard() {
                 )}
               </tbody>
             </table>
+          </div>
+        </section>
+      )}
+
+      {activeTab === 'family-performance' && (
+        <section className="space-y-4" aria-label="Family rankings">
+          <h3 className="text-lg font-bold">{t.performanceTitle} Rankings</h3>
+          <div className="grid gap-4 xl:grid-cols-3">
+            {familyPerformanceRankings.map((ranking) => (
+              <div key={ranking.key} className="overflow-x-auto rounded-md border">
+                <h4 className="border-b bg-muted/50 px-4 py-3 text-sm font-semibold">{ranking.title}</h4>
+                <table className="w-full min-w-[320px] text-sm">
+                  <thead className="border-b bg-muted/30 text-left">
+                    <tr>
+                      <th className="w-16 px-4 py-2.5 text-center font-semibold">{t.rank}</th>
+                      <th className="px-4 py-2.5 font-semibold">{t.famName}</th>
+                      <th className="w-28 px-4 py-2.5 text-right font-semibold">Percentage</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ranking.families.map((familyItem) => (
+                      <tr key={familyItem.id} className="border-b last:border-0 hover:bg-muted/30">
+                        <td className="px-4 py-2.5 text-center font-medium tabular-nums">{familyItem.rank}</td>
+                        <th scope="row" className="px-4 py-2.5 text-left font-medium">{familyItem.name}</th>
+                        <td className="px-4 py-2.5 text-right tabular-nums">{familyItem.percentage.toFixed(1)}%</td>
+                      </tr>
+                    ))}
+                    {ranking.families.length === 0 && (
+                      <tr>
+                        <td colSpan={3} className="px-4 py-6 text-center text-muted-foreground">{t.noPublishedLists}</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            ))}
           </div>
         </section>
       )}
