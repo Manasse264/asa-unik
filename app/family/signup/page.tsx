@@ -45,7 +45,8 @@ export default function FamilySignupPage() {
     async function initYears() {
       const availableYears = await getEstablishedYears()
       setYears(availableYears)
-      const currentYear = localStorage.getItem("selected_year") || availableYears[0] || "2024-2025"
+      const savedYear = localStorage.getItem("selected_year")
+      const currentYear = savedYear && availableYears.includes(savedYear) ? savedYear : availableYears[0] || ""
       setSelectedYear(currentYear)
     }
     initYears()
@@ -85,6 +86,11 @@ export default function FamilySignupPage() {
     e.preventDefault()
     setErrorMessage("")
     setSuccessMessage("")
+
+    if (!selectedYear) {
+      setErrorMessage("No church years are currently available.")
+      return
+    }
 
     if (!selectedFamilyId) {
       setErrorMessage("Please select your family name from the list.")

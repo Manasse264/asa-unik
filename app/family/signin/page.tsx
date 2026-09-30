@@ -40,7 +40,8 @@ function FamilySigninForm() {
       const availableYears = await getEstablishedYears()
       setYears(availableYears)
       const queryYear = searchParams.get("year")
-      const currentYear = queryYear || localStorage.getItem("selected_year") || availableYears[0] || "2024-2025"
+      const savedYear = queryYear || localStorage.getItem("selected_year")
+      const currentYear = savedYear && availableYears.includes(savedYear) ? savedYear : availableYears[0] || ""
       setSelectedYear(currentYear)
 
       const queryFamily = searchParams.get("family")
@@ -67,6 +68,11 @@ function FamilySigninForm() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMessage("")
+
+    if (!selectedYear) {
+      setErrorMessage("No church years are currently available.")
+      return
+    }
 
     if (!familyName.trim()) {
       setErrorMessage("Please enter or select your Family Name.")

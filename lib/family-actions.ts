@@ -20,38 +20,31 @@ function normalizeFamilyName(name: string) {
     .replace(/[^\p{L}\p{N}]/gu, "")
 }
 
+async function getConfiguredYears() {
+  const config = await prisma.systemConfig.upsert({
+    where: { id: "global" },
+    update: {},
+    create: { id: "global" },
+  })
+  return config.availableYears
+}
+
 // 1. Get Established Years
 export async function getEstablishedYears() {
-  let configuredYears: string[] = []
-  let familyYears: string[] = []
-
   try {
-    const config = await prisma.systemConfig.findUnique({
-      where: { id: "global" },
-    })
-    configuredYears = config?.availableYears || []
+    return await getConfiguredYears()
   } catch (e) {
     console.error("Error fetching system config years:", e)
+    return []
   }
-
-  try {
-    const families = await prisma.family.findMany({
-      distinct: ["year"],
-      select: { year: true },
-      orderBy: { year: "asc" },
-    })
-    familyYears = families.map((family) => family.year)
-  } catch (e) {
-    console.error("Error fetching family years:", e)
-  }
-
-  const years = Array.from(new Set([...configuredYears, ...familyYears]))
-  return years.length > 0 ? years : ["2024-2025", "2025-2026", "2026-2027"]
 }
 
 // 2. Get Families for Dropdown Selection in specific established year
 export async function getFamiliesForSelection(year: string) {
   try {
+    const configuredYears = await getConfiguredYears()
+    if (!configuredYears.includes(year)) return []
+
     const families = await prisma.family.findMany({
       where: { year },
       orderBy: { name: "asc" },
@@ -104,6 +97,8 @@ export async function registerFamilyAccount(data: {
       return { success: false, error: "Passwords do not match." }
     }
 
+    const configuredYears = await getConfiguredYears()
+
     const family = await prisma.family.findUnique({
       where: { id: familyId },
       include: { members: true },
@@ -111,6 +106,9 @@ export async function registerFamilyAccount(data: {
 
     if (!family) {
       return { success: false, error: "Selected family does not exist." }
+    }
+    if (!configuredYears.includes(family.year)) {
+      return { success: false, error: "This church year is no longer available." }
     }
 
     const hashedPassword = await bcrypt.hash(password, 10)
@@ -186,6 +184,10 @@ export async function loginFamilyAccount(familyName: string, password: string, y
     const cleanName = familyName.trim()
     if (!cleanName || !password) {
       return { success: false, error: "Please enter Family Name and Password." }
+    }
+
+    if (!year || !(await getConfiguredYears()).includes(year)) {
+      return { success: false, error: "This church year is no longer available." }
     }
 
     const normalizedName = normalizeFamilyName(cleanName)

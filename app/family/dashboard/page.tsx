@@ -28,7 +28,8 @@ import {
   updateFamilyMember, 
   deleteFamilyMember,
   getAttendanceList,
-  saveAttendanceList
+  saveAttendanceList,
+  getEstablishedYears,
 } from "@/lib/family-actions"
 import { FamilyAttendanceForm, AttendanceFormData, FamilyMemberItem } from "@/components/family-attendance-form"
 
@@ -54,17 +55,36 @@ export default function FamilyDashboardPage() {
 
   // Check auth session
   React.useEffect(() => {
-    const raw = localStorage.getItem("family_auth")
-    if (!raw) {
-      router.push("/family/signin")
-      return
+    let active = true
+
+    const loadFamilySession = async () => {
+      const raw = localStorage.getItem("family_auth")
+      if (!raw) {
+        router.replace("/family/signin")
+        return
+      }
+
+      try {
+        const parsed = JSON.parse(raw)
+        const availableYears = await getEstablishedYears()
+        if (!active) return
+
+        if (!availableYears.includes(parsed.year)) {
+          localStorage.removeItem("family_auth")
+          router.replace("/family/signin")
+          return
+        }
+
+        setFamilySession(parsed)
+        loadFamily(parsed.id, parsed.year, selectedQuarter)
+      } catch {
+        router.replace("/family/signin")
+      }
     }
-    try {
-      const parsed = JSON.parse(raw)
-      setFamilySession(parsed)
-      loadFamily(parsed.id, parsed.year, selectedQuarter)
-    } catch (e) {
-      router.push("/family/signin")
+
+    void loadFamilySession()
+    return () => {
+      active = false
     }
   }, [router])
 
