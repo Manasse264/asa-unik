@@ -47,7 +47,7 @@ const sslTranslations = {
     origin: "Origin Church", district: "District", field: "Field", upload: "Upload Letter",
     status: "Status", received: "Received", rejected: "Rejected", files: "Files",
     addChoir: "Register Choir", choirName: "Choir Name", memberCount: "Number of Members", updateChoir: "Update Choir",
-    rank: "Rank", avg: "Average %", downloadWeekly: "Download Weekly Report", generateWeekly: "Generate Weekly Report"
+    rank: "Rank", percentage: "Percentage", avg: "Average %", downloadWeekly: "Download Weekly Report", generateWeekly: "Generate Weekly Report"
   },
   fr: {
     title: "Responsable École du Sabbat", subtitle: "Officier de Présence", addFamily: "Enregistrer Famille",
@@ -65,7 +65,7 @@ const sslTranslations = {
     origin: "Église d'Origine", district: "District", field: "Champ", upload: "Télécharger Lettre",
     status: "Statut", received: "Reçu", rejected: "Rejeté", files: "Fichiers",
     addChoir: "Enregistrer Chorale", choirName: "Nom de la Chorale", memberCount: "Nombre de Membres", updateChoir: "Mettre à jour la chorale",
-    rank: "Rang", avg: "Moyenne %", downloadWeekly: "Télécharger le Rapport Hebdomadaire", generateWeekly: "Générer le Rapport Hebdomadaire"
+    rank: "Rang", percentage: "Pourcentage", avg: "Moyenne %", downloadWeekly: "Télécharger le Rapport Hebdomadaire", generateWeekly: "Générer le Rapport Hebdomadaire"
   },
   rw: {
     title: "Umuyobozi w'Ishuri ryo ku Isabato", subtitle: "Ushinzwe Imyitwarire n'Abaramukwa", addFamily: "Andika Umuryango",
@@ -83,7 +83,7 @@ const sslTranslations = {
     origin: "Itorero Inkomoko", district: "Akarere", field: "Inshingano", upload: "Shiraho Ibaruwa",
     status: "Ikarita", received: "Yakiriwe", rejected: "Yanzwe", files: "Inyandiko",
     addChoir: "Andika Korali", choirName: "Izina rya Korali", memberCount: "Umubare w'Abaririmbyi", updateChoir: "Vugurura Korali",
-    rank: "Umwanya", avg: "Impuzandengo %", downloadWeekly: "Sohora Raporo y'Icyumweru", generateWeekly: "Sohora Raporo y'Icyumweru"
+    rank: "Umwanya", percentage: "Ijanisha", avg: "Impuzandengo %", downloadWeekly: "Sohora Raporo y'Icyumweru", generateWeekly: "Sohora Raporo y'Icyumweru"
   }
 }
 
@@ -115,6 +115,7 @@ export default function SabbathSchoolDashboard() {
   const [selectedQuarterForLeader, setSelectedQuarterForLeader] = React.useState<string>("Q1")
   const selectedQuarterForLeaderRef = React.useRef("Q1")
   const [selectedSabbathForPerformance, setSelectedSabbathForPerformance] = React.useState(1)
+  const [selectedFamilyPerformanceMetric, setSelectedFamilyPerformanceMetric] = React.useState<"presence" | "beginningSabbath" | "sevenStudy">("presence")
   const [familyAttendanceOverview, setFamilyAttendanceOverview] = React.useState<any[]>([])
   const [selectedFamilyForSheet, setSelectedFamilyForSheet] = React.useState<any | null>(null)
   const [familySheetMembers, setFamilySheetMembers] = React.useState<FamilyMemberItem[]>([])
@@ -703,41 +704,45 @@ export default function SabbathSchoolDashboard() {
       return value === undefined || value === null || value === "" || !Number.isFinite(count) ? null : count
     }
     const presentCount = getSummaryCount("presents") ?? members.filter((member: FamilyMemberItem) => attendanceGrid[member.id]?.[selectedSabbathForPerformance] === "P").length
-    const absentCount = getSummaryCount("absents") ?? members.filter((member: FamilyMemberItem) => attendanceGrid[member.id]?.[selectedSabbathForPerformance] === "A").length
 
     return [{
       id: familyItem.id,
       name: familyItem.name,
       memberCount: members.length,
       presentCount,
-      absentCount,
-      visitorsCount: getSummaryCount("visitors") ?? 0,
       sevenStudyCount: getSummaryCount("sevenStudy") ?? 0,
       beginningSabbathCount: getSummaryCount("beginningSabbath") ?? 0,
-      givingTitheCount: getSummaryCount("givingTithe") ?? 0,
     }]
-  })
-
-  const familyPerformanceTotals = familyAttendancePerformance.reduce((totals, familyItem) => ({
-    memberCount: totals.memberCount + familyItem.memberCount,
-    presentCount: totals.presentCount + familyItem.presentCount,
-    absentCount: totals.absentCount + familyItem.absentCount,
-    visitorsCount: totals.visitorsCount + familyItem.visitorsCount,
-    sevenStudyCount: totals.sevenStudyCount + familyItem.sevenStudyCount,
-    beginningSabbathCount: totals.beginningSabbathCount + familyItem.beginningSabbathCount,
-    givingTitheCount: totals.givingTitheCount + familyItem.givingTitheCount,
-  }), {
-    memberCount: 0,
-    presentCount: 0,
-    absentCount: 0,
-    visitorsCount: 0,
-    sevenStudyCount: 0,
-    beginningSabbathCount: 0,
-    givingTitheCount: 0,
   })
 
   const formatMemberPercentage = (count: number, memberCount: number) =>
     `${(memberCount > 0 ? (count / memberCount) * 100 : 0).toFixed(1)}%`
+
+  const familyPerformanceMetrics = [
+    { key: "presence", label: t.presents, valueKey: "presentCount" },
+    { key: "beginningSabbath", label: t.beginningSabbath, valueKey: "beginningSabbathCount" },
+    { key: "sevenStudy", label: t.sevenStudy, valueKey: "sevenStudyCount" },
+  ] as const
+  const selectedPerformanceMetric = familyPerformanceMetrics.find(
+    (metric) => metric.key === selectedFamilyPerformanceMetric,
+  ) ?? familyPerformanceMetrics[0]
+  const familyPerformanceByMetric = familyAttendancePerformance
+    .map((familyItem) => ({
+      ...familyItem,
+      percentage: familyItem.memberCount > 0
+        ? (familyItem[selectedPerformanceMetric.valueKey] / familyItem.memberCount) * 100
+        : 0,
+    }))
+    .sort((first, second) => second.percentage - first.percentage || first.name.localeCompare(second.name))
+  let currentFamilyRank = 0
+  let previousFamilyPercentage: number | null = null
+  const rankedFamilyPerformance = familyPerformanceByMetric.map((familyItem, index) => {
+    if (familyItem.percentage !== previousFamilyPercentage) {
+      currentFamilyRank = index + 1
+      previousFamilyPercentage = familyItem.percentage
+    }
+    return { ...familyItem, rank: currentFamilyRank }
+  })
 
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
@@ -1242,6 +1247,24 @@ export default function SabbathSchoolDashboard() {
               <p className="text-sm text-muted-foreground">{t.performanceNote}</p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-1 rounded-md border bg-muted/40 p-1" role="group" aria-label="Performance metric">
+                {familyPerformanceMetrics.map((metric) => (
+                  <button
+                    key={metric.key}
+                    type="button"
+                    aria-pressed={selectedFamilyPerformanceMetric === metric.key}
+                    onClick={() => setSelectedFamilyPerformanceMetric(metric.key)}
+                    className={cn(
+                      "rounded px-3 py-1.5 text-xs font-semibold transition-colors",
+                      selectedFamilyPerformanceMetric === metric.key
+                        ? "bg-background text-foreground shadow-xs"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {metric.label}
+                  </button>
+                ))}
+              </div>
               <label className="flex items-center gap-2 text-sm font-medium">
                 <span>{t.quarter}</span>
                 <select
@@ -1273,44 +1296,25 @@ export default function SabbathSchoolDashboard() {
           </div>
 
           <div className="overflow-x-auto rounded-md border">
-            <table className="w-full min-w-[940px] text-sm">
+            <table className="w-full min-w-[480px] text-sm">
               <thead className="border-b bg-muted/50 text-left">
                 <tr>
-                  <th className="h-11 px-4 font-semibold">{t.famName}</th>
-                  <th className="px-3 text-right font-semibold">{t.presents}</th>
-                  <th className="px-3 text-right font-semibold">{t.absents}</th>
-                  <th className="px-3 text-right font-semibold">{t.visitors}</th>
-                  <th className="px-3 text-right font-semibold">{t.sevenStudy}</th>
-                  <th className="px-3 text-right font-semibold">{t.beginningSabbath}</th>
-                  <th className="px-4 text-right font-semibold">{t.givingTithe}</th>
+                  <th className="h-11 w-20 px-4 text-center font-semibold">{t.rank}</th>
+                  <th className="px-4 font-semibold">{t.famName}</th>
+                  <th className="w-40 px-4 text-right font-semibold">{t.percentage}</th>
                 </tr>
               </thead>
               <tbody>
-                {familyAttendancePerformance.map((familyItem) => (
+                {rankedFamilyPerformance.map((familyItem) => (
                   <tr key={familyItem.id} className="border-b last:border-0 hover:bg-muted/30">
+                    <td className="px-4 py-3 text-center font-semibold tabular-nums">{familyItem.rank}</td>
                     <th scope="row" className="px-4 py-3 text-left font-medium">{familyItem.name}</th>
-                    <td className="px-3 py-3 text-right tabular-nums">{formatMemberPercentage(familyItem.presentCount, familyItem.memberCount)}</td>
-                    <td className="px-3 py-3 text-right tabular-nums">{formatMemberPercentage(familyItem.absentCount, familyItem.memberCount)}</td>
-                    <td className="px-3 py-3 text-right tabular-nums">{familyItem.visitorsCount}</td>
-                    <td className="px-3 py-3 text-right tabular-nums">{formatMemberPercentage(familyItem.sevenStudyCount, familyItem.memberCount)}</td>
-                    <td className="px-3 py-3 text-right tabular-nums">{formatMemberPercentage(familyItem.beginningSabbathCount, familyItem.memberCount)}</td>
-                    <td className="px-4 py-3 text-right tabular-nums">{formatMemberPercentage(familyItem.givingTitheCount, familyItem.memberCount)}</td>
+                    <td className="px-4 py-3 text-right font-semibold tabular-nums">{familyItem.percentage.toFixed(1)}%</td>
                   </tr>
                 ))}
-                {familyAttendancePerformance.length > 0 && (
-                  <tr className="border-t-2 bg-muted/40 font-bold">
-                    <th scope="row" className="px-4 py-3 text-left">{t.overallFamilies}</th>
-                    <td className="px-3 py-3 text-right tabular-nums">{formatMemberPercentage(familyPerformanceTotals.presentCount, familyPerformanceTotals.memberCount)}</td>
-                    <td className="px-3 py-3 text-right tabular-nums">{formatMemberPercentage(familyPerformanceTotals.absentCount, familyPerformanceTotals.memberCount)}</td>
-                    <td className="px-3 py-3 text-right tabular-nums">{familyPerformanceTotals.visitorsCount}</td>
-                    <td className="px-3 py-3 text-right tabular-nums">{formatMemberPercentage(familyPerformanceTotals.sevenStudyCount, familyPerformanceTotals.memberCount)}</td>
-                    <td className="px-3 py-3 text-right tabular-nums">{formatMemberPercentage(familyPerformanceTotals.beginningSabbathCount, familyPerformanceTotals.memberCount)}</td>
-                    <td className="px-4 py-3 text-right tabular-nums">{formatMemberPercentage(familyPerformanceTotals.givingTitheCount, familyPerformanceTotals.memberCount)}</td>
-                  </tr>
-                )}
-                {familyAttendancePerformance.length === 0 && (
+                {rankedFamilyPerformance.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">{t.noPublishedLists}</td>
+                    <td colSpan={3} className="px-4 py-10 text-center text-muted-foreground">{t.noPublishedLists}</td>
                   </tr>
                 )}
               </tbody>
