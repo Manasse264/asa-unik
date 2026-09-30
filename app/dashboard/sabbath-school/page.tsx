@@ -33,7 +33,8 @@ import autoTable from "jspdf-autotable"
 const sslTranslations = {
   en: {
     title: "Sabbath School Leader", subtitle: "Attendance Officer", addFamily: "Register Family",
-    genPDF: "Generate Daily Report", tabFamily: "Family Management", tabChoir: "Choir Management", tabAtt: "Record Attendance", tabFamilyAttendance: "Sabbath School Attendance List", tabRep: "Weekly Report",
+    genPDF: "Generate Daily Report", tabFamily: "Family Management", tabChoir: "Choir Management", tabAtt: "Record Attendance", tabFamilyAttendance: "Sabbath School Attendance List", tabFamilyPerformance: "Family Performance", tabRep: "Weekly Report",
+    performanceTitle: "Family Performance", performanceNote: "Performance from published attendance lists only.", quarter: "Quarter", sabbath: "Sabbath", noPublishedLists: "No published attendance lists for this quarter.", overallFamilies: "Overall Families", presents: "Presents (%)", absents: "Absents (%)", visitors: "Visitors", sevenStudy: "Seven Study (%)", beginningSabbath: "Beginning Sabbath (%)", givingTithe: "Giving 1/10",
     selDate: "Select Date", total: "Total", families: "Families", choirs: "Choirs",
     famName: "Family Name", pere: "Pere (Father)", mere: "Mere (Mother)", maxMem: "Members",
     att: "Attended", summary: "Attendance Summary", actions: "Actions",
@@ -50,7 +51,8 @@ const sslTranslations = {
   },
   fr: {
     title: "Responsable École du Sabbat", subtitle: "Officier de Présence", addFamily: "Enregistrer Famille",
-    genPDF: "Générer Rapport Journalier", tabFamily: "Gestion des Familles", tabChoir: "Gestion des Chorales", tabAtt: "Noter la Présence", tabFamilyAttendance: "Liste de Présence École du Sabbat", tabRep: "Enregistrer",
+    genPDF: "Générer Rapport Journalier", tabFamily: "Gestion des Familles", tabChoir: "Gestion des Chorales", tabAtt: "Noter la Présence", tabFamilyAttendance: "Liste de Présence École du Sabbat", tabFamilyPerformance: "Performance des familles", tabRep: "Enregistrer",
+    performanceTitle: "Performance des familles", performanceNote: "Résultats calculés uniquement à partir des listes publiées.", quarter: "Trimestre", sabbath: "Sabbat", noPublishedLists: "Aucune liste de présence publiée pour ce trimestre.", overallFamilies: "Toutes les familles", presents: "Présents (%)", absents: "Absents (%)", visitors: "Visiteurs", sevenStudy: "Étude biblique (%)", beginningSabbath: "Début du Sabbat (%)", givingTithe: "Dîme 1/10",
     selDate: "Choisir Date", total: "Total", families: "Familles", choirs: "Chorales",
     famName: "Nom Famille", pere: "Père", mere: "Mère", maxMem: "Membres Max",
     att: "Présents", summary: "Résumé des Présences", actions: "Actions",
@@ -67,7 +69,8 @@ const sslTranslations = {
   },
   rw: {
     title: "Umuyobozi w'Ishuri ryo ku Isabato", subtitle: "Ushinzwe Imyitwarire n'Abaramukwa", addFamily: "Andika Umuryango",
-    genPDF: "Sohora Raporo y'Umunsi", tabFamily: "Cunga Imiryango", tabChoir: "Cunga Amakorali", tabAtt: "Andika Abaramukwa", tabFamilyAttendance: "Urutonde rw'Abaramukwa b'Ishuri", tabRep: "Raporo y'Icyumweru",
+    genPDF: "Sohora Raporo y'Umunsi", tabFamily: "Cunga Imiryango", tabChoir: "Cunga Amakorali", tabAtt: "Andika Abaramukwa", tabFamilyAttendance: "Urutonde rw'Abaramukwa b'Ishuri", tabFamilyPerformance: "Imikorere y'imiryango", tabRep: "Raporo y'Icyumweru",
+    performanceTitle: "Imikorere y'imiryango", performanceNote: "Imibare ikomoka ku rutonde rw'abitabiriye rwatangajwe gusa.", quarter: "Igihembwe", sabbath: "Isabato", noPublishedLists: "Nta rutonde rw'abitabiriye rwatangajwe muri iki gihembwe.", overallFamilies: "Imiryango yose", presents: "Abitabiriye (%)", absents: "Abatitabiriye (%)", visitors: "Abashyitsi", sevenStudy: "Kwiga Bibiliya (%)", beginningSabbath: "Gutangira Isabato (%)", givingTithe: "Icyacumi 1/10",
     selDate: "Hitamo Itariki", total: "Igiteranyo", families: "Imiryango", choirs: "Amakorali",
     famName: "Izina ry'Umuryango", pere: "Data", mere: "Mama", maxMem: "Abanyamuryango",
     att: "Abejejwe", summary: "Inshamake y'Abitabiye", actions: "Ibikorwa",
@@ -100,7 +103,7 @@ interface Choir {
 
 export default function SabbathSchoolDashboard() {
   const [lang, setLang] = React.useState<"en" | "rw" | "fr">("en")
-  const [activeTab, setActiveTab] = React.useState<"families" | "choirs" | "attendance" | "attendance-lists" | "reports" | "letters">("families")
+  const [activeTab, setActiveTab] = React.useState<"families" | "choirs" | "attendance" | "attendance-lists" | "family-performance" | "reports" | "letters">("families")
   const [families, setFamilies] = React.useState<Family[]>([])
   const [choirs, setChoirs] = React.useState<Choir[]>([])
   const [attendance, setAttendance] = React.useState<AttendanceRecord[]>([])
@@ -110,6 +113,7 @@ export default function SabbathSchoolDashboard() {
 
   // Sabbath School Attendance Lists State
   const [selectedQuarterForLeader, setSelectedQuarterForLeader] = React.useState<string>("Q1")
+  const [selectedSabbathForPerformance, setSelectedSabbathForPerformance] = React.useState(1)
   const [familyAttendanceOverview, setFamilyAttendanceOverview] = React.useState<any[]>([])
   const [selectedFamilyForSheet, setSelectedFamilyForSheet] = React.useState<any | null>(null)
   const [familySheetMembers, setFamilySheetMembers] = React.useState<FamilyMemberItem[]>([])
@@ -662,6 +666,61 @@ export default function SabbathSchoolDashboard() {
     }
   }).sort((a, b) => b.average - a.average) : []
 
+  const familyAttendancePerformance = familyAttendanceOverview.flatMap((familyItem) => {
+    if (!familyItem.isPublished || !familyItem.attendanceList) return []
+
+    let attendanceGrid: Record<string, Record<number, string>> = {}
+    let summaryData: Record<string, Record<number, number | string>> = {}
+    try {
+      attendanceGrid = JSON.parse(familyItem.attendanceList.attendanceGrid || "{}")
+      summaryData = JSON.parse(familyItem.attendanceList.summaryData || "{}")
+    } catch {
+      return []
+    }
+
+    const members = familyItem.members || []
+    const getSummaryCount = (key: string) => {
+      const value = summaryData[key]?.[selectedSabbathForPerformance]
+      const count = Number(value)
+      return value === undefined || value === null || value === "" || !Number.isFinite(count) ? null : count
+    }
+    const presentCount = getSummaryCount("presents") ?? members.filter((member: FamilyMemberItem) => attendanceGrid[member.id]?.[selectedSabbathForPerformance] === "P").length
+    const absentCount = getSummaryCount("absents") ?? members.filter((member: FamilyMemberItem) => attendanceGrid[member.id]?.[selectedSabbathForPerformance] === "A").length
+
+    return [{
+      id: familyItem.id,
+      name: familyItem.name,
+      memberCount: members.length,
+      presentCount,
+      absentCount,
+      visitorsCount: getSummaryCount("visitors") ?? 0,
+      sevenStudyCount: getSummaryCount("sevenStudy") ?? 0,
+      beginningSabbathCount: getSummaryCount("beginningSabbath") ?? 0,
+      givingTitheCount: getSummaryCount("givingTithe") ?? 0,
+    }]
+  })
+
+  const familyPerformanceTotals = familyAttendancePerformance.reduce((totals, familyItem) => ({
+    memberCount: totals.memberCount + familyItem.memberCount,
+    presentCount: totals.presentCount + familyItem.presentCount,
+    absentCount: totals.absentCount + familyItem.absentCount,
+    visitorsCount: totals.visitorsCount + familyItem.visitorsCount,
+    sevenStudyCount: totals.sevenStudyCount + familyItem.sevenStudyCount,
+    beginningSabbathCount: totals.beginningSabbathCount + familyItem.beginningSabbathCount,
+    givingTitheCount: totals.givingTitheCount + familyItem.givingTitheCount,
+  }), {
+    memberCount: 0,
+    presentCount: 0,
+    absentCount: 0,
+    visitorsCount: 0,
+    sevenStudyCount: 0,
+    beginningSabbathCount: 0,
+    givingTitheCount: 0,
+  })
+
+  const formatMemberPercentage = (count: number, memberCount: number) =>
+    `${(memberCount > 0 ? (count / memberCount) * 100 : 0).toFixed(1)}%`
+
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
       <YearSelector />
@@ -675,15 +734,15 @@ export default function SabbathSchoolDashboard() {
       </div>
 
       <div className="flex border-b overflow-x-auto">
-        {["families", "choirs", "attendance", "attendance-lists", "reports", "letters"].map(tab => (
+        {["families", "choirs", "attendance", "attendance-lists", "family-performance", "reports", "letters"].map(tab => (
           <button key={tab} className={cn("px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap", activeTab === tab ? "border-primary text-primary" : "border-transparent text-muted-foreground")} onClick={() => {
             setActiveTab(tab as any)
-            if (tab === "attendance-lists") {
+            if (tab === "attendance-lists" || tab === "family-performance") {
               setSelectedFamilyForSheet(null)
               loadFamilyAttendanceOverview(selectedQuarterForLeader)
             }
           }}>
-            {tab === "families" ? t.tabFamily : tab === "choirs" ? t.tabChoir : tab === "attendance" ? t.tabAtt : tab === "attendance-lists" ? t.tabFamilyAttendance : tab === "reports" ? t.tabRep : t.tabLetter}
+            {tab === "families" ? t.tabFamily : tab === "choirs" ? t.tabChoir : tab === "attendance" ? t.tabAtt : tab === "attendance-lists" ? t.tabFamilyAttendance : tab === "family-performance" ? t.tabFamilyPerformance : tab === "reports" ? t.tabRep : t.tabLetter}
           </button>
         ))}
       </div>
@@ -1154,6 +1213,90 @@ export default function SabbathSchoolDashboard() {
             </div>
           )}
         </div>
+      )}
+
+      {activeTab === 'family-performance' && (
+        <section className="space-y-4">
+          <div className="flex flex-col gap-4 border-b pb-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h3 className="text-lg font-bold">{t.performanceTitle}</h3>
+              <p className="text-sm text-muted-foreground">{t.performanceNote}</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <label className="flex items-center gap-2 text-sm font-medium">
+                <span>{t.quarter}</span>
+                <select
+                  value={selectedQuarterForLeader}
+                  onChange={(event) => {
+                    const quarter = event.target.value
+                    setSelectedQuarterForLeader(quarter)
+                    loadFamilyAttendanceOverview(quarter)
+                  }}
+                  className="h-9 rounded-md border bg-background px-3"
+                >
+                  {["Q1", "Q2", "Q3", "Q4"].map((quarter) => <option key={quarter} value={quarter}>{quarter}</option>)}
+                </select>
+              </label>
+              <label className="flex items-center gap-2 text-sm font-medium">
+                <span>{t.sabbath}</span>
+                <select
+                  value={selectedSabbathForPerformance}
+                  onChange={(event) => setSelectedSabbathForPerformance(Number(event.target.value))}
+                  className="h-9 rounded-md border bg-background px-3"
+                >
+                  {Array.from({ length: 14 }, (_, index) => index + 1).map((sabbath) => (
+                    <option key={sabbath} value={sabbath}>S{sabbath}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto rounded-md border">
+            <table className="w-full min-w-[940px] text-sm">
+              <thead className="border-b bg-muted/50 text-left">
+                <tr>
+                  <th className="h-11 px-4 font-semibold">{t.famName}</th>
+                  <th className="px-3 text-right font-semibold">{t.presents}</th>
+                  <th className="px-3 text-right font-semibold">{t.absents}</th>
+                  <th className="px-3 text-right font-semibold">{t.visitors}</th>
+                  <th className="px-3 text-right font-semibold">{t.sevenStudy}</th>
+                  <th className="px-3 text-right font-semibold">{t.beginningSabbath}</th>
+                  <th className="px-4 text-right font-semibold">{t.givingTithe}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {familyAttendancePerformance.map((familyItem) => (
+                  <tr key={familyItem.id} className="border-b last:border-0 hover:bg-muted/30">
+                    <th scope="row" className="px-4 py-3 text-left font-medium">{familyItem.name}</th>
+                    <td className="px-3 py-3 text-right tabular-nums">{formatMemberPercentage(familyItem.presentCount, familyItem.memberCount)}</td>
+                    <td className="px-3 py-3 text-right tabular-nums">{formatMemberPercentage(familyItem.absentCount, familyItem.memberCount)}</td>
+                    <td className="px-3 py-3 text-right tabular-nums">{familyItem.visitorsCount}</td>
+                    <td className="px-3 py-3 text-right tabular-nums">{formatMemberPercentage(familyItem.sevenStudyCount, familyItem.memberCount)}</td>
+                    <td className="px-3 py-3 text-right tabular-nums">{formatMemberPercentage(familyItem.beginningSabbathCount, familyItem.memberCount)}</td>
+                    <td className="px-4 py-3 text-right tabular-nums">{familyItem.givingTitheCount}</td>
+                  </tr>
+                ))}
+                {familyAttendancePerformance.length > 0 && (
+                  <tr className="border-t-2 bg-muted/40 font-bold">
+                    <th scope="row" className="px-4 py-3 text-left">{t.overallFamilies}</th>
+                    <td className="px-3 py-3 text-right tabular-nums">{formatMemberPercentage(familyPerformanceTotals.presentCount, familyPerformanceTotals.memberCount)}</td>
+                    <td className="px-3 py-3 text-right tabular-nums">{formatMemberPercentage(familyPerformanceTotals.absentCount, familyPerformanceTotals.memberCount)}</td>
+                    <td className="px-3 py-3 text-right tabular-nums">{familyPerformanceTotals.visitorsCount}</td>
+                    <td className="px-3 py-3 text-right tabular-nums">{formatMemberPercentage(familyPerformanceTotals.sevenStudyCount, familyPerformanceTotals.memberCount)}</td>
+                    <td className="px-3 py-3 text-right tabular-nums">{formatMemberPercentage(familyPerformanceTotals.beginningSabbathCount, familyPerformanceTotals.memberCount)}</td>
+                    <td className="px-4 py-3 text-right tabular-nums">{familyPerformanceTotals.givingTitheCount}</td>
+                  </tr>
+                )}
+                {familyAttendancePerformance.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">{t.noPublishedLists}</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
       )}
 
       {/* Family Modal */}
