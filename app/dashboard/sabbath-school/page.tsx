@@ -1294,7 +1294,7 @@ export default function SabbathSchoolDashboard() {
                     <td className="px-3 py-3 text-right tabular-nums">{familyItem.visitorsCount}</td>
                     <td className="px-3 py-3 text-right tabular-nums">{formatMemberPercentage(familyItem.sevenStudyCount, familyItem.memberCount)}</td>
                     <td className="px-3 py-3 text-right tabular-nums">{formatMemberPercentage(familyItem.beginningSabbathCount, familyItem.memberCount)}</td>
-                    <td className="px-4 py-3 text-right tabular-nums">{familyItem.givingTitheCount}</td>
+                    <td className="px-4 py-3 text-right tabular-nums">{formatMemberPercentage(familyItem.givingTitheCount, familyItem.memberCount)}</td>
                   </tr>
                 ))}
                 {familyAttendancePerformance.length > 0 && (
@@ -1305,7 +1305,7 @@ export default function SabbathSchoolDashboard() {
                     <td className="px-3 py-3 text-right tabular-nums">{familyPerformanceTotals.visitorsCount}</td>
                     <td className="px-3 py-3 text-right tabular-nums">{formatMemberPercentage(familyPerformanceTotals.sevenStudyCount, familyPerformanceTotals.memberCount)}</td>
                     <td className="px-3 py-3 text-right tabular-nums">{formatMemberPercentage(familyPerformanceTotals.beginningSabbathCount, familyPerformanceTotals.memberCount)}</td>
-                    <td className="px-4 py-3 text-right tabular-nums">{familyPerformanceTotals.givingTitheCount}</td>
+                    <td className="px-4 py-3 text-right tabular-nums">{formatMemberPercentage(familyPerformanceTotals.givingTitheCount, familyPerformanceTotals.memberCount)}</td>
                   </tr>
                 )}
                 {familyAttendancePerformance.length === 0 && (
