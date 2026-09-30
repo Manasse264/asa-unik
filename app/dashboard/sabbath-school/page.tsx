@@ -113,6 +113,7 @@ export default function SabbathSchoolDashboard() {
 
   // Sabbath School Attendance Lists State
   const [selectedQuarterForLeader, setSelectedQuarterForLeader] = React.useState<string>("Q1")
+  const selectedQuarterForLeaderRef = React.useRef("Q1")
   const [selectedSabbathForPerformance, setSelectedSabbathForPerformance] = React.useState(1)
   const [familyAttendanceOverview, setFamilyAttendanceOverview] = React.useState<any[]>([])
   const [selectedFamilyForSheet, setSelectedFamilyForSheet] = React.useState<any | null>(null)
@@ -142,7 +143,7 @@ export default function SabbathSchoolDashboard() {
 
   const generateId = () => Math.random().toString(36).substr(2, 9)
 
-  const loadFamilyAttendanceOverview = async (quarter = selectedQuarterForLeader) => {
+  const loadFamilyAttendanceOverview = async (quarter = selectedQuarterForLeaderRef.current) => {
     const year = getYear()
     try {
       const overview = await getSabbathSchoolAttendanceOverview(year, quarter)
@@ -237,7 +238,7 @@ export default function SabbathSchoolDashboard() {
       const dbChoirs = await getChoirs(year)
       setChoirs((dbChoirs as Choir[]) || [])
 
-      const overview = await getSabbathSchoolAttendanceOverview(year, selectedQuarterForLeader)
+      const overview = await getSabbathSchoolAttendanceOverview(year, selectedQuarterForLeaderRef.current)
       setFamilyAttendanceOverview(overview || [])
 
       if (typeof window !== "undefined") {
@@ -1041,6 +1042,7 @@ export default function SabbathSchoolDashboard() {
                         key={q}
                         type="button"
                         onClick={() => {
+                          selectedQuarterForLeaderRef.current = q
                           setSelectedQuarterForLeader(q)
                           loadFamilyAttendanceOverview(q)
                         }}
@@ -1229,6 +1231,7 @@ export default function SabbathSchoolDashboard() {
                   value={selectedQuarterForLeader}
                   onChange={(event) => {
                     const quarter = event.target.value
+                    selectedQuarterForLeaderRef.current = quarter
                     setSelectedQuarterForLeader(quarter)
                     loadFamilyAttendanceOverview(quarter)
                   }}
