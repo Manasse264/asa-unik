@@ -277,6 +277,23 @@ export default function SabbathSchoolDashboard() {
     }
   }, [])
 
+  React.useEffect(() => {
+    if (activeTab !== "attendance-lists" && activeTab !== "family-performance") return
+
+    const refreshPublishedStatuses = async () => {
+      if (document.visibilityState !== "visible") return
+      try {
+        const overview = await getSabbathSchoolAttendanceOverview(getYear(), selectedQuarterForLeader)
+        setFamilyAttendanceOverview(overview || [])
+      } catch (error) {
+        console.error("Error refreshing family attendance statuses:", error)
+      }
+    }
+
+    const intervalId = window.setInterval(refreshPublishedStatuses, 10000)
+    return () => window.clearInterval(intervalId)
+  }, [activeTab, selectedQuarterForLeader])
+
   const updateAttendance = async (
     type: "family" | "choir",
     id: string,
