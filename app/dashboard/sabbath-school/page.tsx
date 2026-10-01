@@ -101,6 +101,20 @@ interface Choir {
   year?: string; 
 }
 
+const getCurrentWeekdays = (date = new Date()) => {
+  const monday = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7))
+
+  return Array.from({ length: 5 }, (_, index) => {
+    const weekday = new Date(monday)
+    weekday.setDate(monday.getDate() + index)
+    const year = weekday.getFullYear()
+    const month = String(weekday.getMonth() + 1).padStart(2, "0")
+    const day = String(weekday.getDate()).padStart(2, "0")
+    return `${year}-${month}-${day}`
+  })
+}
+
 export default function SabbathSchoolDashboard() {
   const [lang, setLang] = React.useState<"en" | "rw" | "fr">("en")
   const [activeTab, setActiveTab] = React.useState<"families" | "choirs" | "attendance" | "attendance-lists" | "family-performance" | "reports" | "letters">("families")
@@ -476,15 +490,13 @@ export default function SabbathSchoolDashboard() {
     const familyRows = familyPerformance.map((f, i) => [
       (i + 1).toString(),
       f.name,
-      `${f.day1.toFixed(1)}%`,
-      `${f.day2.toFixed(1)}%`,
-      `${f.day3.toFixed(1)}%`,
+      ...f.days.map(value => value === null ? "-" : `${value.toFixed(1)}%`),
       `${f.average.toFixed(1)}%`
     ])
 
     autoTable(doc, {
       startY: 35,
-      head: [['Rank', 'Family Name', uniqueDates[0] || 'Day 1', uniqueDates[1] || 'Day 2', uniqueDates[2] || 'Day 3', 'Average %']],
+      head: [['Rank', 'Family Name', ...weekDates, 'Average %']],
       body: familyRows,
       headStyles: { fillColor: [79, 70, 229] },
       theme: 'grid',
@@ -498,15 +510,13 @@ export default function SabbathSchoolDashboard() {
     const choirRows = choirPerformance.map((c, i) => [
       (i + 1).toString(),
       c.name,
-      `${c.day1.toFixed(1)}%`,
-      `${c.day2.toFixed(1)}%`,
-      `${c.day3.toFixed(1)}%`,
+      ...c.days.map(value => value === null ? "-" : `${value.toFixed(1)}%`),
       `${c.average.toFixed(1)}%`
     ])
 
     autoTable(doc, {
       startY: choirTitleY + 5,
-      head: [['Rank', 'Choir Name', uniqueDates[0] || 'Day 1', uniqueDates[1] || 'Day 2', uniqueDates[2] || 'Day 3', 'Average %']],
+      head: [['Rank', 'Choir Name', ...weekDates, 'Average %']],
       body: choirRows,
       headStyles: { fillColor: [79, 70, 229] },
       theme: 'grid',
@@ -641,46 +651,47 @@ export default function SabbathSchoolDashboard() {
 
   const currentDayAttendance = attendance.filter(a => a.date === selectedDate)
 
-  // Calculating 3-day Performance for Weekly Report strictly from generated daily reports
-  const uniqueDates = generatedDates
-    .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
-    .slice(0, 3)
+  const weekDates = getCurrentWeekdays()
+  const recordedWeekDates = weekDates.filter(date => attendance.some(record => record.date === date))
+  const hasWeeklyAttendance = recordedWeekDates.length > 0
 
-  const hasGeneratedReports = uniqueDates.length > 0
-
-  const familyPerformance = hasGeneratedReports ? families.map(f => {
+  const familyPerformance = hasWeeklyAttendance ? families.map(f => {
     const totalMembers = f.memberCount || 1
-    const percentages = uniqueDates.map(date => {
+    const recordedPercentages = recordedWeekDates.map(date => {
       const rec = attendance.find(a => a.type === 'family' && a.targetId === f.id && a.date === date)
       return rec ? (rec.count / totalMembers) * 100 : 0
     })
-    const sum = percentages.reduce((acc, curr) => acc + curr, 0)
-    const avg = uniqueDates.length > 0 ? sum / uniqueDates.length : 0
+    const days = weekDates.map(date => {
+      if (!recordedWeekDates.includes(date)) return null
+      const rec = attendance.find(a => a.type === 'family' && a.targetId === f.id && a.date === date)
+      return rec ? (rec.count / totalMembers) * 100 : 0
+    })
+    const sum = recordedPercentages.reduce((acc, curr) => acc + curr, 0)
     return {
       id: f.id,
       name: f.name,
-      day1: percentages[0] ?? 0,
-      day2: percentages[1] ?? 0,
-      day3: percentages[2] ?? 0,
-      average: avg
+      days,
+      average: sum / recordedWeekDates.length
     }
   }).sort((a, b) => b.average - a.average) : []
 
-  const choirPerformance = hasGeneratedReports ? choirs.map(c => {
+  const choirPerformance = hasWeeklyAttendance ? choirs.map(c => {
     const totalMembers = c.memberCount ?? c.memberNames?.length ?? 1
-    const percentages = uniqueDates.map(date => {
+    const recordedPercentages = recordedWeekDates.map(date => {
       const rec = attendance.find(a => a.type === 'choir' && a.targetId === c.id && a.date === date)
       return rec ? (rec.count / totalMembers) * 100 : 0
     })
-    const sum = percentages.reduce((acc, curr) => acc + curr, 0)
-    const avg = uniqueDates.length > 0 ? sum / uniqueDates.length : 0
+    const days = weekDates.map(date => {
+      if (!recordedWeekDates.includes(date)) return null
+      const rec = attendance.find(a => a.type === 'choir' && a.targetId === c.id && a.date === date)
+      return rec ? (rec.count / totalMembers) * 100 : 0
+    })
+    const sum = recordedPercentages.reduce((acc, curr) => acc + curr, 0)
     return {
       id: c.id,
       name: c.name,
-      day1: percentages[0] ?? 0,
-      day2: percentages[1] ?? 0,
-      day3: percentages[2] ?? 0,
-      average: avg
+      days,
+      average: sum / recordedWeekDates.length
     }
   }).sort((a, b) => b.average - a.average) : []
 
@@ -899,7 +910,7 @@ export default function SabbathSchoolDashboard() {
               <Download className="h-5 w-5" /> {t.generateWeekly}
             </Button>
           </div>
-          {!hasGeneratedReports ? (
+          {!hasWeeklyAttendance ? (
             <div className="p-8 text-center border rounded-lg bg-card text-muted-foreground">
               {t.noData}
             </div>
@@ -916,9 +927,7 @@ export default function SabbathSchoolDashboard() {
                       <tr>
                         <th className="p-3 text-left w-16">{t.rank}</th>
                         <th className="p-3 text-left">{t.famName}</th>
-                        <th className="p-3 text-center">{uniqueDates[0] || "Day 1"}</th>
-                        <th className="p-3 text-center">{uniqueDates[1] || "Day 2"}</th>
-                        <th className="p-3 text-center">{uniqueDates[2] || "Day 3"}</th>
+                        {weekDates.map(date => <th key={date} className="p-3 text-center">{date}</th>)}
                         <th className="p-3 text-right font-bold">{t.avg}</th>
                       </tr>
                     </thead>
@@ -927,9 +936,7 @@ export default function SabbathSchoolDashboard() {
                         <tr key={item.id} className="border-b hover:bg-muted/30 transition-colors">
                           <td className="p-3 font-semibold text-muted-foreground">{index + 1}</td>
                           <td className="p-3 font-medium">{item.name}</td>
-                          <td className="p-3 text-center">{item.day1.toFixed(1)}%</td>
-                          <td className="p-3 text-center">{item.day2.toFixed(1)}%</td>
-                          <td className="p-3 text-center">{item.day3.toFixed(1)}%</td>
+                          {item.days.map((value, dayIndex) => <td key={weekDates[dayIndex]} className="p-3 text-center">{value === null ? "-" : `${value.toFixed(1)}%`}</td>)}
                           <td className="p-3 text-right font-bold text-primary">{item.average.toFixed(1)}%</td>
                         </tr>
                       ))}
@@ -949,9 +956,7 @@ export default function SabbathSchoolDashboard() {
                       <tr>
                         <th className="p-3 text-left w-16">{t.rank}</th>
                         <th className="p-3 text-left">{t.choirName}</th>
-                        <th className="p-3 text-center">{uniqueDates[0] || "Day 1"}</th>
-                        <th className="p-3 text-center">{uniqueDates[1] || "Day 2"}</th>
-                        <th className="p-3 text-center">{uniqueDates[2] || "Day 3"}</th>
+                        {weekDates.map(date => <th key={date} className="p-3 text-center">{date}</th>)}
                         <th className="p-3 text-right font-bold">{t.avg}</th>
                       </tr>
                     </thead>
@@ -960,9 +965,7 @@ export default function SabbathSchoolDashboard() {
                         <tr key={item.id} className="border-b hover:bg-muted/30 transition-colors">
                           <td className="p-3 font-semibold text-muted-foreground">{index + 1}</td>
                           <td className="p-3 font-medium">{item.name}</td>
-                          <td className="p-3 text-center">{item.day1.toFixed(1)}%</td>
-                          <td className="p-3 text-center">{item.day2.toFixed(1)}%</td>
-                          <td className="p-3 text-center">{item.day3.toFixed(1)}%</td>
+                          {item.days.map((value, dayIndex) => <td key={weekDates[dayIndex]} className="p-3 text-center">{value === null ? "-" : `${value.toFixed(1)}%`}</td>)}
                           <td className="p-3 text-right font-bold text-primary">{item.average.toFixed(1)}%</td>
                         </tr>
                       ))}
