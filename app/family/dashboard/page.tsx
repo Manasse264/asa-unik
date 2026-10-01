@@ -16,7 +16,8 @@ import {
   AlertCircle,
   X,
   Save,
-  Clock
+  Clock,
+  KeyRound
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -27,6 +28,7 @@ import {
   addFamilyMember, 
   updateFamilyMember, 
   deleteFamilyMember,
+  changeFamilyPassword,
   getAttendanceList,
   saveAttendanceList,
   getEstablishedYears,
@@ -49,6 +51,14 @@ export default function FamilyDashboardPage() {
   const [memberRole, setMemberRole] = React.useState("Member")
   const [memberSaving, setMemberSaving] = React.useState(false)
   const [memberError, setMemberError] = React.useState("")
+
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = React.useState(false)
+  const [currentPassword, setCurrentPassword] = React.useState("")
+  const [newPassword, setNewPassword] = React.useState("")
+  const [confirmNewPassword, setConfirmNewPassword] = React.useState("")
+  const [passwordSaving, setPasswordSaving] = React.useState(false)
+  const [passwordError, setPasswordError] = React.useState("")
+  const [passwordSuccess, setPasswordSuccess] = React.useState("")
 
   // Active view tab
   const [activeTab, setActiveTab] = React.useState<"attendance" | "members">("attendance")
@@ -255,6 +265,48 @@ export default function FamilyDashboardPage() {
     }
   }
 
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setPasswordError("")
+    setPasswordSuccess("")
+
+    if (newPassword !== confirmNewPassword) {
+      setPasswordError("New passwords do not match.")
+      return
+    }
+
+    setPasswordSaving(true)
+    try {
+      const result = await changeFamilyPassword({
+        familyId: familySession.id,
+        currentPassword,
+        newPassword,
+      })
+      if (!result.success) {
+        setPasswordError(result.error || "Failed to change password.")
+        return
+      }
+
+      setCurrentPassword("")
+      setNewPassword("")
+      setConfirmNewPassword("")
+      setPasswordSuccess("Password changed successfully.")
+    } catch (error: unknown) {
+      setPasswordError(error instanceof Error ? error.message : "An error occurred while changing the password.")
+    } finally {
+      setPasswordSaving(false)
+    }
+  }
+
+  const handleOpenPasswordModal = () => {
+    setCurrentPassword("")
+    setNewPassword("")
+    setConfirmNewPassword("")
+    setPasswordError("")
+    setPasswordSuccess("")
+    setIsPasswordModalOpen(true)
+  }
+
   const handleLogout = () => {
     localStorage.removeItem("family_auth")
     router.push("/family/signin")
@@ -303,6 +355,18 @@ export default function FamilyDashboardPage() {
               <Home className="w-3.5 h-3.5" />
               Church Home
             </Link>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleOpenPasswordModal}
+              className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold gap-1.5"
+              title="Change family password"
+            >
+              <KeyRound className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Change Password</span>
+            </Button>
 
             <Button
               variant="outline"
@@ -557,6 +621,99 @@ export default function FamilyDashboardPage() {
                 >
                   <Save className="w-3.5 h-3.5" />
                   <span>{memberSaving ? "Saving..." : "Save Member"}</span>
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {isPasswordModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 className="font-bold text-slate-900 text-base">Change Family Password</h3>
+              <button
+                type="button"
+                onClick={() => setIsPasswordModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600"
+                aria-label="Close password dialog"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {passwordError && (
+              <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{passwordError}</span>
+              </div>
+            )}
+            {passwordSuccess && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs rounded-xl flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span>{passwordSuccess}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              <div>
+                <Label className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 block">
+                  Current Password
+                </Label>
+                <Input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(event) => setCurrentPassword(event.target.value)}
+                  autoComplete="current-password"
+                  required
+                  className="rounded-xl border-slate-200 text-sm"
+                />
+              </div>
+              <div>
+                <Label className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 block">
+                  New Password
+                </Label>
+                <Input
+                  type="password"
+                  value={newPassword}
+                  onChange={(event) => setNewPassword(event.target.value)}
+                  autoComplete="new-password"
+                  minLength={4}
+                  required
+                  className="rounded-xl border-slate-200 text-sm"
+                />
+              </div>
+              <div>
+                <Label className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 block">
+                  Confirm New Password
+                </Label>
+                <Input
+                  type="password"
+                  value={confirmNewPassword}
+                  onChange={(event) => setConfirmNewPassword(event.target.value)}
+                  autoComplete="new-password"
+                  minLength={4}
+                  required
+                  className="rounded-xl border-slate-200 text-sm"
+                />
+              </div>
+              <div className="pt-2 flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsPasswordModalOpen(false)}
+                  className="rounded-xl text-xs font-semibold"
+                >
+                  Close
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={passwordSaving}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold gap-1.5"
+                >
+                  <KeyRound className="w-3.5 h-3.5" />
+                  <span>{passwordSaving ? "Updating..." : "Update Password"}</span>
                 </Button>
               </div>
             </form>

@@ -261,6 +261,51 @@ export async function loginFamilyAccount(familyName: string, password: string, y
   }
 }
 
+export async function changeFamilyPassword(data: {
+  familyId: string
+  currentPassword: string
+  newPassword: string
+}) {
+  try {
+    if (!data.currentPassword || !data.newPassword) {
+      return { success: false, error: "Enter your current password and a new password." }
+    }
+    if (data.newPassword.length < 4) {
+      return { success: false, error: "New password must be at least 4 characters long." }
+    }
+
+    const family = await prisma.family.findUnique({
+      where: { id: data.familyId },
+      select: { id: true, password: true },
+    })
+    if (!family?.password) {
+      return { success: false, error: "Family account was not found or has no password." }
+    }
+
+    const hasBcryptHash = /^\$2[aby]\$\d{2}\$/.test(family.password)
+    const passwordMatches = hasBcryptHash
+      ? await bcrypt.compare(data.currentPassword, family.password)
+      : data.currentPassword === family.password
+    if (!passwordMatches) {
+      return { success: false, error: "Current password is incorrect." }
+    }
+
+    const hashedPassword = await bcrypt.hash(data.newPassword, 10)
+    await prisma.family.update({
+      where: { id: family.id },
+      data: { password: hashedPassword },
+    })
+
+    return { success: true }
+  } catch (error: unknown) {
+    console.error("Error changing family password:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to change password.",
+    }
+  }
+}
+
 // 5. Get Family Details and Members
 export async function getFamilyDetails(familyId: string) {
   try {
