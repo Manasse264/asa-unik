@@ -110,6 +110,12 @@ export async function registerFamilyAccount(data: {
     if (!configuredYears.includes(family.year)) {
       return { success: false, error: "This church year is no longer available." }
     }
+    if (family.password) {
+      return {
+        success: false,
+        error: "This family already has an account. Please sign in or change the password from the family dashboard.",
+      }
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10)
 

@@ -208,7 +208,7 @@ export default function FamilySignupPage() {
               >
                 <option value="">-- Select Your Family Name --</option>
                 {families.map((fam) => (
-                  <option key={fam.id} value={fam.id}>
+                  <option key={fam.id} value={fam.id} disabled={fam.hasAccount}>
                     {fam.name} {fam.hasAccount ? "✓ (Account Exists)" : ""}
                   </option>
                 ))}
@@ -216,6 +216,11 @@ export default function FamilySignupPage() {
               {families.length === 0 && !fetchingFamilies && (
                 <p className="text-[11px] text-amber-600 mt-1">
                   No families found for year {selectedYear}. Please contact your Sabbath School Leader to register your family first.
+                </p>
+              )}
+              {families.some((fam) => fam.hasAccount) && (
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Families marked Account Exists are already registered. <Link href="/family/signin" className="font-semibold text-indigo-600 hover:underline">Sign in</Link> to continue.
                 </p>
               )}
             </div>
