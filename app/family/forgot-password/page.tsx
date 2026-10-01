@@ -230,7 +230,6 @@ export default function FamilyForgotPasswordPage() {
 
         <div className="flex justify-between text-sm">
           <Link href="/family/signin" className="text-indigo-700 underline underline-offset-4">Back to family sign in</Link>
-          <Link href="/login" className="text-slate-600 underline underline-offset-4">Staff login</Link>
         </div>
       </section>
     </main>
