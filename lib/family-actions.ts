@@ -325,18 +325,86 @@ export async function submitFamilyPasswordResetRequest(familyId: string) {
 
     const existingRequest = await prisma.familyPasswordResetRequest.findFirst({
       where: { familyId, status: "PENDING" },
-      select: { id: true },
+      select: { accessToken: true },
     })
-    if (existingRequest) return { success: true }
+    if (existingRequest) return { success: true, accessToken: existingRequest.accessToken }
 
-    await prisma.familyPasswordResetRequest.create({ data: { familyId } })
+    const request = await prisma.familyPasswordResetRequest.create({
+      data: { familyId, accessToken: randomBytes(32).toString("hex") },
+      select: { accessToken: true },
+    })
     safeRevalidate("/dashboard/sabbath-school")
-    return { success: true }
+    return { success: true, accessToken: request.accessToken }
   } catch (error: unknown) {
     console.error("Error submitting family password reset request:", error)
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to submit password reset request.",
+    }
+  }
+}
+
+export async function getFamilyPasswordResetRequestStatus(accessToken: string) {
+  try {
+    const request = await prisma.familyPasswordResetRequest.findUnique({
+      where: { accessToken },
+      select: { status: true, family: { select: { name: true } } },
+    })
+    if (!request) return { success: false, error: "Password reset request was not found." }
+    return { success: true, status: request.status, familyName: request.family.name }
+  } catch (error: unknown) {
+    console.error("Error checking family password reset request:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to check request status.",
+    }
+  }
+}
+
+export async function completeFamilyPasswordReset(data: {
+  accessToken: string
+  familyName: string
+  newPassword: string
+}) {
+  try {
+    if (!data.newPassword || data.newPassword.length < 4) {
+      return { success: false, error: "Password must be at least 4 characters long." }
+    }
+
+    const request = await prisma.familyPasswordResetRequest.findUnique({
+      where: { accessToken: data.accessToken },
+      select: { id: true, familyId: true, status: true, family: { select: { name: true } } },
+    })
+    if (!request || request.status !== "APPROVED") {
+      return { success: false, error: "This password reset request has not been approved." }
+    }
+    if (normalizeFamilyName(data.familyName) !== normalizeFamilyName(request.family.name)) {
+      return { success: false, error: "Family name does not match the approved request." }
+    }
+
+    const hashedPassword = await bcrypt.hash(data.newPassword, 10)
+    const completed = await prisma.$transaction(async (transaction) => {
+      const updated = await transaction.familyPasswordResetRequest.updateMany({
+        where: { id: request.id, status: "APPROVED" },
+        data: { status: "COMPLETED", resolvedAt: new Date() },
+      })
+      if (updated.count !== 1) return false
+
+      await transaction.family.update({
+        where: { id: request.familyId },
+        data: { password: hashedPassword },
+      })
+      return true
+    })
+
+    if (!completed) return { success: false, error: "This request has already been completed." }
+    safeRevalidate("/family/signin")
+    return { success: true }
+  } catch (error: unknown) {
+    console.error("Error completing family password reset:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to reset password.",
     }
   }
 }
@@ -378,6 +446,16 @@ export async function getFamilyPasswordResetRequests(leaderEmail: string, leader
   }
 }
 
+export async function getPendingFamilyPasswordResetRequestCount() {
+  try {
+    const count = await prisma.familyPasswordResetRequest.count({ where: { status: "PENDING" } })
+    return { success: true, count }
+  } catch (error: unknown) {
+    console.error("Error counting family password reset requests:", error)
+    return { success: false, count: 0 }
+  }
+}
+
 export async function resolveFamilyPasswordResetRequest(data: {
   requestId: string
   decision: "APPROVED" | "REJECTED"
@@ -388,13 +466,6 @@ export async function resolveFamilyPasswordResetRequest(data: {
     if (!(await verifySabbathSchoolLeader(data.leaderEmail, data.leaderPassword))) {
       return { success: false, error: "Enter valid Sabbath School leader credentials." }
     }
-
-    const temporaryPassword = data.decision === "APPROVED"
-      ? randomBytes(9).toString("hex")
-      : null
-    const hashedPassword = temporaryPassword
-      ? await bcrypt.hash(temporaryPassword, 10)
-      : null
 
     const result = await prisma.$transaction(async (transaction) => {
       const request = await transaction.familyPasswordResetRequest.findUnique({
@@ -409,18 +480,12 @@ export async function resolveFamilyPasswordResetRequest(data: {
       })
       if (updated.count !== 1) return false
 
-      if (hashedPassword) {
-        await transaction.family.update({
-          where: { id: request.familyId },
-          data: { password: hashedPassword },
-        })
-      }
       return true
     })
 
     if (!result) return { success: false, error: "This request has already been resolved." }
     safeRevalidate("/dashboard/sabbath-school")
-    return { success: true, temporaryPassword }
+    return { success: true }
   } catch (error: unknown) {
     console.error("Error resolving family password reset request:", error)
     return {

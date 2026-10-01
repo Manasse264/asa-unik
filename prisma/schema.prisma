@@ -35,12 +35,13 @@ model Family {
 }
 
 model FamilyPasswordResetRequest {
-  id         String   @id @default(cuid())
-  familyId   String
-  family     Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  status     String   @default("PENDING")
-  createdAt  DateTime @default(now())
-  resolvedAt DateTime?
+  id          String   @id @default(cuid())
+  accessToken String   @unique
+  familyId    String
+  family      Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+  resolvedAt  DateTime?
 
   @@index([status, createdAt])
 }

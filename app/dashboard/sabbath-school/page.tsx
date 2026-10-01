@@ -24,6 +24,7 @@ import {
   getSabbathSchoolAttendanceOverview, 
   getFamilyDetails, 
   updateAttendanceListByLeader,
+  getPendingFamilyPasswordResetRequestCount,
   getFamilyPasswordResetRequests,
   resolveFamilyPasswordResetRequest,
 } from "@/lib/family-actions"
@@ -137,7 +138,7 @@ export default function SabbathSchoolDashboard() {
   const [leaderPassword, setLeaderPassword] = React.useState("")
   const [isResetLeaderVerified, setIsResetLeaderVerified] = React.useState(false)
   const [resetNotificationError, setResetNotificationError] = React.useState("")
-  const [temporaryPassword, setTemporaryPassword] = React.useState("")
+  const [pendingResetRequestCount, setPendingResetRequestCount] = React.useState(0)
   const [resetActionLoading, setResetActionLoading] = React.useState(false)
 
   // Sabbath School Attendance Lists State
@@ -176,7 +177,6 @@ export default function SabbathSchoolDashboard() {
     setIsResetNotificationsOpen(false)
     setLeaderPassword("")
     setIsResetLeaderVerified(false)
-    setTemporaryPassword("")
   }
 
   const loadResetRequests = async (event: React.FormEvent) => {
@@ -190,7 +190,7 @@ export default function SabbathSchoolDashboard() {
         return
       }
       setResetRequests(result.requests || [])
-      setTemporaryPassword("")
+      setPendingResetRequestCount(result.requests?.length || 0)
       setIsResetLeaderVerified(true)
     } catch {
       setResetNotificationError("Unable to load requests. Please try again.")
@@ -214,7 +214,7 @@ export default function SabbathSchoolDashboard() {
         return
       }
       setResetRequests(requests => requests.filter(request => request.id !== requestId))
-      setTemporaryPassword(result.temporaryPassword || "")
+      setPendingResetRequestCount(count => Math.max(0, count - 1))
     } catch {
       setResetNotificationError("Unable to resolve request. Please try again.")
     } finally {
@@ -353,6 +353,21 @@ export default function SabbathSchoolDashboard() {
       window.removeEventListener("storage", loadData)
       window.removeEventListener("focus", loadData)
       document.removeEventListener("visibilitychange", reloadWhenVisible)
+    }
+  }, [])
+
+  React.useEffect(() => {
+    let isActive = true
+    const refreshRequestCount = async () => {
+      const result = await getPendingFamilyPasswordResetRequestCount()
+      if (isActive) setPendingResetRequestCount(result.count)
+    }
+
+    void refreshRequestCount()
+    const intervalId = window.setInterval(() => void refreshRequestCount(), 10000)
+    return () => {
+      isActive = false
+      window.clearInterval(intervalId)
     }
   }, [])
 
@@ -856,7 +871,6 @@ export default function SabbathSchoolDashboard() {
             title="Password reset notifications"
             onClick={() => {
               setResetNotificationError("")
-              setTemporaryPassword("")
               setLeaderEmail(localStorage.getItem("user_email") || "")
               setLeaderPassword("")
               setIsResetLeaderVerified(false)
@@ -865,7 +879,7 @@ export default function SabbathSchoolDashboard() {
             className="relative"
           >
             <Bell className="h-4 w-4" />
-            {resetRequests.length > 0 && <span className="absolute -right-1 -top-1 min-w-4 rounded-full bg-destructive px-1 text-[10px] leading-4 text-destructive-foreground">{resetRequests.length}</span>}
+            {pendingResetRequestCount > 0 && <span className="absolute -right-1 -top-1 min-w-4 rounded-full bg-destructive px-1 text-[10px] leading-4 text-destructive-foreground">{pendingResetRequestCount}</span>}
           </Button>
           {activeTab === 'families' && <Button onClick={() => { setEditingFamily(null); setFamilyFormData({ name: "", pere: "", mere: "", memberCount: 2 }); setIsFamilyModalOpen(true) }}>{t.addFamily}</Button>}
           {activeTab === 'choirs' && <Button onClick={() => { setEditingChoir(null); setChoirFormData({ name: "", memberCount: 0 }); setIsChoirModalOpen(true) }}>{t.addChoir}</Button>}
@@ -894,13 +908,6 @@ export default function SabbathSchoolDashboard() {
             ) : (
               <div className="space-y-4">
                 {resetNotificationError && <p role="alert" className="text-sm text-destructive">{resetNotificationError}</p>}
-                {temporaryPassword && (
-                  <div role="status" className="rounded-md border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900">
-                    <p className="font-semibold">Request approved. Share this temporary password with the family:</p>
-                    <p className="mt-2 select-all font-mono text-lg">{temporaryPassword}</p>
-                    <p className="mt-2">It is shown only once. The family can change it after signing in.</p>
-                  </div>
-                )}
                 {resetRequests.length ? resetRequests.map(request => (
                   <article key={request.id} className="flex flex-col gap-3 border-b pb-4 last:border-0 sm:flex-row sm:items-center sm:justify-between">
                     <div>
@@ -913,9 +920,9 @@ export default function SabbathSchoolDashboard() {
                       <Button size="sm" variant="outline" disabled={resetActionLoading} onClick={() => handleResetRequestDecision(request.id, "REJECTED")}>Reject</Button>
                     </div>
                   </article>
-                )) : !temporaryPassword ? (
+                )) : (
                   <p className="py-6 text-center text-sm text-muted-foreground">No pending password reset requests.</p>
-                ) : null}
+                )}
                 <Button variant="outline" onClick={closeResetNotifications}>Lock and close</Button>
               </div>
             )}
