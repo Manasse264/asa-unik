@@ -325,9 +325,18 @@ export async function submitFamilyPasswordResetRequest(familyId: string) {
 
     const existingRequest = await prisma.familyPasswordResetRequest.findFirst({
       where: { familyId, status: "PENDING" },
-      select: { accessToken: true },
+      select: { id: true, accessToken: true },
     })
-    if (existingRequest) return { success: true, accessToken: existingRequest.accessToken }
+    if (existingRequest) {
+      const accessToken = existingRequest.accessToken || randomBytes(32).toString("hex")
+      if (!existingRequest.accessToken) {
+        await prisma.familyPasswordResetRequest.update({
+          where: { id: existingRequest.id },
+          data: { accessToken },
+        })
+      }
+      return { success: true, accessToken }
+    }
 
     const request = await prisma.familyPasswordResetRequest.create({
       data: { familyId, accessToken: randomBytes(32).toString("hex") },

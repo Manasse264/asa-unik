@@ -36,7 +36,7 @@ model Family {
 
 model FamilyPasswordResetRequest {
   id          String   @id @default(cuid())
-  accessToken String   @unique
+  accessToken String?  @unique
   familyId    String
   family      Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
   status      String   @default("PENDING")
