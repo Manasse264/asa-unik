@@ -1,7 +1,7 @@
 ﻿"use client"
 
 import React from "react"
-import { Plus, Search, Pencil, Trash2, Check, X, Users2, Music, Send, Download, FileText, Calendar } from "lucide-react"
+import { Plus, Search, Pencil, Trash2, Check, X, Users2, Music, Send, Download, FileText, Calendar, Bell } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -23,7 +23,9 @@ import {
 import { 
   getSabbathSchoolAttendanceOverview, 
   getFamilyDetails, 
-  updateAttendanceListByLeader 
+  updateAttendanceListByLeader,
+  getFamilyPasswordResetRequests,
+  resolveFamilyPasswordResetRequest,
 } from "@/lib/family-actions"
 import { FamilyAttendanceForm, AttendanceFormData, FamilyMemberItem } from "@/components/family-attendance-form"
 import { ArrowLeft, CheckCircle2, AlertCircle, Eye, FileSpreadsheet } from "lucide-react"
@@ -100,6 +102,11 @@ interface Choir {
   updatedAt?: Date; 
   year?: string; 
 }
+interface FamilyPasswordResetRequest {
+  id: string
+  createdAt: Date
+  family: { name: string; pere: string; mere: string; year: string }
+}
 
 const getCurrentWeekdays = (date = new Date()) => {
   const monday = new Date(date.getFullYear(), date.getMonth(), date.getDate())
@@ -124,6 +131,14 @@ export default function SabbathSchoolDashboard() {
   const [letters, setLetters] = React.useState<SabbathLetter[]>([])
   const [selectedDate, setSelectedDate] = React.useState(new Date().toISOString().split('T')[0])
   const [generatedDates, setGeneratedDates] = React.useState<string[]>([])
+  const [isResetNotificationsOpen, setIsResetNotificationsOpen] = React.useState(false)
+  const [resetRequests, setResetRequests] = React.useState<FamilyPasswordResetRequest[]>([])
+  const [leaderEmail, setLeaderEmail] = React.useState("")
+  const [leaderPassword, setLeaderPassword] = React.useState("")
+  const [isResetLeaderVerified, setIsResetLeaderVerified] = React.useState(false)
+  const [resetNotificationError, setResetNotificationError] = React.useState("")
+  const [temporaryPassword, setTemporaryPassword] = React.useState("")
+  const [resetActionLoading, setResetActionLoading] = React.useState(false)
 
   // Sabbath School Attendance Lists State
   const [selectedQuarterForLeader, setSelectedQuarterForLeader] = React.useState<string>("Q1")
@@ -156,6 +171,56 @@ export default function SabbathSchoolDashboard() {
   }
 
   const generateId = () => Math.random().toString(36).substr(2, 9)
+
+  const closeResetNotifications = () => {
+    setIsResetNotificationsOpen(false)
+    setLeaderPassword("")
+    setIsResetLeaderVerified(false)
+    setTemporaryPassword("")
+  }
+
+  const loadResetRequests = async (event: React.FormEvent) => {
+    event.preventDefault()
+    setResetNotificationError("")
+    setResetActionLoading(true)
+    try {
+      const result = await getFamilyPasswordResetRequests(leaderEmail, leaderPassword)
+      if (!result.success) {
+        setResetNotificationError(result.error || "Unable to load requests.")
+        return
+      }
+      setResetRequests(result.requests || [])
+      setTemporaryPassword("")
+      setIsResetLeaderVerified(true)
+    } catch {
+      setResetNotificationError("Unable to load requests. Please try again.")
+    } finally {
+      setResetActionLoading(false)
+    }
+  }
+
+  const handleResetRequestDecision = async (requestId: string, decision: "APPROVED" | "REJECTED") => {
+    setResetNotificationError("")
+    setResetActionLoading(true)
+    try {
+      const result = await resolveFamilyPasswordResetRequest({
+        requestId,
+        decision,
+        leaderEmail,
+        leaderPassword,
+      })
+      if (!result.success) {
+        setResetNotificationError(result.error || "Unable to resolve request.")
+        return
+      }
+      setResetRequests(requests => requests.filter(request => request.id !== requestId))
+      setTemporaryPassword(result.temporaryPassword || "")
+    } catch {
+      setResetNotificationError("Unable to resolve request. Please try again.")
+    } finally {
+      setResetActionLoading(false)
+    }
+  }
 
   const loadFamilyAttendanceOverview = async (quarter = selectedQuarterForLeaderRef.current) => {
     const year = getYear()
@@ -784,11 +849,79 @@ export default function SabbathSchoolDashboard() {
       <div className="flex justify-between items-center">
         <div><h2 className="text-3xl font-bold">{t.title}</h2><p className="text-muted-foreground">{t.subtitle}</p></div>
         <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            aria-label="Password reset notifications"
+            title="Password reset notifications"
+            onClick={() => {
+              setResetNotificationError("")
+              setTemporaryPassword("")
+              setLeaderEmail(localStorage.getItem("user_email") || "")
+              setLeaderPassword("")
+              setIsResetLeaderVerified(false)
+              setIsResetNotificationsOpen(true)
+            }}
+            className="relative"
+          >
+            <Bell className="h-4 w-4" />
+            {resetRequests.length > 0 && <span className="absolute -right-1 -top-1 min-w-4 rounded-full bg-destructive px-1 text-[10px] leading-4 text-destructive-foreground">{resetRequests.length}</span>}
+          </Button>
           {activeTab === 'families' && <Button onClick={() => { setEditingFamily(null); setFamilyFormData({ name: "", pere: "", mere: "", memberCount: 2 }); setIsFamilyModalOpen(true) }}>{t.addFamily}</Button>}
           {activeTab === 'choirs' && <Button onClick={() => { setEditingChoir(null); setChoirFormData({ name: "", memberCount: 0 }); setIsChoirModalOpen(true) }}>{t.addChoir}</Button>}
           {activeTab === 'letters' && <Button onClick={() => { setEditingLetter(null); setLetterFormData({ name: "", originChurch: "", district: "", field: "", fileName: "", status: "received", fileData: "" }); setIsLetterModalOpen(true) }} className="gap-2"><Plus className="h-4 w-4" /> {t.addLetter}</Button>}
         </div>
       </div>
+
+      {isResetNotificationsOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) closeResetNotifications() }}>
+          <section role="dialog" aria-modal="true" aria-labelledby="reset-notifications-title" className="w-full max-w-xl space-y-5 rounded-lg bg-background p-6 shadow-xl">
+            <div className="flex items-center justify-between border-b pb-3">
+              <div>
+                <h3 id="reset-notifications-title" className="text-lg font-bold">Password reset requests</h3>
+                <p className="text-sm text-muted-foreground">Verify your Sabbath School leader account to view notifications.</p>
+              </div>
+              <Button variant="ghost" size="icon" aria-label="Close notifications" onClick={closeResetNotifications}><X className="h-4 w-4" /></Button>
+            </div>
+
+            {!isResetLeaderVerified ? (
+              <form onSubmit={loadResetRequests} className="space-y-4">
+                <div className="grid gap-2"><Label htmlFor="reset-leader-email">Leader email</Label><Input id="reset-leader-email" type="email" value={leaderEmail} onChange={event => setLeaderEmail(event.target.value)} required /></div>
+                <div className="grid gap-2"><Label htmlFor="reset-leader-password">Leader password</Label><Input id="reset-leader-password" type="password" value={leaderPassword} onChange={event => setLeaderPassword(event.target.value)} required /></div>
+                {resetNotificationError && <p role="alert" className="text-sm text-destructive">{resetNotificationError}</p>}
+                <Button type="submit" disabled={resetActionLoading}>{resetActionLoading ? "Checking..." : "View requests"}</Button>
+              </form>
+            ) : (
+              <div className="space-y-4">
+                {resetNotificationError && <p role="alert" className="text-sm text-destructive">{resetNotificationError}</p>}
+                {temporaryPassword && (
+                  <div role="status" className="rounded-md border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900">
+                    <p className="font-semibold">Request approved. Share this temporary password with the family:</p>
+                    <p className="mt-2 select-all font-mono text-lg">{temporaryPassword}</p>
+                    <p className="mt-2">It is shown only once. The family can change it after signing in.</p>
+                  </div>
+                )}
+                {resetRequests.length ? resetRequests.map(request => (
+                  <article key={request.id} className="flex flex-col gap-3 border-b pb-4 last:border-0 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="font-semibold">{request.family.name}</p>
+                      <p className="text-sm text-muted-foreground">{request.family.pere} / {request.family.mere} · {request.family.year}</p>
+                      <p className="text-xs text-muted-foreground">Requested {new Date(request.createdAt).toLocaleString()}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button size="sm" disabled={resetActionLoading} onClick={() => handleResetRequestDecision(request.id, "APPROVED")}>Approve</Button>
+                      <Button size="sm" variant="outline" disabled={resetActionLoading} onClick={() => handleResetRequestDecision(request.id, "REJECTED")}>Reject</Button>
+                    </div>
+                  </article>
+                )) : !temporaryPassword ? (
+                  <p className="py-6 text-center text-sm text-muted-foreground">No pending password reset requests.</p>
+                ) : null}
+                <Button variant="outline" onClick={closeResetNotifications}>Lock and close</Button>
+              </div>
+            )}
+          </section>
+        </div>
+      )}
 
       <div className="flex border-b overflow-x-auto">
         {["families", "choirs", "attendance", "attendance-lists", "family-performance", "reports", "letters"].map(tab => (

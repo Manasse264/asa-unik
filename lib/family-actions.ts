@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 import { revalidatePath } from "next/cache"
+import { randomBytes } from "node:crypto"
 
 function safeRevalidate(path: string) {
   try {
@@ -308,6 +309,123 @@ export async function changeFamilyPassword(data: {
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to change password.",
+    }
+  }
+}
+
+export async function submitFamilyPasswordResetRequest(familyId: string) {
+  try {
+    const family = await prisma.family.findUnique({
+      where: { id: familyId },
+      select: { id: true, password: true },
+    })
+    if (!family?.password) {
+      return { success: false, error: "This family does not have a registered account." }
+    }
+
+    const existingRequest = await prisma.familyPasswordResetRequest.findFirst({
+      where: { familyId, status: "PENDING" },
+      select: { id: true },
+    })
+    if (existingRequest) return { success: true }
+
+    await prisma.familyPasswordResetRequest.create({ data: { familyId } })
+    safeRevalidate("/dashboard/sabbath-school")
+    return { success: true }
+  } catch (error: unknown) {
+    console.error("Error submitting family password reset request:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to submit password reset request.",
+    }
+  }
+}
+
+async function verifySabbathSchoolLeader(email: string, password: string) {
+  const user = await prisma.user.findUnique({
+    where: { email: email.trim().toLowerCase() },
+    select: { email: true, password: true, role: true },
+  })
+  if (!user) return false
+  const role = user.role.toLowerCase()
+  if (!role.includes("sabbath") || !role.includes("school")) return false
+
+  try {
+    return await bcrypt.compare(password, user.password)
+  } catch {
+    return user.password === password
+  }
+}
+
+export async function getFamilyPasswordResetRequests(leaderEmail: string, leaderPassword: string) {
+  try {
+    if (!(await verifySabbathSchoolLeader(leaderEmail, leaderPassword))) {
+      return { success: false, error: "Enter valid Sabbath School leader credentials." }
+    }
+
+    const requests = await prisma.familyPasswordResetRequest.findMany({
+      where: { status: "PENDING" },
+      include: { family: { select: { name: true, pere: true, mere: true, year: true } } },
+      orderBy: { createdAt: "asc" },
+    })
+    return { success: true, requests }
+  } catch (error: unknown) {
+    console.error("Error loading family password reset requests:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to load password reset requests.",
+    }
+  }
+}
+
+export async function resolveFamilyPasswordResetRequest(data: {
+  requestId: string
+  decision: "APPROVED" | "REJECTED"
+  leaderEmail: string
+  leaderPassword: string
+}) {
+  try {
+    if (!(await verifySabbathSchoolLeader(data.leaderEmail, data.leaderPassword))) {
+      return { success: false, error: "Enter valid Sabbath School leader credentials." }
+    }
+
+    const temporaryPassword = data.decision === "APPROVED"
+      ? randomBytes(9).toString("hex")
+      : null
+    const hashedPassword = temporaryPassword
+      ? await bcrypt.hash(temporaryPassword, 10)
+      : null
+
+    const result = await prisma.$transaction(async (transaction) => {
+      const request = await transaction.familyPasswordResetRequest.findUnique({
+        where: { id: data.requestId },
+        select: { id: true, familyId: true, status: true },
+      })
+      if (!request || request.status !== "PENDING") return false
+
+      const updated = await transaction.familyPasswordResetRequest.updateMany({
+        where: { id: request.id, status: "PENDING" },
+        data: { status: data.decision, resolvedAt: new Date() },
+      })
+      if (updated.count !== 1) return false
+
+      if (hashedPassword) {
+        await transaction.family.update({
+          where: { id: request.familyId },
+          data: { password: hashedPassword },
+        })
+      }
+      return true
+    })
+
+    if (!result) return { success: false, error: "This request has already been resolved." }
+    safeRevalidate("/dashboard/sabbath-school")
+    return { success: true, temporaryPassword }
+  } catch (error: unknown) {
+    console.error("Error resolving family password reset request:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to resolve password reset request.",
     }
   }
 }

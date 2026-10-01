@@ -31,6 +31,18 @@ model Family {
   updatedAt       DateTime               @default(now()) @updatedAt
   members         FamilyMember[]
   attendanceLists FamilyAttendanceList[]
+  passwordResetRequests FamilyPasswordResetRequest[]
+}
+
+model FamilyPasswordResetRequest {
+  id         String   @id @default(cuid())
+  familyId   String
+  family     Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  status     String   @default("PENDING")
+  createdAt  DateTime @default(now())
+  resolvedAt DateTime?
+
+  @@index([status, createdAt])
 }
 
 model FamilyMember {

@@ -201,12 +201,14 @@ function FamilySigninForm() {
       </form>
 
       <div className="mt-6 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
-  
         <Link
           href="/family/signup"
           className="font-bold text-indigo-600 hover:text-indigo-800 transition-colors"
         >
           Sign Up Family Account →
+        </Link>
+        <Link href="/family/forgot-password" className="font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">
+          Request password reset
         </Link>
       </div>
     </div>
