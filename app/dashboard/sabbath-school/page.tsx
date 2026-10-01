@@ -105,7 +105,7 @@ const getCurrentWeekdays = (date = new Date()) => {
   const monday = new Date(date.getFullYear(), date.getMonth(), date.getDate())
   monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7))
 
-  return Array.from({ length: 5 }, (_, index) => {
+  return Array.from({ length: 3 }, (_, index) => {
     const weekday = new Date(monday)
     weekday.setDate(monday.getDate() + index)
     const year = weekday.getFullYear()
