@@ -318,7 +318,7 @@ export async function addFamilyMember(data: {
       return { success: false, error: "Member name is required." }
     }
 
-    const member = await prisma.familyMember.create({
+    await prisma.familyMember.create({
       data: {
         familyId: data.familyId,
         name: data.name.trim(),
@@ -336,7 +336,7 @@ export async function addFamilyMember(data: {
 
     safeRevalidate("/family/dashboard")
     safeRevalidate("/dashboard/sabbath-school")
-    return { success: true, member }
+    return { success: true }
   } catch (error: any) {
     console.error("Error adding family member:", error)
     return { success: false, error: error.message }
