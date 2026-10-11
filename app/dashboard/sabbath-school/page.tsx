@@ -828,7 +828,7 @@ export default function SabbathSchoolDashboard() {
   })
 
   const formatMemberPercentage = (count: number, memberCount: number) =>
-    `${(memberCount > 0 ? (count / memberCount) * 100 : 0).toFixed(1)}%`
+    `${(memberCount > 0 ? (count / memberCount) * 100 : 0).toFixed(0)}%`
 
   const familyPerformanceRankings = [
     { key: "presence", title: t.presents, countKey: "presentCount" as const },
@@ -1510,7 +1510,7 @@ export default function SabbathSchoolDashboard() {
                       <tr key={familyItem.id} className="border-b last:border-0 hover:bg-muted/30">
                         <td className="px-4 py-2.5 text-center font-medium tabular-nums">{familyItem.rank}</td>
                         <th scope="row" className="px-4 py-2.5 text-left font-medium">{familyItem.name}</th>
-                        <td className="px-4 py-2.5 text-right tabular-nums">{familyItem.percentage.toFixed(1)}%</td>
+                        <td className="px-4 py-2.5 text-right tabular-nums">{familyItem.percentage.toFixed(0)}%</td>
                       </tr>
                     ))}
                     {ranking.families.length === 0 && (
