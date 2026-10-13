@@ -1287,7 +1287,11 @@ export default function SabbathSchoolDashboard() {
                       </div>
                       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t pt-3">
                         <span className="text-xs font-bold text-indigo-600">{selectedQuarterForLeader}</span>
-                        {fam.isPublished ? (
+                        {fam.isEdited ? (
+                          <span className="inline-flex items-center gap-1 text-xs font-bold text-red-700">
+                            <AlertCircle className="h-3.5 w-3.5" /> Edited
+                          </span>
+                        ) : fam.isPublished ? (
                           <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
                             <CheckCircle2 className="h-3.5 w-3.5" /> Published
                           </span>
@@ -1361,7 +1365,12 @@ export default function SabbathSchoolDashboard() {
                               {selectedQuarterForLeader}
                             </td>
                             <td className="py-3.5 px-4 text-center">
-                              {isPub ? (
+                              {fam.isEdited ? (
+                                <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-2.5 py-1 text-[11px] font-bold text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                                  <AlertCircle className="h-3.5 w-3.5 text-red-700 dark:text-red-300" />
+                                  <span>Edited</span>
+                                </span>
+                              ) : isPub ? (
                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
                                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                                   <span>Published</span>

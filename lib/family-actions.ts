@@ -739,6 +739,7 @@ export async function getSabbathSchoolAttendanceOverview(year: string, quarter: 
         members: f.members,
         attendanceList: attendance,
         isPublished: attendance?.isPublished ?? false,
+        isEdited: Boolean(attendance?.publishedAt && !attendance.isPublished),
         publishedAt: attendance?.publishedAt ?? null,
       }
     })
