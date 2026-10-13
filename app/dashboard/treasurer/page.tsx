@@ -603,11 +603,11 @@ export default function TreasurerDashboard() {
   }
 
   return (
-    <div className="flex-1 space-y-4 p-8 pt-6">
+    <div className="min-w-0 flex-1 space-y-4 p-4 pt-4 sm:p-6 lg:p-8 lg:pt-6">
       <YearSelector />
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">{t.title}</h2>
-        <div className="flex items-center space-x-2">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">{t.title}</h2>
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
           <Button variant="outline" size="sm" onClick={exportToExcel}>
             <FileSpreadsheet className="mr-2 h-4 w-4" />
             {t.excel}
@@ -619,13 +619,13 @@ export default function TreasurerDashboard() {
         </div>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-4" onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="overview">{t.overview}</TabsTrigger>
-          <TabsTrigger value="income">{t.income}</TabsTrigger>
-          <TabsTrigger value="expenses">{t.expenses}</TabsTrigger>
-          <TabsTrigger value="properties">{t.properties}</TabsTrigger>
-          <TabsTrigger value="reports">{t.reports}</TabsTrigger>
+      <Tabs defaultValue="overview" className="min-w-0 space-y-4 [&_table]:min-w-[560px] sm:[&_table]:min-w-full" onValueChange={setActiveTab}>
+        <TabsList className="w-full justify-start overflow-x-auto">
+          <TabsTrigger className="shrink-0" value="overview">{t.overview}</TabsTrigger>
+          <TabsTrigger className="shrink-0" value="income">{t.income}</TabsTrigger>
+          <TabsTrigger className="shrink-0" value="expenses">{t.expenses}</TabsTrigger>
+          <TabsTrigger className="shrink-0" value="properties">{t.properties}</TabsTrigger>
+          <TabsTrigger className="shrink-0" value="reports">{t.reports}</TabsTrigger>
         </TabsList>
 
         {/* --- Overview Tab --- */}
@@ -665,8 +665,8 @@ export default function TreasurerDashboard() {
             </Card>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-            <Card className="col-span-4">
+          <div className="grid min-w-0 gap-4 md:grid-cols-2 lg:grid-cols-7">
+            <Card className="min-w-0 md:col-span-1 lg:col-span-4">
               <CardHeader>
                 <CardTitle>{t.recentTransactions}</CardTitle>
                 <CardDescription>{t.recentSub}</CardDescription>
@@ -705,7 +705,7 @@ export default function TreasurerDashboard() {
                 </Table>
               </CardContent>
             </Card>
-            <Card className="col-span-3">
+            <Card className="min-w-0 md:col-span-1 lg:col-span-3">
               <CardHeader>
                 <CardTitle>{t.quickAdd}</CardTitle>
                 <CardDescription>{t.quickSub}</CardDescription>
@@ -867,13 +867,13 @@ export default function TreasurerDashboard() {
               <CardDescription>{t.propertySub}</CardDescription>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="books" className="space-y-4">
-                <TabsList>
-                  <TabsTrigger value="books">
+              <Tabs defaultValue="books" className="min-w-0 space-y-4">
+                <TabsList className="w-full justify-start overflow-x-auto">
+                  <TabsTrigger className="shrink-0" value="books">
                     <BookOpen className="mr-2 h-4 w-4" />
                     {t.books}
                   </TabsTrigger>
-                  <TabsTrigger value="gifts">
+                  <TabsTrigger className="shrink-0" value="gifts">
                     <GiftIcon className="mr-2 h-4 w-4" />
                     {t.gifts}
                   </TabsTrigger>
@@ -881,8 +881,8 @@ export default function TreasurerDashboard() {
 
                 {/* --- Books Sub-tab --- */}
                 <TabsContent value="books" className="space-y-4">
-                  <div className="grid gap-4 md:grid-cols-7">
-                    <div className="col-span-4">
+                  <div className="grid min-w-0 gap-4 md:grid-cols-7">
+                    <div className="min-w-0 md:col-span-4">
                       <Table>
                         <TableHeader>
                           <TableRow>
@@ -916,7 +916,7 @@ export default function TreasurerDashboard() {
                         </TableBody>
                       </Table>
                     </div>
-                    <div className="col-span-3">
+                    <div className="min-w-0 md:col-span-3">
                       <Card>
                         <CardHeader>
                           <CardTitle>{editingBookId ? t.edit : t.addBook}</CardTitle>
@@ -981,8 +981,8 @@ export default function TreasurerDashboard() {
 
                 {/* --- Gifts Sub-tab --- */}
                 <TabsContent value="gifts" className="space-y-4">
-                  <div className="grid gap-4 md:grid-cols-7">
-                    <div className="col-span-4">
+                  <div className="grid min-w-0 gap-4 md:grid-cols-7">
+                    <div className="min-w-0 md:col-span-4">
                       <Table>
                         <TableHeader>
                           <TableRow>
@@ -1014,7 +1014,7 @@ export default function TreasurerDashboard() {
                         </TableBody>
                       </Table>
                     </div>
-                    <div className="col-span-3">
+                    <div className="min-w-0 md:col-span-3">
                       <Card>
                         <CardHeader>
                           <CardTitle>{editingGiftId ? t.edit : t.addGift}</CardTitle>

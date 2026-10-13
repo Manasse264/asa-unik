@@ -656,17 +656,17 @@ export default function SecretaryDashboard() {
   };
 
   return (
-    <div className="flex-1 space-y-4 p-8 pt-6">
+    <div className="min-w-0 flex-1 space-y-4 p-4 pt-4 sm:p-6 lg:p-8 lg:pt-6">
       <YearSelector />
-      <div className="flex items-center justify-between space-y-2">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">{t.title}</h2>
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">{t.title}</h2>
           <div className="flex items-center text-muted-foreground gap-2 mt-1">
             <Briefcase className="h-4 w-4" />
             <span className="text-sm font-medium">{t.labor}</span>
           </div>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap items-center gap-2">
           {activeTab === "departments" ? (
             <Button onClick={openAddDeptModal}>
               <Plus className="mr-2 h-4 w-4" /> {t.addDept}
@@ -701,7 +701,8 @@ export default function SecretaryDashboard() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b overflow-x-auto">
+      <div className="min-w-0 overflow-x-auto border-b">
+        <div className="flex min-w-max">
         <button
           className={cn(
             "px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
@@ -774,6 +775,7 @@ export default function SecretaryDashboard() {
         >
           {t.tabReports} (Elder View)
         </button>
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -807,9 +809,9 @@ export default function SecretaryDashboard() {
              activeTab === "properties" ? t.propertiesList : t.reportsList}
           </h3>
           
-          <div className="rounded-md border bg-card">
-            <div className="relative w-full overflow-auto">
-              <table className="w-full caption-bottom text-sm">
+          <div className="min-w-0 rounded-md border bg-card">
+            <div className="relative w-full overflow-x-auto">
+              <table className="w-full min-w-[640px] caption-bottom text-sm sm:min-w-full">
                 <thead className="[&_tr]:border-b">
                   <tr className="border-b transition-colors hover:bg-muted/50">
                     {activeTab === "choirs" ? (
@@ -990,7 +992,7 @@ export default function SecretaryDashboard() {
                 </Button>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left border">
+                <table className="w-full min-w-[600px] text-sm text-left border sm:min-w-full">
                   <thead>
                     <tr className="bg-muted text-xs font-mono uppercase border-b">
                       <th className="p-2 border-r">Date</th>
@@ -1040,7 +1042,7 @@ export default function SecretaryDashboard() {
                     key={choir.id}
                     onClick={() => setActiveChoirId(choir.id)}
                     className={cn(
-                      "px-4 py-2 text-sm font-semibold rounded-md transition-all whitespace-nowrap",
+                      "shrink-0 px-3 py-2 text-sm font-semibold rounded-md transition-all whitespace-nowrap sm:px-4",
                       activeChoirId === choir.id 
                         ? "bg-primary text-primary-foreground shadow-md" 
                         : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -1052,7 +1054,7 @@ export default function SecretaryDashboard() {
               </div>
 
               {activeChoirId && (
-                <div className="bg-muted/30 rounded-xl p-6 space-y-4 border">
+                <div className="space-y-4 rounded-xl border bg-muted/30 p-4 sm:p-6">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                       <h4 className="text-lg font-bold text-primary">
@@ -1060,8 +1062,9 @@ export default function SecretaryDashboard() {
                       </h4>
                       <p className="text-sm text-muted-foreground">Add new members by name below.</p>
                     </div>
-                    <div className="flex gap-2 max-w-md w-full">
+                    <div className="flex w-full max-w-md gap-2">
                       <Input 
+                        className="min-w-0 flex-1"
                         placeholder="Enter full name..." 
                         value={newChoirMemberName}
                         onChange={(e) => setNewChoirMemberName(e.target.value)}
@@ -1101,14 +1104,14 @@ export default function SecretaryDashboard() {
 
       {/* Member Modal */}
       {isMemberModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md bg-background rounded-lg shadow-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3 sm:p-4">
+          <div className="max-h-[90dvh] w-full max-w-md space-y-4 overflow-y-auto rounded-lg bg-background p-4 shadow-lg sm:p-6">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-bold">{editingMember ? t.editMem : t.regNewMem}</h3>
               <Button variant="ghost" size="sm" onClick={() => setIsMemberModalOpen(false)}><X className="h-4 w-4" /></Button>
             </div>
             <div className="grid gap-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
                   <Label>{t.firstName}</Label>
                   <Input value={memberFormData.firstName} onChange={(e) => setMemberFormData({...memberFormData, firstName: e.target.value})} />
@@ -1126,7 +1129,7 @@ export default function SecretaryDashboard() {
                 <Label>{t.phoneNum}</Label>
                 <Input value={memberFormData.phone} onChange={(e) => setMemberFormData({...memberFormData, phone: e.target.value})} />
               </div>
-              <div className="grid grid-cols-2 gap-2 pt-2">
+              <div className="grid grid-cols-1 gap-2 pt-2 sm:grid-cols-2">
                 <div className="flex items-center space-x-2">
                   <input type="checkbox" id="is-council" checked={memberFormData.isCouncil} onChange={(e) => setMemberFormData({...memberFormData, isCouncil: e.target.checked})} />
                   <Label htmlFor="is-council" className="text-xs">{t.councilMember}</Label>
@@ -1163,8 +1166,8 @@ export default function SecretaryDashboard() {
 
       {/* Dept Modal */}
       {isDeptModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md bg-background rounded-lg shadow-lg p-6 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3 sm:p-4">
+          <div className="max-h-[90dvh] w-full max-w-md space-y-4 overflow-y-auto rounded-lg bg-background p-4 shadow-lg sm:p-6">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-bold">{editingDept ? t.editDept : t.regDept}</h3>
               <Button variant="ghost" size="sm" onClick={() => setIsDeptModalOpen(false)}><X className="h-4 w-4" /></Button>
@@ -1196,8 +1199,8 @@ export default function SecretaryDashboard() {
 
       {/* Choir Modal */}
       {isChoirModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md bg-background rounded-lg shadow-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3 sm:p-4">
+          <div className="max-h-[90dvh] w-full max-w-md space-y-4 overflow-y-auto rounded-lg bg-background p-4 shadow-lg sm:p-6">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-bold">{editingChoir ? t.editChoir : t.regChoir}</h3>
               <Button variant="ghost" size="sm" onClick={() => setIsChoirModalOpen(false)}><X className="h-4 w-4" /></Button>
