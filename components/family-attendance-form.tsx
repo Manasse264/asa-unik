@@ -402,8 +402,13 @@ export function FamilyAttendanceForm({
         </div>
 
         {/* ATTENDANCE TABLE */}
-        <div className="max-w-full overflow-x-auto overscroll-x-contain touch-pan-x border border-slate-300 rounded-xl shadow-xs">
-          <table className="w-full text-xs text-left border-collapse min-w-[760px]">
+        <div
+          role="region"
+          aria-label="Swipeable attendance grid"
+          tabIndex={0}
+          className="w-full min-w-0 overflow-x-scroll overscroll-x-contain touch-pan-x border border-slate-300 rounded-xl shadow-xs [-webkit-overflow-scrolling:touch]"
+        >
+          <table className="w-max min-w-[760px] text-xs text-left border-collapse">
             <thead>
               <tr className="bg-slate-100 border-b border-slate-300 text-slate-900 font-extrabold text-[11px]">
                 <th className="py-2.5 px-2 border-r border-slate-300 w-10 text-center uppercase">N0</th>
