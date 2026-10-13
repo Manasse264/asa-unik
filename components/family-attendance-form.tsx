@@ -406,7 +406,7 @@ export function FamilyAttendanceForm({
           role="region"
           aria-label="Swipeable attendance grid"
           tabIndex={0}
-          className="w-full min-w-0 overflow-x-scroll overscroll-x-contain touch-pan-x border border-slate-300 rounded-xl shadow-xs [-webkit-overflow-scrolling:touch]"
+          className="w-full min-w-0 overflow-x-scroll overscroll-x-contain touch-auto border border-slate-300 rounded-xl shadow-xs [-webkit-overflow-scrolling:touch]"
         >
           <table className="w-max min-w-[760px] text-xs text-left border-collapse">
             <thead>
