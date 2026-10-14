@@ -163,9 +163,12 @@ const WEBSITE_MINISTRIES_KEY = "church_website_ministries"
 
 export default function ElderDashboardClient() {
   const [currentUserRole, setCurrentUserRole] = React.useState("")
+  const normalizedRole = currentUserRole.trim().toLowerCase().replace(/\s+/g, " ")
   const isSystemAdmin = ["admin", "system admin", "super admin", "administrator"].some((keyword) =>
-    currentUserRole.toLowerCase().includes(keyword)
+    normalizedRole.includes(keyword)
   )
+  const isDefaultElder = normalizedRole === "church elder" || normalizedRole === "elder"
+  const canAccessSystemConfig = isSystemAdmin || isDefaultElder
 
   const [members, setMembers] = React.useState<Member[]>([])
   const [councilMembers, setCouncilMembers] = React.useState<any[]>([])
@@ -289,12 +292,13 @@ export default function ElderDashboardClient() {
 
   const loadSystemConfig = async () => {
     if (typeof window !== "undefined") {
-      const role = (localStorage.getItem("user_role") || "").toLowerCase()
+      const role = (localStorage.getItem("user_role") || "").trim().toLowerCase().replace(/\s+/g, " ")
       const isAdminRole = ["admin", "system admin", "super admin", "administrator"].some((keyword) =>
         role.includes(keyword)
       )
+      const isDefaultElderRole = role === "church elder" || role === "elder"
 
-      if (!isAdminRole) {
+      if (!(isAdminRole || isDefaultElderRole)) {
         setBlockLogin(false)
         setBlockRegister(false)
         setRestrictNewAccounts(false)
@@ -851,7 +855,7 @@ export default function ElderDashboardClient() {
           <TabsTrigger className="shrink-0" value="announcements">Announcements</TabsTrigger>
           <TabsTrigger className="shrink-0" value="manage-webpage">Manage webpage</TabsTrigger>
           <TabsTrigger className="shrink-0" value="reports">Reports</TabsTrigger>
-          {isSystemAdmin && <TabsTrigger className="shrink-0" value="system">System Config</TabsTrigger>}
+          {canAccessSystemConfig && <TabsTrigger className="shrink-0" value="system">System Config</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="members" className="space-y-4">
@@ -1725,7 +1729,7 @@ export default function ElderDashboardClient() {
           </div>
         </TabsContent>
 
-        {isSystemAdmin && (
+        {canAccessSystemConfig && (
           <TabsContent value="system" className="space-y-6">
             <div className="p-4 sm:p-6 border rounded-xl space-y-6 bg-background shadow-sm">
               <h3 className="text-xl font-bold flex items-center gap-2">
