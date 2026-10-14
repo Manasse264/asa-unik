@@ -64,6 +64,11 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     if (isBlocked) return
+
+    if (identifier.trim().toLowerCase() === "admin") {
+      alert("Use the Admin Login page for the default elder/admin account.")
+      return
+    }
     
     const result = await loginUser(identifier, password)
 
@@ -139,6 +144,9 @@ export default function LoginPage() {
             </div>
             <Button className="w-full" type="submit" disabled={isBlocked}>{t.login}</Button>
           </form>
+          <div className="text-center text-sm text-muted-foreground">
+            Admin login: <Link href="/admin-login" className="underline">Admin Login</Link>
+          </div>
         </div>
       </div>
     </div>

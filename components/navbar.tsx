@@ -15,6 +15,7 @@ import {
   Heart, 
   Key, 
   LogOut, 
+  ShieldCheck,
   Menu,
   Sparkles, 
   User,
@@ -36,7 +37,8 @@ const navTranslations = {
     news: "News",
     announcements: "Announcements",
     account: "Account",
-    login: "Login", 
+    login: "User Login",
+    adminLogin: "Admin Login",
     register: "Register", 
     logout: "Logout",
     give: "Give",
@@ -58,7 +60,8 @@ const navTranslations = {
     news: "Amakuru",
     announcements: "Amatangazo",
     account: "Konte",
-    login: "Injira", 
+    login: "Injira y'ukoresha",
+    adminLogin: "Injira y'admin",
     register: "Kwiyandikisha", 
     logout: "Sohoka",
     give: "Tanga",
@@ -80,7 +83,8 @@ const navTranslations = {
     news: "Nouvelles",
     announcements: "Annonces",
     account: "Compte",
-    login: "Connexion", 
+    login: "Connexion utilisateur",
+    adminLogin: "Connexion admin",
     register: "S'inscrire", 
     logout: "Déconnexion",
     give: "Donner",
@@ -336,6 +340,14 @@ export function Navbar() {
                       >
                         <Key className="w-4 h-4 text-slate-500" />
                         {t.login}
+                      </Link>
+                      <Link
+                        href="/admin-login"
+                        onClick={() => setIsAccountOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-700 hover:bg-red-50 transition-colors"
+                      >
+                        <ShieldCheck className="w-4 h-4 text-red-600" />
+                        {t.adminLogin}
                       </Link>
                       <Link
                         href="/register"
