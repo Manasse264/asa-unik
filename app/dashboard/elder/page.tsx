@@ -856,7 +856,7 @@ export default function ElderDashboardClient() {
         <TabsList className="flex h-auto max-w-full justify-start gap-1 overflow-x-auto overscroll-x-contain p-1">
           <TabsTrigger className="shrink-0" value="members">Baptized Members</TabsTrigger>
           <TabsTrigger className="shrink-0" value="council">Church Council</TabsTrigger>
-          <TabsTrigger className="shrink-0" value="users">User Accounts</TabsTrigger>
+          {canAccessSystemConfig && <TabsTrigger className="shrink-0" value="users">User Accounts</TabsTrigger>}
           <TabsTrigger className="shrink-0" value="evangelism">Evangelism Dept</TabsTrigger>
           <TabsTrigger className="shrink-0" value="announcements">Announcements</TabsTrigger>
           <TabsTrigger className="shrink-0" value="manage-webpage">Manage webpage</TabsTrigger>
@@ -1468,10 +1468,11 @@ export default function ElderDashboardClient() {
           </div>
         </TabsContent>
 
-        <TabsContent value="users" className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h3 className="text-xl font-bold">Manage All User Accounts</h3>
-          </div>
+        {canAccessSystemConfig && (
+          <TabsContent value="users" className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h3 className="text-xl font-bold">Manage All User Accounts</h3>
+            </div>
 
           {generatedResetLink && (
             <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg space-y-2">
@@ -1521,39 +1522,40 @@ export default function ElderDashboardClient() {
             </div>
           )}
 
-          <div className="max-w-full overflow-x-auto rounded-md border">
-            <Table className="min-w-[640px]">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Full Name</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.map((u) => (
-                  <TableRow key={u.id}>
-                    <TableCell className="font-medium">{u.firstName} {u.lastName}</TableCell>
-                    <TableCell>{u.role}</TableCell>
-                    <TableCell>{u.email}</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" onClick={() => generateResetLink(u.email)}>
-                        <Key className="h-4 w-4 text-primary" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => { setEditingUser(u); setUserFormData(u); }}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteUserAccount(u.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
+            <div className="max-w-full overflow-x-auto rounded-md border">
+              <Table className="min-w-[640px]">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Full Name</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </TabsContent>
+                </TableHeader>
+                <TableBody>
+                  {users.map((u) => (
+                    <TableRow key={u.id}>
+                      <TableCell className="font-medium">{u.firstName} {u.lastName}</TableCell>
+                      <TableCell>{u.role}</TableCell>
+                      <TableCell>{u.email}</TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" onClick={() => generateResetLink(u.email)}>
+                          <Key className="h-4 w-4 text-primary" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => { setEditingUser(u); setUserFormData(u); }}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteUserAccount(u.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
+        )}
 
         <TabsContent value="evangelism" className="space-y-6">
           <div className="grid gap-6">
