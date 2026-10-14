@@ -163,11 +163,14 @@ const WEBSITE_MINISTRIES_KEY = "church_website_ministries"
 
 export default function ElderDashboardClient() {
   const [currentUserRole, setCurrentUserRole] = React.useState("")
+  const [currentUserEmail, setCurrentUserEmail] = React.useState("")
   const normalizedRole = currentUserRole.trim().toLowerCase().replace(/\s+/g, " ")
+  const normalizedEmail = currentUserEmail.trim().toLowerCase()
   const isSystemAdmin = ["admin", "system admin", "super admin", "administrator"].some((keyword) =>
     normalizedRole.includes(keyword)
   )
-  const isDefaultElder = normalizedRole === "church elder" || normalizedRole === "elder"
+  const isDefaultElder = (normalizedRole === "church elder" || normalizedRole === "elder") &&
+    (normalizedEmail === "elder" || normalizedEmail === "emergency-elder@local" || normalizedEmail === "emergency-elder@local.com")
   const canAccessSystemConfig = isSystemAdmin || isDefaultElder
 
   const [members, setMembers] = React.useState<Member[]>([])
@@ -293,10 +296,12 @@ export default function ElderDashboardClient() {
   const loadSystemConfig = async () => {
     if (typeof window !== "undefined") {
       const role = (localStorage.getItem("user_role") || "").trim().toLowerCase().replace(/\s+/g, " ")
+      const email = (localStorage.getItem("user_email") || "").trim().toLowerCase()
       const isAdminRole = ["admin", "system admin", "super admin", "administrator"].some((keyword) =>
         role.includes(keyword)
       )
-      const isDefaultElderRole = role === "church elder" || role === "elder"
+      const isDefaultElderRole = (role === "church elder" || role === "elder") &&
+        (email === "elder" || email === "emergency-elder@local" || email === "emergency-elder@local.com")
 
       if (!(isAdminRole || isDefaultElderRole)) {
         setBlockLogin(false)
@@ -360,6 +365,7 @@ export default function ElderDashboardClient() {
   React.useEffect(() => {
     const syncUserRole = () => {
       setCurrentUserRole(localStorage.getItem("user_role") || "")
+      setCurrentUserEmail(localStorage.getItem("user_email") || "")
     }
 
     syncUserRole()
