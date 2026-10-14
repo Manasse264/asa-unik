@@ -163,7 +163,9 @@ const WEBSITE_MINISTRIES_KEY = "church_website_ministries"
 
 export default function ElderDashboardClient() {
   const [currentUserRole, setCurrentUserRole] = React.useState("")
-  const isSystemAdmin = currentUserRole.toLowerCase().includes("admin")
+  const isSystemAdmin = ["admin", "system admin", "super admin", "administrator"].some((keyword) =>
+    currentUserRole.toLowerCase().includes(keyword)
+  )
 
   const [members, setMembers] = React.useState<Member[]>([])
   const [councilMembers, setCouncilMembers] = React.useState<any[]>([])
@@ -288,7 +290,11 @@ export default function ElderDashboardClient() {
   const loadSystemConfig = async () => {
     if (typeof window !== "undefined") {
       const role = (localStorage.getItem("user_role") || "").toLowerCase()
-      if (!role.includes("admin")) {
+      const isAdminRole = ["admin", "system admin", "super admin", "administrator"].some((keyword) =>
+        role.includes(keyword)
+      )
+
+      if (!isAdminRole) {
         setBlockLogin(false)
         setBlockRegister(false)
         setRestrictNewAccounts(false)

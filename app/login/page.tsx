@@ -82,7 +82,9 @@ export default function LoginPage() {
 
     let targetPath = "/dashboard/secretary"
     const r = user.role.toLowerCase()
-    if (r.includes("secretary")) targetPath = "/dashboard/secretary"
+    if (r.includes("admin") || r.includes("system admin") || r.includes("super admin") || r.includes("administrator")) {
+      targetPath = "/dashboard/elder"
+    } else if (r.includes("secretary")) targetPath = "/dashboard/secretary"
     else if (r.includes("elder")) targetPath = "/dashboard/elder"
     else if (r.includes("treasurer")) targetPath = "/dashboard/treasurer"
     else if (r.includes("sabbath") || r.includes("school")) targetPath = "/dashboard/sabbath-school"
