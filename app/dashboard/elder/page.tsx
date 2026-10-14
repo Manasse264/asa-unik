@@ -162,6 +162,9 @@ interface WebsiteMinistry {
 const WEBSITE_MINISTRIES_KEY = "church_website_ministries"
 
 export default function ElderDashboardClient() {
+  const [currentUserRole, setCurrentUserRole] = React.useState("")
+  const isSystemAdmin = currentUserRole.toLowerCase().includes("admin")
+
   const [members, setMembers] = React.useState<Member[]>([])
   const [councilMembers, setCouncilMembers] = React.useState<any[]>([])
   const [reports, setReports] = React.useState<any[]>([])
@@ -283,6 +286,19 @@ export default function ElderDashboardClient() {
   }
 
   const loadSystemConfig = async () => {
+    if (typeof window !== "undefined") {
+      const role = (localStorage.getItem("user_role") || "").toLowerCase()
+      if (!role.includes("admin")) {
+        setBlockLogin(false)
+        setBlockRegister(false)
+        setRestrictNewAccounts(false)
+        setRestrictOldAccounts(false)
+        setAvailableYears([])
+        setBlockedYears([])
+        return
+      }
+    }
+
     try {
       const config = await getSystemConfig()
       setBlockLogin(!!config.blockLogin)
@@ -332,15 +348,24 @@ export default function ElderDashboardClient() {
   }
 
   React.useEffect(() => {
+    const syncUserRole = () => {
+      setCurrentUserRole(localStorage.getItem("user_role") || "")
+    }
+
+    syncUserRole()
     loadWebsiteContent()
     loadSystemConfig()
     loadData()
+    window.addEventListener("auth-change", syncUserRole)
+    window.addEventListener("storage", syncUserRole)
     window.addEventListener("storage", loadSystemConfig)
     window.addEventListener("storage", loadData)
     window.addEventListener("year-changed", loadData)
     window.addEventListener("system-config-updated", loadSystemConfig)
     window.addEventListener("website-content-updated", loadWebsiteContent)
     return () => {
+      window.removeEventListener("auth-change", syncUserRole)
+      window.removeEventListener("storage", syncUserRole)
       window.removeEventListener("storage", loadSystemConfig)
       window.removeEventListener("storage", loadData)
       window.removeEventListener("year-changed", loadData)
@@ -820,7 +845,7 @@ export default function ElderDashboardClient() {
           <TabsTrigger className="shrink-0" value="announcements">Announcements</TabsTrigger>
           <TabsTrigger className="shrink-0" value="manage-webpage">Manage webpage</TabsTrigger>
           <TabsTrigger className="shrink-0" value="reports">Reports</TabsTrigger>
-          <TabsTrigger className="shrink-0" value="system">System Config</TabsTrigger>
+          {isSystemAdmin && <TabsTrigger className="shrink-0" value="system">System Config</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="members" className="space-y-4">
@@ -1216,9 +1241,9 @@ export default function ElderDashboardClient() {
                   </div>
                 ))}
               </div>
+              </div>
             </div>
-          </div>
-        </TabsContent>
+          </TabsContent>
 
         <TabsContent value="reports" className="space-y-4">
           <div className="flex items-center justify-between gap-4">
@@ -1694,11 +1719,12 @@ export default function ElderDashboardClient() {
           </div>
         </TabsContent>
 
-        <TabsContent value="system" className="space-y-6">
-          <div className="p-4 sm:p-6 border rounded-xl space-y-6 bg-background shadow-sm">
-            <h3 className="text-xl font-bold flex items-center gap-2">
-              <Settings className="h-5 w-5" /> System Controls & Security Settings
-            </h3>
+        {isSystemAdmin && (
+          <TabsContent value="system" className="space-y-6">
+            <div className="p-4 sm:p-6 border rounded-xl space-y-6 bg-background shadow-sm">
+              <h3 className="text-xl font-bold flex items-center gap-2">
+                <Settings className="h-5 w-5" /> System Controls & Security Settings
+              </h3>
             
             {/* Global Access Controls */}
             <div className="grid gap-4 md:grid-cols-2">
@@ -1838,6 +1864,7 @@ export default function ElderDashboardClient() {
             </div>
           </div>
         </TabsContent>
+        )}
       </Tabs>
     </div>
   )
