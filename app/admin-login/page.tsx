@@ -9,20 +9,23 @@ import { Label } from "@/components/ui/label"
 
 export default function AdminLoginPage() {
   const router = useRouter()
-  const [username, setUsername] = React.useState("Admin")
+  const [username, setUsername] = React.useState("elder")
   const [password, setPassword] = React.useState("")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (username.trim() !== "Admin" || password !== "password") {
-      alert("Invalid admin credentials. Use Admin / password")
+    const normalizedUser = username.trim().toLowerCase()
+    const isDefaultElderLogin = (normalizedUser === "elder" || normalizedUser === "admin") && password === "admin123"
+
+    if (!isDefaultElderLogin) {
+      alert("Invalid credentials. Use the default elder login: elder / admin123")
       return
     }
 
-    localStorage.setItem("user_role", "Admin")
+    localStorage.setItem("user_role", "Church Elder")
     localStorage.setItem("user_registration_year", new Date().getFullYear().toString())
-    localStorage.setItem("user_email", "admin")
+    localStorage.setItem("user_email", "elder")
     localStorage.setItem("user_allowed_years", JSON.stringify(["2024-2025"]))
 
     window.dispatchEvent(new Event("auth-change"))

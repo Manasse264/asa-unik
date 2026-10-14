@@ -65,7 +65,8 @@ export default function LoginPage() {
     e.preventDefault()
     if (isBlocked) return
 
-    if (identifier.trim().toLowerCase() === "admin") {
+    const normalizedIdentifier = identifier.trim().toLowerCase()
+    if (normalizedIdentifier === "elder" || normalizedIdentifier === "admin") {
       alert("Use the Admin Login page for the default elder/admin account.")
       return
     }
