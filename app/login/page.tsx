@@ -67,7 +67,7 @@ export default function LoginPage() {
 
     const normalizedIdentifier = identifier.trim().toLowerCase()
     if (normalizedIdentifier === "elder" || normalizedIdentifier === "admin") {
-      alert("Use the Admin Login page for the default elder/admin account.")
+      alert("Username not found")
       return
     }
     

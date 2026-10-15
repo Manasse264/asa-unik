@@ -19,7 +19,7 @@ export default function AdminLoginPage() {
     const isDefaultElderLogin = (normalizedUser === "elder" || normalizedUser === "admin") && password === "admin123"
 
     if (!isDefaultElderLogin) {
-      alert("Invalid credentials. Use the default elder login: elder / admin123")
+      alert("Invalid credentials.")
       return
     }
 
@@ -48,7 +48,7 @@ export default function AdminLoginPage() {
         <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
           <div className="flex flex-col space-y-2 text-center">
             <h1 className="text-2xl font-semibold tracking-tight">Admin Login</h1>
-            <p className="text-sm text-muted-foreground">Use the default elder/admin account.</p>
+            <p className="text-sm text-muted-foreground"></p>
           </div>
 
           <form onSubmit={handleSubmit} className="grid gap-4">
@@ -64,7 +64,7 @@ export default function AdminLoginPage() {
           </form>
 
           <div className="text-center text-sm text-muted-foreground">
-            Use the administrator login only. Regular users must use <Link href="/login" className="underline">User Login</Link>.
+            Use the administrator logins. Regular users must use <Link href="/login" className="underline">User Login</Link>.
           </div>
         </div>
       </div>
