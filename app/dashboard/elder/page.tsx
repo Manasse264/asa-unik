@@ -1288,7 +1288,6 @@ export default function ElderDashboardClient() {
                   </Button>
                 </div>
                 <p className="text-sm text-muted-foreground">Date: {r.date}</p>
-                <p className="text-sm font-medium">Total Attendance: {r.total}</p>
                 <Button
                   size="sm"
                   variant="outline"
