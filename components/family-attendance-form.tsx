@@ -344,7 +344,7 @@ export function FamilyAttendanceForm({
         {/* Document Header */}
         <div className="border-b border-slate-300 pb-5 text-center space-y-1">
           <Image
-            src="/logo.jpeg"
+            src="/logo2.jpg"
             alt="Seventh-day Adventist Church logo"
             width={72}
             height={72}
