@@ -24,3 +24,18 @@ export async function addReportLogo(doc: jsPDF) {
   const pageWidth = doc.internal.pageSize.getWidth()
   doc.addImage(logoData, "JPEG", (pageWidth - size) / 2, 6, size, size)
 }
+
+export function addReportWatermark(doc: jsPDF) {
+  const pageCount = doc.getNumberOfPages()
+  const pageWidth = doc.internal.pageSize.getWidth()
+  const pageHeight = doc.internal.pageSize.getHeight()
+
+  doc.setFont("helvetica", "bold")
+  doc.setFontSize(26)
+  doc.setTextColor(226, 226, 226)
+
+  for (let page = 1; page <= pageCount; page += 1) {
+    doc.setPage(page)
+    doc.text("Seventh Day Adventist Church", pageWidth / 2, pageHeight / 2, { align: "center" })
+  }
+}

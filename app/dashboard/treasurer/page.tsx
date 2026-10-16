@@ -37,7 +37,7 @@ import { YearSelector } from "@/components/year-selector"
 import * as XLSX from 'xlsx'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
-import { addReportLogo } from "@/lib/report-pdf"
+import { addReportLogo, addReportWatermark } from "@/lib/report-pdf"
 
 import { 
   getFinances, saveFinance, deleteFinance,
@@ -508,6 +508,7 @@ export default function TreasurerDashboard() {
     doc.text(`General Total Expenses: ${formatRF(totalExpenses)}`, 14, currentY + 12)
     doc.setFont("helvetica", "normal")
 
+    addReportWatermark(doc)
     doc.save("church_report.pdf")
   }
 
@@ -585,6 +586,7 @@ export default function TreasurerDashboard() {
     }
 
     const fileName = `Church_Report_${t.months[selectedMonth]}_${selectedYear}${selectedReportCategory !== "All" ? "_" + selectedReportCategory : ""}.pdf`
+    addReportWatermark(doc)
     doc.save(fileName)
 
     // Synchronize with Elder using runtime session variable

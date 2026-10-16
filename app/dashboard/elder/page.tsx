@@ -50,7 +50,7 @@ import { YearSelector } from "@/components/year-selector"
 import { cn } from "@/lib/utils"
 import { jsPDF } from "jspdf"
 import autoTable from "jspdf-autotable"
-import { addReportLogo } from "@/lib/report-pdf"
+import { addReportLogo, addReportWatermark } from "@/lib/report-pdf"
 
 import { 
   getMembers, saveMember, deleteMember,
@@ -791,6 +791,7 @@ export default function ElderDashboardClient() {
       startY: 44,
     })
     
+    addReportWatermark(doc)
     doc.save("weekly_choir_schedule.pdf")
   }
 

@@ -32,7 +32,7 @@ import { FamilyAttendanceForm, AttendanceFormData, FamilyMemberItem } from "@/co
 import { ArrowLeft, CheckCircle2, AlertCircle, Eye, FileSpreadsheet } from "lucide-react"
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
-import { addReportLogo } from "@/lib/report-pdf"
+import { addReportLogo, addReportWatermark } from "@/lib/report-pdf"
 
 const sslTranslations = {
   en: {
@@ -526,6 +526,7 @@ export default function SabbathSchoolDashboard() {
       theme: 'grid',
     })
 
+    addReportWatermark(doc)
     const pdfBlob = doc.output("datauristring")
     const totalPres = familyPresSum + choirPresSum
 
@@ -605,6 +606,7 @@ export default function SabbathSchoolDashboard() {
       theme: 'grid',
     })
 
+    addReportWatermark(doc)
     doc.save(`Weekly_Performance_Report.pdf`)
   }
 

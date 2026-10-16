@@ -341,6 +341,9 @@ export function FamilyAttendanceForm({
 
       {/* DOCUMENT BODY (EXACT FORMAT FROM D:\JACKSON DOC_100100.docx) */}
       <div className="p-3 sm:p-8 space-y-5 sm:space-y-6 text-slate-800 font-sans">
+        <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 hidden print:flex print:items-center print:justify-center">
+          <span className="whitespace-nowrap text-2xl font-bold text-slate-400/20">Seventh Day Adventist Church</span>
+        </div>
         {/* Document Header */}
         <div className="border-b border-slate-300 pb-5 text-center space-y-1">
           <Image
