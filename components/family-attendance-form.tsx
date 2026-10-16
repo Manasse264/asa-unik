@@ -13,6 +13,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import Image from "next/image"
 
 export interface FamilyMemberItem {
   id: string
@@ -342,6 +343,13 @@ export function FamilyAttendanceForm({
       <div className="p-3 sm:p-8 space-y-5 sm:space-y-6 text-slate-800 font-sans">
         {/* Document Header */}
         <div className="border-b border-slate-300 pb-5 text-center space-y-1">
+          <Image
+            src="/logo.jpeg"
+            alt="Seventh-day Adventist Church logo"
+            width={72}
+            height={72}
+            className="mx-auto mb-2 h-14 w-14 object-contain print:h-16 print:w-16"
+          />
           <h1 className="text-base sm:text-lg font-black tracking-wider text-slate-900 uppercase">
             SEVENTH DAY ADVENTIST CHURCH
           </h1>

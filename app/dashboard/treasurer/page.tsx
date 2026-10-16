@@ -37,6 +37,7 @@ import { YearSelector } from "@/components/year-selector"
 import * as XLSX from 'xlsx'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import { addReportLogo } from "@/lib/report-pdf"
 
 import { 
   getFinances, saveFinance, deleteFinance,
@@ -437,19 +438,20 @@ export default function TreasurerDashboard() {
     XLSX.writeFile(workbook, "church_finances.xlsx")
   }
 
-  const exportToPDF = () => {
+  const exportToPDF = async () => {
     const doc = new jsPDF()
     const pageWidth = doc.internal.pageSize.getWidth()
+    await addReportLogo(doc)
     
     doc.setFontSize(10)
-    doc.text(`${t.date}: ${new Date().toLocaleDateString()}`, pageWidth - 14, 10, { align: 'right' })
+    doc.text(`${t.date}: ${new Date().toLocaleDateString()}`, pageWidth - 14, 34, { align: 'right' })
 
     doc.setFontSize(22)
     doc.setFont("helvetica", "bold")
-    doc.text("Church Treasurer", pageWidth / 2, 25, { align: 'center' })
+    doc.text("Church Treasurer", pageWidth / 2, 40, { align: 'center' })
     
     doc.setFontSize(16)
-    doc.text("Financial Report", pageWidth / 2, 35, { align: 'center' })
+    doc.text("Financial Report", pageWidth / 2, 48, { align: 'center' })
     
     const tableData = transactions.map(tr => [
       tr.date, 
@@ -462,7 +464,7 @@ export default function TreasurerDashboard() {
     autoTable(doc, {
       head: [[t.date, t.type, t.category, t.amount, t.description]],
       body: tableData,
-      startY: 45,
+      startY: 55,
       theme: 'grid',
       headStyles: { fillColor: [75, 85, 99] }
     })
@@ -509,7 +511,7 @@ export default function TreasurerDashboard() {
     doc.save("church_report.pdf")
   }
 
-  const generateMonthlyReport = () => {
+  const generateMonthlyReport = async () => {
     if (!selectedYear) {
       alert(lang === 'rw' ? 'Nyamuneka hitamo umwaka w\'itorero!' : (lang === 'fr' ? 'Veuillez sélectionner une année d\'église !' : 'Please select a church year!'))
       return
@@ -528,17 +530,18 @@ export default function TreasurerDashboard() {
 
     const doc = new jsPDF()
     const pageWidth = doc.internal.pageSize.getWidth()
+    await addReportLogo(doc)
     
     doc.setFontSize(10)
-    doc.text(`${t.date}: ${new Date().toLocaleDateString()}`, pageWidth - 14, 10, { align: 'right' })
+    doc.text(`${t.date}: ${new Date().toLocaleDateString()}`, pageWidth - 14, 34, { align: 'right' })
 
     doc.setFontSize(22)
     doc.setFont("helvetica", "bold")
-    doc.text("Church Treasurer", pageWidth / 2, 25, { align: 'center' })
+    doc.text("Church Treasurer", pageWidth / 2, 40, { align: 'center' })
     
     doc.setFontSize(16)
     const categoryTitle = selectedReportCategory === "All" ? "" : ` - ${t.categories[selectedReportCategory as keyof typeof t.categories] || selectedReportCategory}`
-    doc.text(`${t.months[selectedMonth]} ${selectedYear}${categoryTitle} Report`, pageWidth / 2, 35, { align: 'center' })
+    doc.text(`${t.months[selectedMonth]} ${selectedYear}${categoryTitle} Report`, pageWidth / 2, 48, { align: 'center' })
     
     const tableData = monthlyTransactions.map(tr => [
       tr.date, 
@@ -551,7 +554,7 @@ export default function TreasurerDashboard() {
     autoTable(doc, {
       head: [[t.date, t.type, t.category, t.amount, t.description]],
       body: tableData,
-      startY: 45,
+      startY: 55,
       theme: 'grid',
       headStyles: { fillColor: [75, 85, 99] }
     })

@@ -32,6 +32,7 @@ import { FamilyAttendanceForm, AttendanceFormData, FamilyMemberItem } from "@/co
 import { ArrowLeft, CheckCircle2, AlertCircle, Eye, FileSpreadsheet } from "lucide-react"
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
+import { addReportLogo } from "@/lib/report-pdf"
 
 const sslTranslations = {
   en: {
@@ -458,15 +459,16 @@ export default function SabbathSchoolDashboard() {
     }
 
     const doc = new jsPDF()
+    await addReportLogo(doc)
 
     doc.setFontSize(20)
     doc.setTextColor(79, 70, 229)
-    doc.text("ASA-UNIK Attendance Daily Report", 105, 18, { align: "center" })
+    doc.text("ASA-UNIK Attendance Daily Report", 105, 38, { align: "center" })
 
     doc.setFontSize(11)
     doc.setTextColor(0, 0, 0)
     doc.setFont("helvetica", "bold")
-    doc.text(`${t.dateLabel}: ${date}`, 196, 26, { align: "right" })
+    doc.text(`${t.dateLabel}: ${date}`, 196, 46, { align: "right" })
 
     let familyRegSum = 0
     let familyPresSum = 0
@@ -487,10 +489,10 @@ export default function SabbathSchoolDashboard() {
 
     doc.setFontSize(14)
     doc.setFont("helvetica", "bold")
-    doc.text("Families Attendance", 105, 36, { align: "center" })
+    doc.text("Families Attendance", 105, 56, { align: "center" })
 
     autoTable(doc, {
-      startY: 40,
+      startY: 60,
       head: [['Name', 'Registered Members', 'Present', 'Percentage']],
       body: [
         ...familyRows,
@@ -555,17 +557,18 @@ export default function SabbathSchoolDashboard() {
     }
   }
 
-  const generateWeeklyPDF = () => {
+  const generateWeeklyPDF = async () => {
     const doc = new jsPDF()
+    await addReportLogo(doc)
 
     doc.setFontSize(20)
     doc.setTextColor(79, 70, 229)
-    doc.text("ASA-UNIK Attendance Weekly Report", 105, 18, { align: "center" })
+    doc.text("ASA-UNIK Attendance Weekly Report", 105, 38, { align: "center" })
 
     doc.setFontSize(14)
     doc.setFont("helvetica", "bold")
     doc.setTextColor(0, 0, 0)
-    doc.text("Families Attendance ", 105, 30, { align: "center" })
+    doc.text("Families Attendance ", 105, 50, { align: "center" })
 
     const familyRows = familyPerformance.map((f, i) => [
       (i + 1).toString(),
@@ -575,7 +578,7 @@ export default function SabbathSchoolDashboard() {
     ])
 
     autoTable(doc, {
-      startY: 35,
+      startY: 55,
       head: [['Rank', 'Family Name', ...weekDates, 'Average %']],
       body: familyRows,
       headStyles: { fillColor: [79, 70, 229] },

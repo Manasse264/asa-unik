@@ -12,6 +12,7 @@ import { YearSelector } from "@/components/year-selector"
 import { cn } from "@/lib/utils"
 import { jsPDF } from "jspdf"
 import autoTable from "jspdf-autotable"
+import { addReportLogo } from "@/lib/report-pdf"
 
 import { 
   getMembers, saveMember, deleteMember,
@@ -596,17 +597,18 @@ export default function SecretaryDashboard() {
   });
 
   // Updated function rendering the transaction view and category summary block in standard tables
-  const downloadReportPDF = (report: FinancialReport) => {
+  const downloadReportPDF = async (report: FinancialReport) => {
     const doc = new jsPDF();
+    await addReportLogo(doc)
     
     // Title Banner
     doc.setFont("helvetica", "bold");
     doc.setFontSize(15);
-    doc.text(report.title, 14, 20);
+    doc.text(report.title, 105, 38, { align: "center" });
     
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
-    doc.text(`Date Logged: ${report.date} | Published by: ${report.publishedBy}`, 14, 26);
+    doc.text(`Date Logged: ${report.date} | Published by: ${report.publishedBy}`, 105, 45, { align: "center" });
 
     // Formatted Transaction Data Table Row Array Mapping
     const txRows = report.transactions.map(tx => [
@@ -619,7 +621,7 @@ export default function SecretaryDashboard() {
 
     // 1. Core Transactions Table Block
     autoTable(doc, {
-      startY: 32,
+      startY: 51,
       head: [["Date", "Type", "Category", "Amount", "Description"]],
       body: txRows,
       theme: "grid",

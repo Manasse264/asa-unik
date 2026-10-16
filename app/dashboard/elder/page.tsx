@@ -50,6 +50,7 @@ import { YearSelector } from "@/components/year-selector"
 import { cn } from "@/lib/utils"
 import { jsPDF } from "jspdf"
 import autoTable from "jspdf-autotable"
+import { addReportLogo } from "@/lib/report-pdf"
 
 import { 
   getMembers, saveMember, deleteMember,
@@ -777,16 +778,17 @@ export default function ElderDashboardClient() {
     }
   }
 
-  const generateChoirPDF = () => {
+  const generateChoirPDF = async () => {
     const doc = new jsPDF()
-    doc.text("Weekly Choir Schedule", 14, 15)
+    await addReportLogo(doc)
+    doc.text("Weekly Choir Schedule", 105, 38, { align: "center" })
     
     const tableData = weeklyChoirs.map(c => [c.day, c.name])
     
     autoTable(doc, {
       head: [['Day', 'Choir Name']],
       body: tableData,
-      startY: 20,
+      startY: 44,
     })
     
     doc.save("weekly_choir_schedule.pdf")
