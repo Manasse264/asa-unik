@@ -340,15 +340,16 @@ export function FamilyAttendanceForm({
       )}
 
       {/* DOCUMENT BODY (EXACT FORMAT FROM D:\JACKSON DOC_100100.docx) */}
-      <div className="p-3 sm:p-8 space-y-5 sm:space-y-6 text-slate-800 font-sans">
+      <div className="relative isolate p-3 sm:p-8 text-slate-800 font-sans">
         <div aria-hidden="true" className="pointer-events-none fixed bottom-[4%] left-[4%] z-0 hidden print:block">
           <span
             className="block origin-bottom-left whitespace-nowrap text-7xl font-bold text-slate-400/20"
             style={{ transform: "rotate(-55deg) scaleX(2.8)" }}
           >
-            SDA CHURCH
+            SDA
           </span>
         </div>
+        <div className="relative z-10 space-y-5 sm:space-y-6">
         {/* Document Header */}
         <div className="border-b border-slate-300 pb-5 text-center space-y-1">
           <Image
@@ -560,6 +561,7 @@ export function FamilyAttendanceForm({
         <div className="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
           <p>ASA UNIK-RP NGOMA • Official Sabbath School Quarter Record Sheet</p>
           
+        </div>
         </div>
       </div>
     </div>

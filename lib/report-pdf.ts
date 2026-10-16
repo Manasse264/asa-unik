@@ -26,23 +26,25 @@ export async function addReportLogo(doc: jsPDF) {
 }
 
 export function addReportWatermark(doc: jsPDF) {
-  const pageCount = doc.getNumberOfPages()
-  const pageWidth = doc.internal.pageSize.getWidth()
-  const pageHeight = doc.internal.pageSize.getHeight()
-  const margin = 10
-  const horizontalRange = pageWidth - margin * 2
-  const verticalRange = pageHeight - margin * 2
-  const diagonalLength = Math.hypot(horizontalRange, verticalRange)
-  const watermarkText = "SDA CHURCH"
+  const drawWatermark = () => {
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const pageHeight = doc.internal.pageSize.getHeight()
+    const margin = 10
+    const horizontalRange = pageWidth - margin * 2
+    const verticalRange = pageHeight - margin * 2
+    const diagonalLength = Math.hypot(horizontalRange, verticalRange)
+    const watermarkText = "SDA"
 
-  doc.setFont("helvetica", "bold")
-  doc.setFontSize(88)
-  doc.setTextColor(226, 226, 226)
-  const horizontalScale = diagonalLength / doc.getTextWidth(watermarkText)
-  const angle = Math.atan2(verticalRange, horizontalRange) * 180 / Math.PI
-
-  for (let page = 1; page <= pageCount; page += 1) {
-    doc.setPage(page)
+    doc.saveGraphicsState()
+    doc.setFont("helvetica", "bold")
+    doc.setFontSize(88)
+    doc.setTextColor(226, 226, 226)
+    const horizontalScale = diagonalLength / doc.getTextWidth(watermarkText)
+    const angle = Math.atan2(verticalRange, horizontalRange) * 180 / Math.PI
     doc.text(watermarkText, margin, pageHeight - margin, { angle, horizontalScale })
+    doc.restoreGraphicsState()
   }
+
+  doc.internal.events.subscribe("addPage", drawWatermark)
+  drawWatermark()
 }

@@ -441,6 +441,7 @@ export default function TreasurerDashboard() {
   const exportToPDF = async () => {
     const doc = new jsPDF()
     const pageWidth = doc.internal.pageSize.getWidth()
+    addReportWatermark(doc)
     await addReportLogo(doc)
     
     doc.setFontSize(10)
@@ -508,7 +509,6 @@ export default function TreasurerDashboard() {
     doc.text(`General Total Expenses: ${formatRF(totalExpenses)}`, 14, currentY + 12)
     doc.setFont("helvetica", "normal")
 
-    addReportWatermark(doc)
     doc.save("church_report.pdf")
   }
 
@@ -531,6 +531,7 @@ export default function TreasurerDashboard() {
 
     const doc = new jsPDF()
     const pageWidth = doc.internal.pageSize.getWidth()
+    addReportWatermark(doc)
     await addReportLogo(doc)
     
     doc.setFontSize(10)
@@ -586,7 +587,6 @@ export default function TreasurerDashboard() {
     }
 
     const fileName = `Church_Report_${t.months[selectedMonth]}_${selectedYear}${selectedReportCategory !== "All" ? "_" + selectedReportCategory : ""}.pdf`
-    addReportWatermark(doc)
     doc.save(fileName)
 
     // Synchronize with Elder using runtime session variable

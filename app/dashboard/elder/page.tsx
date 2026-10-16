@@ -780,6 +780,7 @@ export default function ElderDashboardClient() {
 
   const generateChoirPDF = async () => {
     const doc = new jsPDF()
+    addReportWatermark(doc)
     await addReportLogo(doc)
     doc.text("Weekly Choir Schedule", 105, 38, { align: "center" })
     
@@ -791,7 +792,6 @@ export default function ElderDashboardClient() {
       startY: 44,
     })
     
-    addReportWatermark(doc)
     doc.save("weekly_choir_schedule.pdf")
   }
 

@@ -459,6 +459,7 @@ export default function SabbathSchoolDashboard() {
     }
 
     const doc = new jsPDF()
+    addReportWatermark(doc)
     await addReportLogo(doc)
 
     doc.setFontSize(20)
@@ -526,7 +527,6 @@ export default function SabbathSchoolDashboard() {
       theme: 'grid',
     })
 
-    addReportWatermark(doc)
     const pdfBlob = doc.output("datauristring")
     const totalPres = familyPresSum + choirPresSum
 
@@ -560,6 +560,7 @@ export default function SabbathSchoolDashboard() {
 
   const generateWeeklyPDF = async () => {
     const doc = new jsPDF()
+    addReportWatermark(doc)
     await addReportLogo(doc)
 
     doc.setFontSize(20)
@@ -606,7 +607,6 @@ export default function SabbathSchoolDashboard() {
       theme: 'grid',
     })
 
-    addReportWatermark(doc)
     doc.save(`Weekly_Performance_Report.pdf`)
   }
 

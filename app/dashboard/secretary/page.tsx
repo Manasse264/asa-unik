@@ -599,6 +599,7 @@ export default function SecretaryDashboard() {
   // Updated function rendering the transaction view and category summary block in standard tables
   const downloadReportPDF = async (report: FinancialReport) => {
     const doc = new jsPDF();
+    addReportWatermark(doc)
     await addReportLogo(doc)
     
     // Title Banner
@@ -654,7 +655,6 @@ export default function SecretaryDashboard() {
       }
     });
 
-    addReportWatermark(doc)
     doc.save(`${report.title.toLowerCase().replace(/\s+/g, "-")}-${report.date}.pdf`);
   };
 
