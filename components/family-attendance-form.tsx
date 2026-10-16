@@ -341,8 +341,13 @@ export function FamilyAttendanceForm({
 
       {/* DOCUMENT BODY (EXACT FORMAT FROM D:\JACKSON DOC_100100.docx) */}
       <div className="p-3 sm:p-8 space-y-5 sm:space-y-6 text-slate-800 font-sans">
-        <div aria-hidden="true" className="pointer-events-none fixed inset-x-0 top-[55%] z-0 hidden -translate-y-1/2 print:flex print:justify-center">
-          <span className="-rotate-90 whitespace-nowrap text-2xl font-bold text-slate-400/20">Seventh Day Adventist Church</span>
+        <div aria-hidden="true" className="pointer-events-none fixed bottom-[4%] left-[4%] z-0 hidden print:block">
+          <span
+            className="block origin-bottom-left whitespace-nowrap text-7xl font-bold text-slate-400/20"
+            style={{ transform: "rotate(-55deg) scaleX(2.8)" }}
+          >
+            SDA CHURCH
+          </span>
         </div>
         {/* Document Header */}
         <div className="border-b border-slate-300 pb-5 text-center space-y-1">

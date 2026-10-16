@@ -29,16 +29,20 @@ export function addReportWatermark(doc: jsPDF) {
   const pageCount = doc.getNumberOfPages()
   const pageWidth = doc.internal.pageSize.getWidth()
   const pageHeight = doc.internal.pageSize.getHeight()
-  const bodyTop = 48
-  const bodyBottom = pageHeight - 15
-  const bodyMiddle = (bodyTop + bodyBottom) / 2
+  const margin = 10
+  const horizontalRange = pageWidth - margin * 2
+  const verticalRange = pageHeight - margin * 2
+  const diagonalLength = Math.hypot(horizontalRange, verticalRange)
+  const watermarkText = "SDA CHURCH"
 
   doc.setFont("helvetica", "bold")
-  doc.setFontSize(26)
+  doc.setFontSize(88)
   doc.setTextColor(226, 226, 226)
+  const horizontalScale = diagonalLength / doc.getTextWidth(watermarkText)
+  const angle = Math.atan2(verticalRange, horizontalRange) * 180 / Math.PI
 
   for (let page = 1; page <= pageCount; page += 1) {
     doc.setPage(page)
-    doc.text("Seventh Day Adventist Church", pageWidth / 2, bodyMiddle, { align: "center", angle: 90 })
+    doc.text(watermarkText, margin, pageHeight - margin, { angle, horizontalScale })
   }
 }
