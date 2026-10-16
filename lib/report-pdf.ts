@@ -29,6 +29,9 @@ export function addReportWatermark(doc: jsPDF) {
   const pageCount = doc.getNumberOfPages()
   const pageWidth = doc.internal.pageSize.getWidth()
   const pageHeight = doc.internal.pageSize.getHeight()
+  const bodyTop = 48
+  const bodyBottom = pageHeight - 15
+  const bodyMiddle = (bodyTop + bodyBottom) / 2
 
   doc.setFont("helvetica", "bold")
   doc.setFontSize(26)
@@ -36,6 +39,6 @@ export function addReportWatermark(doc: jsPDF) {
 
   for (let page = 1; page <= pageCount; page += 1) {
     doc.setPage(page)
-    doc.text("Seventh Day Adventist Church", pageWidth / 2, pageHeight / 2, { align: "center" })
+    doc.text("Seventh Day Adventist Church", pageWidth / 2, bodyMiddle, { align: "center", angle: 90 })
   }
 }
