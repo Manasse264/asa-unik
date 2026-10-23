@@ -43,6 +43,7 @@ interface FamilyAttendanceFormProps {
   }
   members: FamilyMemberItem[]
   initialData?: AttendanceFormData | null
+  onQuarterChange?: (quarter: string) => void
   onSave: (data: AttendanceFormData, isPublish: boolean) => Promise<{ success: boolean; error?: string }>
   readOnly?: boolean
   isLeaderView?: boolean
@@ -67,6 +68,7 @@ export function FamilyAttendanceForm({
   family,
   members,
   initialData,
+  onQuarterChange,
   onSave,
   readOnly = false,
   isLeaderView = false,
@@ -87,7 +89,7 @@ export function FamilyAttendanceForm({
   // Update state when initialData changes
   React.useEffect(() => {
     if (initialData) {
-      setSelectedQuarter(initialData.id ? initialData.quarter : "")
+      if (initialData.id) setSelectedQuarter(initialData.quarter)
       setAttendanceGrid(initialData.attendanceGrid || {})
       setSummaryData(initialData.summaryData || {})
       setIsPublished(initialData.isPublished ?? false)
@@ -279,7 +281,15 @@ export function FamilyAttendanceForm({
             <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">Quarter:</span>
             <select
               value={selectedQuarter}
-              onChange={(event) => setSelectedQuarter(event.target.value)}
+              onChange={(event) => {
+                setSelectedQuarter(event.target.value)
+                setAttendanceGrid({})
+                setSummaryData({})
+                setIsPublished(false)
+                setPublishedAt(null)
+                setStatusFeedback(null)
+                onQuarterChange?.(event.target.value)
+              }}
               disabled={readOnly}
               aria-label="Select quarter"
               className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-50"

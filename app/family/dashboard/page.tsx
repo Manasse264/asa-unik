@@ -40,7 +40,7 @@ export default function FamilyDashboardPage() {
   const [familySession, setFamilySession] = React.useState<any>(null)
   const [familyData, setFamilyData] = React.useState<any>(null)
   const [members, setMembers] = React.useState<FamilyMemberItem[]>([])
-  const [selectedQuarter, setSelectedQuarter] = React.useState("Q1")
+  const [selectedQuarter, setSelectedQuarter] = React.useState("")
   const [attendanceData, setAttendanceData] = React.useState<AttendanceFormData | null>(null)
   const [loading, setLoading] = React.useState(true)
 
@@ -101,7 +101,11 @@ export default function FamilyDashboardPage() {
   // Reload attendance when quarter changes
   React.useEffect(() => {
     if (familySession?.id) {
-      loadAttendance(familySession.id, familySession.year, selectedQuarter)
+      if (selectedQuarter) {
+        loadAttendance(familySession.id, familySession.year, selectedQuarter)
+      } else {
+        setAttendanceData(null)
+      }
     }
   }, [selectedQuarter, familySession])
 
@@ -113,7 +117,7 @@ export default function FamilyDashboardPage() {
         setFamilyData(fam)
         setMembers(fam.members || [])
       }
-      await loadAttendance(familyId, year, quarter)
+      if (quarter) await loadAttendance(familyId, year, quarter)
     } catch (e) {
       console.error("Error loading family:", e)
     } finally {
@@ -475,6 +479,7 @@ export default function FamilyDashboardPage() {
                 }}
                 members={members}
                 initialData={attendanceData}
+                onQuarterChange={setSelectedQuarter}
                 onSave={handleSaveAttendance}
                 readOnly={false}
                 isLeaderView={false}
