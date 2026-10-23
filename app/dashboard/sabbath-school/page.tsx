@@ -837,7 +837,7 @@ export default function SabbathSchoolDashboard() {
     `${(memberCount > 0 ? (count / memberCount) * 100 : 0).toFixed(0)}%`
 
   const getAttendanceListStatusForSabbath = (familyItem: any) => {
-    if (!selectedSabbathForAttendanceLists) return "Select S"
+    if (!selectedSabbathForAttendanceLists) return ""
     const attendanceList = familyItem.attendanceList
     if (!attendanceList) return "Not Started"
 
@@ -1281,7 +1281,7 @@ export default function SabbathSchoolDashboard() {
                       onChange={(event) => setSelectedSabbathForAttendanceLists(event.target.value)}
                       className="rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
                     >
-                      <option value=""></option>
+                      <option value="">Select</option>
                       {Array.from({ length: 14 }, (_, index) => index + 1).map((sabbath) => (
                         <option key={sabbath} value={sabbath}>S{sabbath}</option>
                       ))}
@@ -1334,7 +1334,7 @@ export default function SabbathSchoolDashboard() {
                           <span className="inline-flex items-center gap-1 text-xs font-bold text-red-700">
                             <AlertCircle className="h-3.5 w-3.5" /> Edited
                           </span>
-                        ) : (
+                        ) : sabbathStatus ? (
                           <span className={cn(
                             "inline-flex items-center gap-1 text-xs font-semibold",
                             sabbathStatus === "Published" ? "text-emerald-700" : sabbathStatus === "Draft in Progress" ? "text-amber-700" : "text-muted-foreground"
@@ -1342,7 +1342,7 @@ export default function SabbathSchoolDashboard() {
                             {sabbathStatus === "Published" ? <CheckCircle2 className="h-3.5 w-3.5" /> : sabbathStatus === "Draft in Progress" ? <AlertCircle className="h-3.5 w-3.5" /> : null}
                             {sabbathStatus}
                           </span>
-                        )}
+                        ) : null}
                       </div>
                       <Button
                         size="sm"
@@ -1408,7 +1408,7 @@ export default function SabbathSchoolDashboard() {
                                   <AlertCircle className="h-3.5 w-3.5 text-red-700 dark:text-red-300" />
                                   <span>Edited</span>
                                 </span>
-                              ) : (
+                              ) : sabbathStatus ? (
                                 <span className={cn(
                                   "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold",
                                   sabbathStatus === "Published"
@@ -1421,7 +1421,7 @@ export default function SabbathSchoolDashboard() {
                                   {sabbathStatus === "Draft in Progress" && <AlertCircle className="w-3.5 h-3.5 text-amber-600" />}
                                   <span>{sabbathStatus}</span>
                                 </span>
-                              )}
+                              ) : null}
                             </td>
                             <td className="py-3.5 px-4 text-right">
                               <Button
