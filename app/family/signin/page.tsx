@@ -136,27 +136,20 @@ function FamilySigninForm() {
             <Home className="w-3.5 h-3.5 text-indigo-600" />
             Family Name
           </Label>
-          <div className="relative">
-            <Input
-              type="text"
-              list="family-suggestions"
-            
-              value={familyName}
-              onChange={(e) => setFamilyName(e.target.value)}
-              required
-              className="rounded-xl border-slate-200 py-2.5 text-sm"
-            />
-            <datalist id="family-suggestions">
-              {availableFamilies.map((f) => (
-                <option key={f.id} value={f.name} />
-              ))}
-            </datalist>
-          </div>
-          {availableFamilies.length > 0 && (
-            <div className="mt-1 flex flex-wrap gap-1">
-     
-            </div>
-          )}
+          <select
+            value={familyName}
+            onChange={(e) => setFamilyName(e.target.value)}
+            required
+            disabled={availableFamilies.length === 0}
+            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-800 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:cursor-not-allowed disabled:bg-slate-50"
+          >
+            <option value="" disabled>
+              {availableFamilies.length > 0 ? "Select your family name" : "No families available for this year"}
+            </option>
+            {availableFamilies.map((f) => (
+              <option key={f.id} value={f.name}>{f.name}</option>
+            ))}
+          </select>
         </div>
 
         {/* Password */}
