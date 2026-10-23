@@ -1228,27 +1228,23 @@ export default function SabbathSchoolDashboard() {
 
                 <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
                   {/* Quarter Selector */}
-                  <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-xl border">
-                    <span className="text-xs font-bold px-2 text-muted-foreground">Quarter:</span>
-                    {["Q1", "Q2", "Q3", "Q4"].map((q) => (
-                      <button
-                        key={q}
-                        type="button"
-                        onClick={() => {
-                          selectedQuarterForLeaderRef.current = q
-                          setSelectedQuarterForLeader(q)
-                          loadFamilyAttendanceOverview(q)
-                        }}
-                        className={cn(
-                          "px-3 py-1 text-xs font-bold rounded-lg transition-all",
-                          selectedQuarterForLeader === q
-                            ? "bg-primary text-primary-foreground shadow-xs"
-                            : "text-muted-foreground hover:bg-background"
-                        )}
-                      >
-                        {q}
-                      </button>
-                    ))}
+                  <div className="flex items-center gap-2 bg-muted/60 px-3 py-2 rounded-xl border">
+                    <label htmlFor="attendance-list-quarter" className="text-xs font-bold text-muted-foreground">Quarter:</label>
+                    <select
+                      id="attendance-list-quarter"
+                      value={selectedQuarterForLeader}
+                      onChange={(event) => {
+                        const quarter = event.target.value
+                        selectedQuarterForLeaderRef.current = quarter
+                        setSelectedQuarterForLeader(quarter)
+                        loadFamilyAttendanceOverview(quarter)
+                      }}
+                      className="rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    >
+                      {["Q1", "Q2", "Q3", "Q4"].map((quarter) => (
+                        <option key={quarter} value={quarter}>{quarter}</option>
+                      ))}
+                    </select>
                   </div>
 
                   {/* Search bar */}
