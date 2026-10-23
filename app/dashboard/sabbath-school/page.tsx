@@ -1281,7 +1281,7 @@ export default function SabbathSchoolDashboard() {
                       onChange={(event) => setSelectedSabbathForAttendanceLists(event.target.value)}
                       className="rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
                     >
-                      <option value="">Select S</option>
+                      <option value=""></option>
                       {Array.from({ length: 14 }, (_, index) => index + 1).map((sabbath) => (
                         <option key={sabbath} value={sabbath}>S{sabbath}</option>
                       ))}
