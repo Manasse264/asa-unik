@@ -202,6 +202,27 @@ export function FamilyAttendanceForm({
   }
 
   const handlePublish = async () => {
+    const manualIndicatorRows = SUMMARY_ROWS.filter((row) => !row.autoCalc)
+    const incompleteIndicators = WEEKS.flatMap((week) => {
+      const hasAttendanceForWeek = members.some((member) => Boolean(attendanceGrid[member.id]?.[week]))
+      if (!hasAttendanceForWeek) return []
+
+      return manualIndicatorRows
+        .filter((row) => {
+          const value = summaryData[row.key]?.[week]
+          return value === undefined || value === null || String(value).trim() === ""
+        })
+        .map((row) => `${row.label} (S${week})`)
+    })
+
+    if (incompleteIndicators.length > 0) {
+      setStatusFeedback({
+        type: "error",
+        message: `Please fill in all blank indicators before publishing: ${incompleteIndicators.join(", ")}.`,
+      })
+      return
+    }
+
     setPublishing(true)
     setStatusFeedback(null)
     try {
