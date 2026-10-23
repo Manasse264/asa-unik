@@ -144,7 +144,7 @@ function FamilySigninForm() {
             className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-800 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:cursor-not-allowed disabled:bg-slate-50"
           >
             <option value="" disabled>
-              {availableFamilies.length > 0 ? "Select family" : "No families available for this year"}
+              {availableFamilies.length > 0 ? "" : "No families available for this year"}
             </option>
             {availableFamilies.map((f) => (
               <option key={f.id} value={f.name}>{f.name}</option>
