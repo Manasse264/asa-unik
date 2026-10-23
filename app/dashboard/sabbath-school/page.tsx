@@ -1286,8 +1286,7 @@ export default function SabbathSchoolDashboard() {
                           {fam.memberCount} members
                         </span>
                       </div>
-                      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t pt-3">
-                        <span className="text-xs font-bold text-indigo-600">{selectedQuarterForLeader}</span>
+                      <div className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t pt-3">
                         {fam.isEdited ? (
                           <span className="inline-flex items-center gap-1 text-xs font-bold text-red-700">
                             <AlertCircle className="h-3.5 w-3.5" /> Edited
@@ -1329,7 +1328,6 @@ export default function SabbathSchoolDashboard() {
                       <th className="py-3.5 px-4">Family Name</th>
                       <th className="py-3.5 px-4">Leaders (Pere & Mere)</th>
                       <th className="py-3.5 px-4 text-center">Members</th>
-                      <th className="py-3.5 px-4 text-center">Quarter</th>
                       <th className="py-3.5 px-4 text-center">Published Status</th>
                       <th className="py-3.5 px-4 text-right">Action</th>
                     </tr>
@@ -1361,9 +1359,6 @@ export default function SabbathSchoolDashboard() {
                               <span className="inline-block bg-muted px-2.5 py-0.5 rounded-full font-bold">
                                 {fam.memberCount} members
                               </span>
-                            </td>
-                            <td className="py-3.5 px-4 text-center font-bold text-indigo-600">
-                              {selectedQuarterForLeader}
                             </td>
                             <td className="py-3.5 px-4 text-center">
                               {fam.isEdited ? (
@@ -1402,7 +1397,7 @@ export default function SabbathSchoolDashboard() {
                       })}
                     {familyAttendanceOverview.length === 0 && (
                       <tr>
-                        <td colSpan={7} className="py-12 text-center text-muted-foreground italic">
+                        <td colSpan={6} className="py-12 text-center text-muted-foreground italic">
                           No families found for the selected year.
                         </td>
                       </tr>
