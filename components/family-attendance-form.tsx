@@ -301,7 +301,7 @@ export function FamilyAttendanceForm({
             </select>
           </div>
 
-          {isPublished ? (
+          {selectedQuarter && (isPublished ? (
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold rounded-xl">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
               <span>Published {publishedAt ? `(${new Date(publishedAt).toLocaleDateString()})` : ""}</span>
@@ -311,13 +311,13 @@ export function FamilyAttendanceForm({
               <Info className="w-4 h-4 text-amber-600" />
               <span>Draft (Not Published Yet)</span>
             </div>
-          )}
+          ))}
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           
 
-          {!readOnly && (
+          {!readOnly && selectedQuarter && (
             <>
               <Button
                 type="button"
@@ -375,6 +375,8 @@ export function FamilyAttendanceForm({
         </div>
       )}
 
+      {selectedQuarter ? (
+      <>
       {/* DOCUMENT BODY (EXACT FORMAT FROM D:\JACKSON DOC_100100.docx) */}
       <div className="relative isolate p-3 sm:p-8 text-slate-800 font-sans">
         <div aria-hidden="true" className="pointer-events-none fixed bottom-[4%] left-[4%] z-0 hidden print:block">
@@ -600,6 +602,12 @@ export function FamilyAttendanceForm({
         </div>
         </div>
       </div>
+      </>
+      ) : (
+        <div className="p-8 text-center text-sm font-medium text-slate-500">
+          Select a quarter to view the attendance list.
+        </div>
+      )}
     </div>
   )
 }
