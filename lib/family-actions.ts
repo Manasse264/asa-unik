@@ -730,7 +730,6 @@ export async function getSabbathSchoolAttendanceOverview(year: string, quarter: 
 
     return families.map(f => {
       const attendance = f.attendanceLists[0] || null
-      const publishedAttendance = attendance?.isPublished ? attendance : null
       return {
         id: f.id,
         name: f.name,
@@ -738,10 +737,10 @@ export async function getSabbathSchoolAttendanceOverview(year: string, quarter: 
         mere: f.mere,
         memberCount: f.members.length,
         members: f.members,
-        attendanceList: publishedAttendance,
-        isPublished: Boolean(publishedAttendance),
+        attendanceList: attendance,
+        isPublished: Boolean(attendance?.isPublished),
         isEdited: false,
-        publishedAt: publishedAttendance?.publishedAt ?? null,
+        publishedAt: attendance?.publishedAt ?? null,
       }
     })
   } catch (error: any) {
