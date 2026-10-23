@@ -673,11 +673,11 @@ export async function saveAttendanceList(data: {
     const updateData: any = {
       attendanceGrid,
       summaryData,
-      isPublished,
       updatedAt: now,
     }
 
     if (isPublished) {
+      updateData.isPublished = true
       updateData.publishedAt = now
       if (publishedBy) updateData.publishedBy = publishedBy
     }
@@ -730,6 +730,7 @@ export async function getSabbathSchoolAttendanceOverview(year: string, quarter: 
 
     return families.map(f => {
       const attendance = f.attendanceLists[0] || null
+      const publishedAttendance = attendance?.isPublished ? attendance : null
       return {
         id: f.id,
         name: f.name,
@@ -737,10 +738,10 @@ export async function getSabbathSchoolAttendanceOverview(year: string, quarter: 
         mere: f.mere,
         memberCount: f.members.length,
         members: f.members,
-        attendanceList: attendance,
-        isPublished: attendance?.isPublished ?? false,
-        isEdited: Boolean(attendance?.publishedAt && !attendance.isPublished),
-        publishedAt: attendance?.publishedAt ?? null,
+        attendanceList: publishedAttendance,
+        isPublished: Boolean(publishedAttendance),
+        isEdited: false,
+        publishedAt: publishedAttendance?.publishedAt ?? null,
       }
     })
   } catch (error: any) {
