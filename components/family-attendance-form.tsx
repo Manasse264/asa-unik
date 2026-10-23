@@ -213,17 +213,17 @@ export function FamilyAttendanceForm({
     }
 
     const manualIndicatorRows = SUMMARY_ROWS.filter((row) => !row.autoCalc)
-    const incompleteIndicators = WEEKS.flatMap((week) => {
-      const hasAttendanceForWeek = members.some((member) => Boolean(attendanceGrid[member.id]?.[week]))
-      if (!hasAttendanceForWeek) return []
-
-      return manualIndicatorRows
-        .filter((row) => {
-          const value = summaryData[row.key]?.[week]
-          return value === undefined || value === null || String(value).trim() === ""
-        })
-        .map((row) => `${row.label} (S${week})`)
-    })
+    const currentWeek = [...WEEKS].reverse().find((week) =>
+      members.some((member) => Boolean(attendanceGrid[member.id]?.[week]))
+    )
+    const incompleteIndicators = currentWeek
+      ? manualIndicatorRows
+          .filter((row) => {
+            const value = summaryData[row.key]?.[currentWeek]
+            return value === undefined || value === null || String(value).trim() === ""
+          })
+          .map((row) => `${row.label} (S${currentWeek})`)
+      : []
 
     if (incompleteIndicators.length > 0) {
       setStatusFeedback({
