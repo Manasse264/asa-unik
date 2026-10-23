@@ -276,24 +276,19 @@ export function FamilyAttendanceForm({
       <div className="bg-slate-50 border-b border-slate-200 p-3 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 print:hidden">
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm">
-            <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">{selectedQuarter ? "Quarter:" : "Select Quarter:"}</span>
-            <div className="flex gap-1">
-              {QUARTERS.map((q) => (
-                <button
-                  type="button"
-                  key={q}
-                  onClick={() => setSelectedQuarter(q)}
-                  className={cn(
-                    "px-2.5 py-1 text-xs font-bold rounded-lg transition-all",
-                    selectedQuarter === q
-                      ? "bg-indigo-600 text-white shadow-sm"
-                      : "text-slate-600 hover:bg-slate-100"
-                  )}
-                >
-                  {q}
-                </button>
+            <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">Quarter:</span>
+            <select
+              value={selectedQuarter}
+              onChange={(event) => setSelectedQuarter(event.target.value)}
+              disabled={readOnly}
+              aria-label="Select quarter"
+              className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-50"
+            >
+              <option value="" disabled>Select Quarter</option>
+              {QUARTERS.map((quarter) => (
+                <option key={quarter} value={quarter}>{quarter}</option>
               ))}
-            </div>
+            </select>
           </div>
 
           {isPublished ? (
