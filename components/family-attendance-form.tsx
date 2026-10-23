@@ -71,7 +71,7 @@ export function FamilyAttendanceForm({
   readOnly = false,
   isLeaderView = false,
 }: FamilyAttendanceFormProps) {
-  const [selectedQuarter, setSelectedQuarter] = React.useState(initialData?.quarter || "Q1")
+  const [selectedQuarter, setSelectedQuarter] = React.useState(initialData?.id ? initialData.quarter : "")
   const [attendanceGrid, setAttendanceGrid] = React.useState<Record<string, Record<number, "P" | "A" | "S" | "">>>(
     initialData?.attendanceGrid || {}
   )
@@ -87,7 +87,7 @@ export function FamilyAttendanceForm({
   // Update state when initialData changes
   React.useEffect(() => {
     if (initialData) {
-      setSelectedQuarter(initialData.quarter || "Q1")
+      setSelectedQuarter(initialData.id ? initialData.quarter : "")
       setAttendanceGrid(initialData.attendanceGrid || {})
       setSummaryData(initialData.summaryData || {})
       setIsPublished(initialData.isPublished ?? false)
@@ -176,6 +176,11 @@ export function FamilyAttendanceForm({
   }
 
   const handleSaveDraft = async () => {
+    if (!selectedQuarter) {
+      setStatusFeedback({ type: "error", message: "Please select a quarter before saving the attendance list." })
+      return
+    }
+
     setSaving(true)
     setStatusFeedback(null)
     try {
@@ -202,6 +207,11 @@ export function FamilyAttendanceForm({
   }
 
   const handlePublish = async () => {
+    if (!selectedQuarter) {
+      setStatusFeedback({ type: "error", message: "Please select a quarter before publishing the attendance list." })
+      return
+    }
+
     const manualIndicatorRows = SUMMARY_ROWS.filter((row) => !row.autoCalc)
     const incompleteIndicators = WEEKS.flatMap((week) => {
       const hasAttendanceForWeek = members.some((member) => Boolean(attendanceGrid[member.id]?.[week]))
@@ -266,7 +276,7 @@ export function FamilyAttendanceForm({
       <div className="bg-slate-50 border-b border-slate-200 p-3 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 print:hidden">
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm">
-            <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">Quarter:</span>
+            <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">{selectedQuarter ? "Quarter:" : "Select Quarter:"}</span>
             <div className="flex gap-1">
               {QUARTERS.map((q) => (
                 <button
