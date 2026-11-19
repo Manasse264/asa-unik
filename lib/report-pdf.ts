@@ -20,8 +20,8 @@ export async function addReportLogo(doc: jsPDF) {
     reader.readAsDataURL(logoBlob)
   })
 
-  const logoWidth = 18
-  const logoHeight = 8.6
+  const logoWidth = 24
+  const logoHeight = 11.5
   const pageWidth = doc.internal.pageSize.getWidth()
   doc.addImage(logoData, "JPEG", (pageWidth - logoWidth) / 2, 3, logoWidth, logoHeight)
 }
