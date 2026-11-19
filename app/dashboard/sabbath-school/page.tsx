@@ -465,12 +465,12 @@ export default function SabbathSchoolDashboard() {
 
     doc.setFontSize(20)
     doc.setTextColor(79, 70, 229)
-    doc.text("ASA-UNIK Attendance Daily Report", 105, 26, { align: "center" })
+    doc.text("ASA-UNIK Attendance Daily Report", 105, 20, { align: "center" })
 
     doc.setFontSize(11)
     doc.setTextColor(0, 0, 0)
     doc.setFont("helvetica", "bold")
-    doc.text(`${t.dateLabel}: ${date}`, 196, 34, { align: "right" })
+    doc.text(`${t.dateLabel}: ${date}`, 196, 28, { align: "right" })
 
     let familyRegSum = 0
     let familyPresSum = 0
@@ -491,10 +491,10 @@ export default function SabbathSchoolDashboard() {
 
     doc.setFontSize(14)
     doc.setFont("helvetica", "bold")
-    doc.text("Families Attendance", 105, 56, { align: "center" })
+    doc.text("Families Attendance", 105, 38, { align: "center" })
 
     autoTable(doc, {
-      startY: 60,
+      startY: 42,
       head: [['Name', 'Registered Members', 'Present', 'Percentage']],
       body: [
         ...familyRows,
@@ -515,13 +515,13 @@ export default function SabbathSchoolDashboard() {
       return [c.name, present.toString()]
     })
 
-    const choirTitleY = (doc as any).lastAutoTable.finalY + 12
+    const choirTitleY = (doc as any).lastAutoTable.finalY + 8
     doc.setFontSize(14)
     doc.setFont("helvetica", "bold")
     doc.text("Choirs Attendance", 105, choirTitleY, { align: "center" })
 
     autoTable(doc, {
-      startY: choirTitleY + 4,
+      startY: choirTitleY + 3,
       head: [['Name', 'Present']],
       body: choirRows,
       headStyles: { fillColor: [79, 70, 229] },
@@ -566,12 +566,12 @@ export default function SabbathSchoolDashboard() {
 
     doc.setFontSize(20)
     doc.setTextColor(79, 70, 229)
-    doc.text("ASA-UNIK Attendance Weekly Report", 105, 26, { align: "center" })
+    doc.text("ASA-UNIK Attendance Weekly Report", 105, 20, { align: "center" })
 
     doc.setFontSize(14)
     doc.setFont("helvetica", "bold")
     doc.setTextColor(0, 0, 0)
-    doc.text("Families Attendance ", 105, 42, { align: "center" })
+    doc.text("Families Attendance ", 105, 34, { align: "center" })
 
     const familyRows = familyPerformance.map((f, i) => [
       (i + 1).toString(),
@@ -581,14 +581,14 @@ export default function SabbathSchoolDashboard() {
     ])
 
     autoTable(doc, {
-      startY: 55,
+      startY: 38,
       head: [['Rank', 'Family Name', ...weekDates, 'Average %']],
       body: familyRows,
       headStyles: { fillColor: [79, 70, 229] },
       theme: 'grid',
     })
 
-    const choirTitleY = (doc as any).lastAutoTable.finalY + 12
+    const choirTitleY = (doc as any).lastAutoTable.finalY + 8
     doc.setFontSize(14)
     doc.setFont("helvetica", "bold")
     doc.text("Choirs Attendance", 105, choirTitleY, { align: "center" })
@@ -601,7 +601,7 @@ export default function SabbathSchoolDashboard() {
     ])
 
     autoTable(doc, {
-      startY: choirTitleY + 5,
+      startY: choirTitleY + 3,
       head: [['Rank', 'Choir Name', ...weekDates, 'Average %']],
       body: choirRows,
       headStyles: { fillColor: [79, 70, 229] },
