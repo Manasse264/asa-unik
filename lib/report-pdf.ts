@@ -1,7 +1,7 @@
 import type { jsPDF } from "jspdf"
 
 export async function addReportLogo(doc: jsPDF) {
-  const response = await fetch("/logo2.jpg")
+  const response = await fetch("/logo2.jpeg")
   if (!response.ok) {
     throw new Error("Unable to load the Adventist logo")
   }
