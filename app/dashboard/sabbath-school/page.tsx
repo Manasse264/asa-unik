@@ -32,7 +32,7 @@ import { FamilyAttendanceForm, AttendanceFormData, FamilyMemberItem } from "@/co
 import { ArrowLeft, CheckCircle2, AlertCircle, Eye, FileSpreadsheet } from "lucide-react"
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
-import { addReportLogo, addReportWatermark } from "@/lib/report-pdf"
+import { addReportLogo } from "@/lib/report-pdf"
 
 const sslTranslations = {
   en: {
@@ -460,7 +460,6 @@ export default function SabbathSchoolDashboard() {
     }
 
     const doc = new jsPDF()
-    addReportWatermark(doc)
     await addReportLogo(doc)
 
     doc.setFontSize(20)
@@ -561,7 +560,6 @@ export default function SabbathSchoolDashboard() {
 
   const generateWeeklyPDF = async () => {
     const doc = new jsPDF()
-    addReportWatermark(doc)
     await addReportLogo(doc)
 
     doc.setFontSize(20)
