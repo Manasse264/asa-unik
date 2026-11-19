@@ -465,12 +465,12 @@ export default function SabbathSchoolDashboard() {
 
     doc.setFontSize(20)
     doc.setTextColor(79, 70, 229)
-    doc.text("ASA-UNIK Attendance Daily Report", 105, 38, { align: "center" })
+    doc.text("ASA-UNIK Attendance Daily Report", 105, 26, { align: "center" })
 
     doc.setFontSize(11)
     doc.setTextColor(0, 0, 0)
     doc.setFont("helvetica", "bold")
-    doc.text(`${t.dateLabel}: ${date}`, 196, 46, { align: "right" })
+    doc.text(`${t.dateLabel}: ${date}`, 196, 34, { align: "right" })
 
     let familyRegSum = 0
     let familyPresSum = 0
@@ -566,12 +566,12 @@ export default function SabbathSchoolDashboard() {
 
     doc.setFontSize(20)
     doc.setTextColor(79, 70, 229)
-    doc.text("ASA-UNIK Attendance Weekly Report", 105, 38, { align: "center" })
+    doc.text("ASA-UNIK Attendance Weekly Report", 105, 26, { align: "center" })
 
     doc.setFontSize(14)
     doc.setFont("helvetica", "bold")
     doc.setTextColor(0, 0, 0)
-    doc.text("Families Attendance ", 105, 50, { align: "center" })
+    doc.text("Families Attendance ", 105, 42, { align: "center" })
 
     const familyRows = familyPerformance.map((f, i) => [
       (i + 1).toString(),
