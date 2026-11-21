@@ -124,6 +124,33 @@ const getCurrentWeekdays = (date = new Date()) => {
   })
 }
 
+const addWideLowHeightReportLogo = async (doc: jsPDF) => {
+  const originalAddImage = doc.addImage.bind(doc)
+  ;(doc as any).addImage = (
+    imageData: any,
+    format: any,
+    _x: number,
+    _y: number,
+    _w?: number,
+    _h?: number,
+    alias?: any,
+    compression?: any,
+    rotation?: any
+  ) => {
+    const width = 92
+    const height = 14
+    const x = (doc.internal.pageSize.getWidth() - width) / 2
+    const y = 8
+    return originalAddImage(imageData, format, x, y, width, height, alias, compression, rotation)
+  }
+
+  try {
+    await addReportLogo(doc)
+  } finally {
+    ;(doc as any).addImage = originalAddImage
+  }
+}
+
 export default function SabbathSchoolDashboard() {
   const [lang, setLang] = React.useState<"en" | "rw" | "fr">("en")
   const [activeTab, setActiveTab] = React.useState<"families" | "choirs" | "attendance" | "attendance-lists" | "family-performance" | "reports" | "letters">("families")
@@ -460,19 +487,19 @@ export default function SabbathSchoolDashboard() {
     }
 
     const doc = new jsPDF()
-    await addReportLogo(doc)
+    await addWideLowHeightReportLogo(doc)
 
     doc.setFillColor(79, 70, 229)
-    doc.rect(14, 26, 182, 11, "F")
+    doc.rect(14, 30, 182, 11, "F")
     doc.setFontSize(16)
     doc.setFont("helvetica", "bold")
     doc.setTextColor(255, 255, 255)
-    doc.text("ASA-UNIK Attendance Daily Report", 105, 33.5, { align: "center" })
+    doc.text("ASA-UNIK Attendance Daily Report", 105, 37.5, { align: "center" })
 
     doc.setFontSize(11)
     doc.setTextColor(0, 0, 0)
     doc.setFont("helvetica", "bold")
-    doc.text(`${t.dateLabel}: ${date}`, 196, 44, { align: "right" })
+    doc.text(`${t.dateLabel}: ${date}`, 196, 48, { align: "right" })
 
     let familyRegSum = 0
     let familyPresSum = 0
@@ -493,10 +520,10 @@ export default function SabbathSchoolDashboard() {
 
     doc.setFontSize(14)
     doc.setFont("helvetica", "bold")
-    doc.text("Families Attendance", 105, 52, { align: "center" })
+    doc.text("Families Attendance", 105, 56, { align: "center" })
 
     autoTable(doc, {
-      startY: 56,
+      startY: 60,
       head: [['Name', 'Registered Members', 'Present', 'Percentage']],
       body: [
         ...familyRows,
@@ -563,19 +590,19 @@ export default function SabbathSchoolDashboard() {
 
   const generateWeeklyPDF = async () => {
     const doc = new jsPDF()
-    await addReportLogo(doc)
+    await addWideLowHeightReportLogo(doc)
 
     doc.setFillColor(79, 70, 229)
-    doc.rect(14, 26, 182, 11, "F")
+    doc.rect(14, 30, 182, 11, "F")
     doc.setFontSize(16)
     doc.setFont("helvetica", "bold")
     doc.setTextColor(255, 255, 255)
-    doc.text("ASA-UNIK Attendance Weekly Report", 105, 33.5, { align: "center" })
+    doc.text("ASA-UNIK Attendance Weekly Report", 105, 37.5, { align: "center" })
 
     doc.setFontSize(14)
     doc.setFont("helvetica", "bold")
     doc.setTextColor(0, 0, 0)
-    doc.text("Families Attendance ", 105, 46, { align: "center" })
+    doc.text("Families Attendance ", 105, 50, { align: "center" })
 
     const familyRows = familyPerformance.map((f, i) => [
       (i + 1).toString(),
@@ -585,7 +612,7 @@ export default function SabbathSchoolDashboard() {
     ])
 
     autoTable(doc, {
-      startY: 50,
+      startY: 54,
       head: [['Rank', 'Family Name', ...weekDates, 'Average %']],
       body: familyRows,
       headStyles: { fillColor: [79, 70, 229] },
