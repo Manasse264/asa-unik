@@ -462,14 +462,17 @@ export default function SabbathSchoolDashboard() {
     const doc = new jsPDF()
     await addReportLogo(doc)
 
-    doc.setFontSize(20)
-    doc.setTextColor(79, 70, 229)
-    doc.text("ASA-UNIK Attendance Daily Report", 105, 20, { align: "center" })
+    doc.setFillColor(79, 70, 229)
+    doc.rect(14, 26, 182, 11, "F")
+    doc.setFontSize(16)
+    doc.setFont("helvetica", "bold")
+    doc.setTextColor(255, 255, 255)
+    doc.text("ASA-UNIK Attendance Daily Report", 105, 33.5, { align: "center" })
 
     doc.setFontSize(11)
     doc.setTextColor(0, 0, 0)
     doc.setFont("helvetica", "bold")
-    doc.text(`${t.dateLabel}: ${date}`, 196, 28, { align: "right" })
+    doc.text(`${t.dateLabel}: ${date}`, 196, 44, { align: "right" })
 
     let familyRegSum = 0
     let familyPresSum = 0
@@ -490,10 +493,10 @@ export default function SabbathSchoolDashboard() {
 
     doc.setFontSize(14)
     doc.setFont("helvetica", "bold")
-    doc.text("Families Attendance", 105, 38, { align: "center" })
+    doc.text("Families Attendance", 105, 52, { align: "center" })
 
     autoTable(doc, {
-      startY: 42,
+      startY: 56,
       head: [['Name', 'Registered Members', 'Present', 'Percentage']],
       body: [
         ...familyRows,
@@ -562,14 +565,17 @@ export default function SabbathSchoolDashboard() {
     const doc = new jsPDF()
     await addReportLogo(doc)
 
-    doc.setFontSize(20)
-    doc.setTextColor(79, 70, 229)
-    doc.text("ASA-UNIK Attendance Weekly Report", 105, 20, { align: "center" })
+    doc.setFillColor(79, 70, 229)
+    doc.rect(14, 26, 182, 11, "F")
+    doc.setFontSize(16)
+    doc.setFont("helvetica", "bold")
+    doc.setTextColor(255, 255, 255)
+    doc.text("ASA-UNIK Attendance Weekly Report", 105, 33.5, { align: "center" })
 
     doc.setFontSize(14)
     doc.setFont("helvetica", "bold")
     doc.setTextColor(0, 0, 0)
-    doc.text("Families Attendance ", 105, 34, { align: "center" })
+    doc.text("Families Attendance ", 105, 46, { align: "center" })
 
     const familyRows = familyPerformance.map((f, i) => [
       (i + 1).toString(),
@@ -579,7 +585,7 @@ export default function SabbathSchoolDashboard() {
     ])
 
     autoTable(doc, {
-      startY: 38,
+      startY: 50,
       head: [['Rank', 'Family Name', ...weekDates, 'Average %']],
       body: familyRows,
       headStyles: { fillColor: [79, 70, 229] },
